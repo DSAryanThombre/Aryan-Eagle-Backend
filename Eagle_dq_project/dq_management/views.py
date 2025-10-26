@@ -1010,6 +1010,83 @@ def welcome(request):
     return JsonResponse({"message": "Welcome to the Django API Service!"})
 
 
+def test_group_flow_data_api(request, group_id):
+    """
+    API endpoint to return flow data for a test group.
+    Returns JSON with group info and ordered test cases with latest statuses.
+    """
+    if request.method != 'GET':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+    # Load group details
+    group_data = get_test_group_details_from_db(group_id)
+    if not group_data:
+        return JsonResponse({'error': 'Test group not found'}, status=404)
+
+    # Load ordered test cases for the group
+    test_cases = get_test_cases_in_group_from_db(group_id)
+    test_cases.sort(key=lambda x: x.get('execution_order', 999))
+
+    # Get latest TestGroupLog for the group
+    test_group_logs = get_test_group_logs_from_db()
+    group_status = 'NORUN'
+    for log in test_group_logs:
+        if log.get('test_group_id') == group_id:
+            group_status = log.get('status', 'NORUN')
+            break
+
+    # Build dict of latest TestCaseLog by test_case_id
+    test_case_logs = get_test_case_logs_from_db()
+    latest_case_logs = {}
+    for log in test_case_logs:
+        tc_id = log.get('test_case_id')
+        if tc_id:
+            if tc_id not in latest_case_logs:
+                latest_case_logs[tc_id] = log
+            else:
+                # Compare timestamps to get latest
+                current_ts = latest_case_logs[tc_id].get('run_timestamp')
+                new_ts = log.get('run_timestamp')
+                if new_ts and (not current_ts or new_ts > current_ts):
+                    latest_case_logs[tc_id] = log
+
+    # Build response data
+    group_info = {
+        'id': group_data.get('test_group_id'),
+        'name': group_data.get('group_name', 'Unknown Group'),
+        'status': group_status
+    }
+
+    tests = []
+    for case in test_cases:
+        tc_id = case.get('id')
+        if not tc_id:
+            continue
+        latest_log = latest_case_logs.get(tc_id)
+        status = latest_log.get('run_status', 'NORUN') if latest_log else 'NORUN'
+        test_info = {
+            'id': tc_id,
+            'name': case['meta']['name'],
+            'type': case['detail']['category'],
+            'order': case['execution_order'],
+            'status': status,
+        }
+        if latest_log:
+            test_info['run_message'] = latest_log.get('run_message', '')
+            test_info['possible_resolution'] = latest_log.get('possible_resolution', '')
+        else:
+            # If no log, use possible_resolution from test case
+            test_info['possible_resolution'] = case['detail'].get('possible_resolution', '')
+        tests.append(test_info)
+
+    response_data = {
+        'group': group_info,
+        'tests': tests
+    }
+
+    return JsonResponse(response_data)
+
+
 def test_group_flow(request, group_id):
     """
     Renders a visual flow diagram of test cases within a test group.

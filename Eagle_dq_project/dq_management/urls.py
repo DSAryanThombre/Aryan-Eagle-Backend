@@ -72,4 +72,7 @@ urlpatterns = [
 
     # Flow view for test group visualization
     path('test_groups/<str:group_id>/flow/', views.test_group_flow, name='test_group_flow'),
+
+    # API endpoint for test group flow data
+    path('api/test_groups/<str:group_id>/flow_data/', views.test_group_flow_data_api, name='test_group_flow_data_api'),
 ]

@@ -498,6 +498,7 @@ def get_test_cases_in_group_from_db(group_id):
                 "project_id": tc_data_orm.project_id,
                 "test_name": tc_data_orm.test_name,
                 "test_type": tc_data_orm.test_type,
+                "category": tc_data_orm.category,
                 "source_connection_source": tc_data_orm.source_connection_source,
                 "destination_connection_source": tc_data_orm.destination_connection_source,
                 "source_table": tc_data_orm.source_table,
@@ -522,6 +523,7 @@ def get_test_cases_in_group_from_db(group_id):
                 "created_by": tc_data_orm.created_by,
                 "created_at": tc_data_orm.created_at,
                 "updated_at": tc_data_orm.updated_at,
+                "possible_resolution": tc_data_orm.possible_resolution,
             }
             if not tc_data.get('custom_source_sql'):
                 tc_data['source_agg_type'] = tc_data.get('source_agg_type') or 'COUNT(*)'
