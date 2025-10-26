@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eagle DQ - {% if is_edit %}Edit{% else %}Create New{% endif %} Project</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="icon" href="{% static 'dq_management/images/eagle_logo_bg.png' %}" type="image/png" />
+    <style>
+        /* Base Styles for Background & Typography (Copied from Dashboard for consistency) */
+        body {
+            display: flex;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #fef7ed 0%, #fdf4ff 25%, #f0f9ff 50%, #f0fdfa 75%, #fefce8 100%);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            position: relative;
+            align-items: center;
+            /* Center content vertically */
+            justify-content: center;
+            /* Center content horizontally */
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                radial-gradient(circle at 20% 80%, rgba(251, 191, 36, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.06) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(139, 92, 246, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 60% 60%, rgba(236, 72, 153, 0.04) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .main-form-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(254, 252, 232, 0.5) 50%, rgba(240, 249, 255, 0.5) 100%);
+            backdrop-filter: blur(25px);
+            padding: 2.5rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(251, 191, 36, 0.2);
+            max-width: 600px;
+            width: 90%;
+            margin: 2rem auto;
+        }
+
+        .header-title {
+            background: linear-gradient(135deg, #1e293b 0%, #475569 50%, #0369a1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Form Styling */
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .form-input,
+        .form-textarea,
+        .form-select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            /* Smoother corners */
+            border: 1px solid #e2e8f0;
+            background-color: #f8fafc;
+            /* Light grey background */
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            color: #1e293b;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .form-input:focus,
+        .form-textarea:focus,
+        .form-select:focus {
+            border-color: #fbbf24;
+            /* Amber focus border */
+            ring: 4px;
+            ring-color: rgba(251, 191, 36, 0.1);
+            outline: none;
+            background-color: #ffffff;
+        }
+
+        /* Custom style for Django error list */
+        .errorlist {
+            list-style: none;
+            padding: 0;
+            margin-top: 0.25rem;
+            color: #dc2626;
+            /* Red error text */
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        /* Submit Button Style */
+        .submit-btn {
+            background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+
+        .submit-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);
+        }
+    </style>
+</head>
+
+<body class="text-slate-800">
+
+    <div class="main-form-card">
+        <div class="text-center mb-8">
+            <div class="flex items-center justify-center mb-4">
+                <i
+                    class="fas fa-feather-alt text-3xl bg-gradient-to-r from-amber-500 to-blue-500 bg-clip-text text-transparent mr-3"></i>
+                <h1 class="text-3xl font-bold header-title">
+                    {% if is_edit %}Edit Project{% else %}Create New Project{% endif %}
+                </h1>
+            </div>
+            <p class="text-slate-500">{% if is_edit %}Update your project details.{% else %}Define your new data quality management initiative.{% endif %}</p>
+        </div>
+
+        <a href="{% url 'projects_dashboard' %}"
+            class="inline-flex items-center text-sm font-medium text-slate-500 hover:text-slate-700 mb-6 transition-colors">
+            <i class="fas fa-chevron-left mr-2"></i>
+            Back to Projects
+        </a>
+
+        <form method="post" action="{% if is_edit %}{% url 'edit_project' project_id %}{% else %}{% url 'create_project' %}{% endif %}" class="space-y-6">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative" role="alert">
+                <strong class="font-bold">Error!</strong>
+                {{ form.non_field_errors }}
+            </div>
+            {% endif %}
+
+            <div class="form-group">
+                <label for="{{ form.project_name.id_for_label }}" class="form-label">
+                    Project Name <span class="text-red-500">*</span>
+                </label>
+                {{ form.project_name }}
+                {{ form.project_name.errors }}
+                <p class="text-xs text-slate-500 mt-1">
+                    A unique, descriptive name for your data quality project (e.g., 'Core Customer Data Validation').
+                </p>
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.project_description.id_for_label }}" class="form-label">
+                    Project Description (Optional)
+                </label>
+                {{ form.project_description }}
+                {{ form.project_description.errors }}
+                <p class="text-xs text-slate-500 mt-1">
+                    Detail the purpose, scope, and key data domains involved. (Max 1000 characters)
+                </p>
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.priority.id_for_label }}" class="form-label">
+                    Priority (Optional)
+                </label>
+                {{ form.priority }}
+                {{ form.priority.errors }}
+                <p class="text-xs text-slate-500 mt-1">
+                    Set an initial priority level for this project (e.g., P1, P2, P3).
+                </p>
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.criticality_level.id_for_label }}" class="form-label">
+                    Criticality Level <span class="text-red-500">*</span>
+                </label>
+                {{ form.criticality_level }}
+                {{ form.criticality_level.errors }}
+                <p class="text-xs text-slate-500 mt-1">
+                    Select the criticality level for this project. This field is required.
+                </p>
+            </div>
+
+            <div class="flex justify-end pt-4">
+                <button type="submit" class="submit-btn inline-flex items-center">
+                    <i class="fas fa-{% if is_edit %}edit{% else %}plus-circle{% endif %} mr-2"></i>
+                    {% if is_edit %}Update Project{% else %}Create Project{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+
+</body>
+
+</html>

@@ -1,0 +1,242 @@
+{% load static %}
+<style>
+    /* Sidebar-specific styles (kept self-contained for the include) */
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 280px;
+        height: 100vh;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(254, 252, 232, 0.9) 50%, rgba(240, 249, 255, 0.9) 100%);
+        backdrop-filter: blur(20px);
+        box-shadow: 2px 0 20px rgba(251, 191, 36, 0.1);
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex-shrink: 0;
+        transition: margin-left 0.3s ease;
+        z-index: 40;
+        border-right: 1px solid rgba(251, 191, 36, 0.1);
+    }
+
+    /* --- LOGO / TITLE AREA STYLES --- */
+    .logo-container {
+        /* Made bigger, adjusted margin */
+        margin-bottom: 2rem;
+        padding: 0.25rem;
+    }
+
+    /* ensure the logo image displays naturally and is larger */
+    .logo-container img {
+        /* Increased size */
+        width: 80px;
+        height: 80px;
+        object-fit: contain;
+        border-radius: 6px;
+        display: block;
+        margin: 0 auto;
+        /* Center the image */
+    }
+
+    .logo-title {
+        color: #1e293b;
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-top: 0.5rem;
+        text-align: center;
+    }
+
+    /* --------------------------------- */
+
+
+    /* nav link + full-size highlight ::before that matches link size */
+    .nav-link {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        padding: 1rem 1.25rem;
+        border-radius: 0.75rem;
+        color: #475569;
+        font-weight: 500;
+        transition: color 0.2s ease;
+        margin-bottom: 0.75rem;
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+        /* Indicate clickability */
+    }
+
+    /* full-size highlight, initially scaled to 0 */
+    .nav-link::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        /* cover full area */
+        background: rgba(251, 191, 36, 0.12);
+        /* subtle amber highlight */
+        border-radius: inherit;
+        transform: scaleX(0);
+        transform-origin: left center;
+        transition: transform 180ms ease;
+        z-index: -1;
+    }
+
+    /* on hover expand the highlight, but don't move the element */
+    .nav-link:hover::before {
+        transform: scaleX(1);
+    }
+
+    .nav-link:hover {
+        color: #1e293b;
+    }
+
+    /* keep icon scale on hover for a small effect */
+    .nav-link i {
+        margin-right: 1.25rem;
+        width: 20px;
+        text-align: center;
+        transition: transform 0.2s ease;
+    }
+
+    .nav-link:hover i {
+        transform: scale(1.05);
+    }
+
+    /* Active state */
+    .nav-link.active {
+        background: linear-gradient(135deg, rgba(251, 191, 36, 0.12) 0%, rgba(14, 165, 233, 0.08) 100%);
+        color: #1e293b;
+        font-weight: 700;
+        box-shadow: 0 4px 12px rgba(251, 191, 36, 0.12);
+        border: 1px solid rgba(251, 191, 36, 0.18);
+    }
+
+    /* --- DROPDOWN (Logo/Projects Menu) STYLES --- */
+    /* The main wrapper for the Projects/Logs dropdown */
+    .dropdown-wrapper {
+        width: 100%;
+        position: relative;
+    }
+
+    /* The submenu container (Logs links) */
+    .submenu {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+        opacity: 0;
+        margin-left: 0.5rem;
+        padding-left: 0.5rem;
+    }
+
+    .submenu a {
+        display: block;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        color: #475569;
+        /* Use custom property for transition delay on hover */
+        transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease var(--delay, 0s);
+    }
+
+    .submenu a:hover {
+        background: rgba(14, 165, 233, 0.06);
+        color: #1e293b;
+        transform: translateX(2px);
+    }
+
+    /* Class to show the dropdown (on hover of the dropdown-wrapper) */
+    .dropdown-wrapper:hover .submenu,
+    .dropdown-wrapper.active .submenu {
+        /* Keep open if a submenu item is active */
+        max-height: 200px;
+        /* Needs to be larger than the content height */
+        opacity: 1;
+    }
+
+    /* Rotate arrow on hover */
+    .dropdown-wrapper:hover .nav-link .fa-chevron-down {
+        transform: rotate(180deg);
+    }
+
+    /* Ensure the hover highlight and color applies to the 'Projects' link inside the wrapper */
+    .dropdown-wrapper:hover .nav-link {
+        color: #1e293b;
+    }
+
+    /* --------------------------------- */
+
+
+    /* Small footer text inside sidebar */
+    .sidebar .meta {
+        margin-top: auto;
+        width: 100%;
+        text-align: center;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(15, 23, 42, 0.03);
+        color: #64748b;
+        font-size: 12px;
+    }
+
+    /* Hidden class for cleanup (no longer used for the logo fallback) */
+    .hidden {
+        display: none !important;
+    }
+
+    /* Remove unused styles */
+    .toggle-btn-inline {
+        display: none !important;
+    }
+</style>
+
+<div id="sidebar" class="sidebar">
+    <div class="logo-container text-center">
+        <div style="display:flex;align-items:center;justify-content:center;margin-bottom:0.25rem;">
+            <img src="{% static 'images/eagle_logo_bg.png' %}" alt="Eagle DQ logo" />
+        </div>
+        <div class="logo-title">Eagle DQ</div>
+    </div>
+
+    <nav style="width:100%;">
+        <ul style="list-style:none;padding:0;margin:0;">
+
+            <li>
+                <a href="{% url 'dashboard' %}" class="nav-link">
+                    <i class="fas fa-chart-line"></i>
+                    Dashboard
+                </a>
+            </li>
+
+            <li class="dropdown-wrapper">
+                <a href="{% url 'projects_dashboard' %}" id="projects-dashboard-link" class="nav-link">
+                    <i class="fas fa-th-large"></i>
+                    Projects
+                    <!-- <i class="fas fa-chevron-down"
+                        style="margin-left:auto; opacity:0.6; transition: transform 0.2s ease;"></i> -->
+                </a>
+
+                <div id="projectsSubmenu" class="submenu" aria-hidden="true">
+                </div>
+            </li>
+
+            <li class="dropdown-wrapper">
+                <a href="{% url 'logs' %}?tab=case" id="logs-main-link" class="nav-link">
+                    <i class="fas fa-clipboard-list"></i>
+                    Logs
+                    <i class="fas fa-chevron-down"
+                        style="margin-left:auto; opacity:0.6; transition: transform 0.2s ease;"></i>
+                </a>
+
+                <div id="logsSubmenu" class="submenu" aria-hidden="true">
+                    <a href="{% url 'logs' %}?tab=case" style="--delay: 0.05s">Test Case Logs</a>
+                    <a href="{% url 'logs' %}?tab=group" style="--delay: 0.1s">Test Group Logs</a>
+                </div>
+            </li>
+
+        </ul>
+    </nav>
+
+    <div class="meta">
+        <p style="margin:0;">Eagle DQ v2.1</p>
+        <p style="margin:0;">Soaring with Data</p>
+    </div>
+</div>

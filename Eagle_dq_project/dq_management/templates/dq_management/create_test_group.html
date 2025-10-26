@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        {% if group_id %}Edit Test Group{% else %}Create Test Group{% endif %} for {{ project.project_name|default:"N/A"
+        }}
+    </title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Base Theme Styles */
+        body {
+            background: linear-gradient(135deg, #fef7ed 0%, #fdf4ff 25%, #f0f9ff 50%, #f0fdfa 75%, #fefce8 100%);
+            font-family: 'Inter', sans-serif;
+            color: #1e293b;
+            font-size: 0.95rem;
+            /* COMPACT: Base body font size reduction */
+        }
+
+        /* Colorful eagle-inspired background pattern */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                radial-gradient(circle at 20% 80%, rgba(251, 191, 36, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.06) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(139, 92, 246, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 60% 60%, rgba(236, 72, 153, 0.04) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Main Content Card Style */
+        .main-card {
+            max-width: 1600px;
+            /* NORMAL SIZE: Max width for laptop view */
+            margin: 40px auto;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(254, 252, 232, 0.3) 25%, rgba(240, 249, 255, 0.3) 75%, rgba(255, 255, 255, 0.9) 100%);
+            backdrop-filter: blur(20px);
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 32px rgba(251, 191, 36, 0.08);
+            border: 1px solid rgba(251, 191, 36, 0.1);
+            padding: 40px;
+        }
+
+        /* Sub-section Card Style */
+        .sub-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(254, 252, 232, 0.2) 25%, rgba(240, 249, 255, 0.2) 75%, rgba(255, 255, 255, 0.95) 100%);
+            backdrop-filter: blur(10px);
+            border-radius: 1rem;
+            border: 1px solid rgba(251, 191, 36, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        /* Header Title Gradient */
+        .header-title {
+            background: linear-gradient(135deg, #1e293b 0%, #475569 50%, #0369a1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 2rem;
+            /* NORMAL SIZE: Slightly reduced heading size */
+            font-weight: 700;
+        }
+
+        .section-heading {
+            color: #1e293b;
+            font-weight: 600;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+            font-size: 1.15rem;
+            /* NORMAL SIZE: Slightly reduced heading size */
+        }
+
+        /* Form Input Styling */
+        .form-label {
+            display: block;
+            margin-bottom: 4px;
+            /* COMPACT: Reduced margin below label */
+            font-weight: 600;
+            color: #475569;
+            font-size: 0.9rem;
+            /* NORMAL SIZE: Reduced label font size */
+        }
+
+        .form-input,
+        .form-textarea {
+            width: 100%;
+            padding: 8px 12px;
+            /* COMPACT: Reduced input padding */
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 0.9rem;
+            /* NORMAL SIZE: Reduced input font size */
+            color: #334155;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid #e2e8f0;
+        }
+
+        .form-textarea {
+            min-height: 70px;
+            /* COMPACT: Reduced textarea min-height */
+            resize: vertical;
+        }
+
+
+        .form-input:focus,
+        .form-textarea:focus {
+            border-color: #f59e0b;
+            /* Amber focus ring */
+            box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.3);
+            outline: none;
+            background: #fff;
+        }
+
+        .test-case-list-container {
+            border: 1px solid rgba(14, 165, 233, 0.2);
+            border-radius: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 16px;
+            background-color: rgba(240, 249, 255, 0.5);
+        }
+
+        .test-case-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 12px;
+            background-color: #ffffff;
+            padding: 12px 16px;
+            /* COMPACT: Reduced item padding */
+            border-radius: 10px;
+            border: 1px solid rgba(14, 165, 233, 0.05);
+            box-shadow: 0 2px 5px rgba(14, 165, 233, 0.1);
+            transition: all 0.2s ease;
+        }
+
+        .test-case-checkbox {
+            min-width: 18px;
+            /* COMPACT: Adjusted checkbox size */
+            min-height: 18px;
+            cursor: pointer;
+            accent-color: #f59e0b;
+            flex-shrink: 0;
+        }
+
+        .test-type-badge {
+            padding: 3px 8px;
+            /* COMPACT: Reduced badge padding */
+            font-size: 0.7rem;
+            /* NORMAL SIZE: Reduced badge font size */
+            font-weight: 600;
+            background-color: #e0f2fe;
+            color: #0369a1;
+            margin-left: 8px;
+            flex-shrink: 0;
+        }
+
+        /* --- Test Item Details Rework --- */
+        .item-details-grid {
+            flex-grow: 1;
+            gap: 4px 16px;
+            font-size: 0.8rem;
+            /* NORMAL SIZE: Reduced details font size */
+            color: #475569;
+            display: block;
+        }
+
+        .item-details-grid .title {
+            font-size: 0.95rem;
+            /* NORMAL SIZE: Reduced title font size */
+            font-weight: 700;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .item-details-grid .data-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px 16px;
+        }
+
+        .execution-order-input {
+            width: 60px;
+            /* COMPACT: Reduced input width */
+            padding: 5px 8px;
+            /* COMPACT: Reduced input padding */
+            border-radius: 6px;
+            text-align: center;
+            font-size: 0.9rem;
+            /* NORMAL SIZE: Reduced input font size */
+            color: #334155;
+            flex-shrink: 0;
+            background: #f8fafc;
+        }
+
+        /* Button Styling - Primary (Create/Update) */
+        .btn-primary {
+            padding: 10px 20px;
+            /* COMPACT: Reduced button padding */
+            font-size: 0.95rem;
+            /* NORMAL SIZE: Reduced button font size */
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            background: linear-gradient(45deg, #0ea5e9 0%, #1e40af 100%);
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(14, 165, 233, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(45deg, #38bdf8 0%, #1e3a8a 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(14, 165, 233, 0.4);
+        }
+
+        /* Button Styling - Secondary (Cancel) */
+        .btn-secondary {
+            padding: 10px 20px;
+            /* COMPACT: Reduced button padding */
+            font-size: 0.95rem;
+            /* NORMAL SIZE: Reduced button font size */
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(254, 252, 232, 0.8) 100%);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(251, 191, 36, 0.2);
+            color: #475569;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(251, 191, 36, 0.1);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 1);
+            color: #1e293b;
+            box-shadow: 0 4px 8px rgba(251, 191, 36, 0.2);
+            transform: translateY(-1px);
+        }
+
+        /* Responsive adjustments for button group */
+        @media (max-width: 768px) {
+            .main-card {
+                margin: 20px;
+                padding: 24px;
+            }
+
+            .button-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .btn-primary,
+            .btn-secondary {
+                width: 100%;
+                margin-bottom: 12px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main-card">
+        <p class="mb-6">
+            <a href="{% url 'project_details' project.project_id %}"
+                class="text-blue-600 hover:text-amber-500 transition-colors font-medium flex items-center"
+                aria-label="Back to Project Details">
+                <i class="fas fa-arrow-left mr-2"></i>
+                Back to Projects
+            </a>
+        </p>
+
+        <div class="flex items-center justify-center mb-8">
+            <i
+                class="fas fa-feather-alt text-3xl bg-gradient-to-r from-amber-500 to-blue-500 bg-clip-text text-transparent mr-3"></i>
+            <h1 class="header-title text-center">
+                {% if group_id %}
+                Edit Test Group
+                {% else %}
+                Create Test Group
+                {% endif %}
+                for {{ project.project_name|default:"N/A" }}
+            </h1>
+        </div>
+
+        {% if messages %}
+        <ul class="mb-8 space-y-3">
+            {% for message in messages %}
+            <div class="p-4 rounded-xl text-sm font-medium
+                {% if 'success' in message.tags %}message-success
+                {% elif 'error' in message.tags %}message-error
+                {% else %}message-info{% endif %}">
+                <div class="flex items-center">
+                    {% if 'success' in message.tags %}
+                    <i class="fas fa-check-circle mr-2"></i>
+                    {% elif 'error' in message.tags %}
+                    <i class="fas fa-exclamation-circle mr-2"></i>
+                    {% else %}
+                    <i class="fas fa-info-circle mr-2"></i>
+                    {% endif %}
+                    {{ message }}
+                </div>
+            </div>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        <form method="POST"
+            action="{% if group_id %}{% url 'edit_test_group' group_id %}{% else %}{% url 'create_test_group' project.project_id %}{% endif %}">
+            {% csrf_token %}
+
+            <div class="sub-card p-6 mb-8">
+                <h2 class="section-heading border-b-2 border-amber-100">
+                    <i class="fas fa-cogs text-amber-500 mr-2"></i>Group Details
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                    <div class="mb-0">
+                        <label for="group_name" class="form-label">Test Group Name:</label>
+                        <input type="text" id="group_name" name="group_name" class="form-input" required
+                            value="{% if group_name_prefill %}{{ group_name_prefill }}{% elif group_data %}{{ group_data.group_name|default:'' }}{% endif %}">
+                    </div>
+
+                    <div class="mb-0">
+                        <label for="created_by" class="form-label">Created By:</label>
+                        <input type="text" id="created_by" name="created_by" class="form-input" required
+                            placeholder="Your Name"
+                            value="{% if created_by_prefill %}{{ created_by_prefill }}{% elif group_data %}{{ group_data.created_by|default:'' }}{% endif %}">
+                    </div>
+                </div>
+                <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                    <div class="mt-4 mb-0">
+                        <label for="group_description" class="form-label">Group Description:</label>
+                        <textarea id="group_description" name="group_description" rows="2" class="form-textarea"
+                            placeholder="Enter a description for this test group.">{% if group_description_prefill %}{{ group_description_prefill }}{% elif group_data %}{{ group_data.group_description|default:'' }}{% endif %}</textarea>
+                    </div>
+
+                    <div class="mt-4 mb-0">
+                        <label for="schedule_cron" class="form-label">Schedule Cron (optional):</label>
+                        <input type="text" id="schedule_cron" name="schedule_cron" class="form-input"
+                            placeholder="e.g., 0 8 * * * (daily at 8 AM UTC)"
+                            value="{% if schedule_cron_prefill %}{{ schedule_cron_prefill }}{% elif group_data %}{{ group_data.schedule_cron|default:'' }}{% endif %}">
+                    </div>
+                </div>
+            </div>
+
+            <div class="sub-card p-6 mb-8">
+                <h2 class="section-heading border-b-2 border-blue-100">
+                    <i class="fas fa-list-ol text-blue-500 mr-2"></i>Select Test Cases and Order
+                </h2>
+
+                <div class="mb-4 message-info p-3 rounded-lg text-sm">
+                    <i class="fas fa-info-circle mr-2"></i>Check a test case to include it in this group, then set its
+                    execution order (lower number runs first).
+                </div>
+
+                <div class="mb-4 relative">
+                    <input type="text" id="test_case_search" onkeyup="filterTestCases()"
+                        placeholder="Search test cases by name..." class="form-input pl-10" />
+                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
+                </div>
+
+
+                <div class="test-case-list-container">
+                    {% for tc in available_test_cases %}
+                    <div class="test-case-item" data-test-case-id="{{ tc.test_case_id }}">
+                        <input type="checkbox" id="tc_{{ tc.test_case_id }}" name="test_case_checkboxes"
+                            value="{{ tc.test_case_id }}" onchange="updateSelectedTests()" class="test-case-checkbox">
+
+                        <div class="item-details-grid">
+                            <div class="title">
+                                <span>{{ tc.test_name }}</span>
+                                <span class="test-type-badge ml-3">
+                                    {{ tc.test_type|default:"N/A" }}
+                                </span>
+                            </div>
+
+                            <div class="data-container">
+                                <div class="data-point">
+                                    <span class="label">Source:</span>
+                                    <span class="value">{{ tc.source_table|default:"Custom SQL" }}</span>
+                                </div>
+                                <div class="data-point">
+                                    <span class="label">Destination:</span>
+                                    <span class="value">{{ tc.destination_table|default:"Custom SQL" }}</span>
+                                </div>
+
+                                <div class="data-point">
+                                    <span class="label">Aggregation:</span>
+                                    <span class="value">
+                                        {% if tc.source_agg_type %}
+                                        {{ tc.source_agg_type }}
+                                        {% if tc.source_agg_type != "COUNT(*)" and tc.source_agg_column %}
+                                        ({{ tc.source_agg_column }})
+                                        {% endif %}
+                                        {% else %}
+                                        N/A
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                <div class="data-point">
+                                    <span class="label">Updated:</span>
+                                    <span class="value">{{ tc.updated_at|default:"N/A" }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col items-center flex-shrink-0">
+                            <label class="text-xs font-medium text-slate-600 mb-1">Order</label>
+                            <input type="number" class="execution-order-input" min="1" onchange="updateSelectedTests()"
+                                data-test-case-id="{{ tc.test_case_id }}">
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <input type="hidden" id="selected_test_cases_data" name="selected_test_cases">
+            </div>
+
+            <div class="button-group">
+                <a href="{% url 'project_details' project.project_id %}" class="btn-secondary">
+                    <i class="fas fa-times-circle mr-2"></i>Cancel
+                </a>
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-save mr-2"></i>{% if group_id %}Update Test Group{% else %}Create Test Group {% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Data passed from Django context for pre-filling selected test cases and their order
+        const initialSelectedTestCasesData = JSON.parse('{{ selected_test_cases_data|safe|default:"[]"|escapejs }}');
+        // Map: {test_case_id: execution_order}
+        const initialSelectedTestCasesMap = new Map(initialSelectedTestCasesData.map(item => [item.detail.test_case_id, item.execution_order]));
+
+        function updateSelectedTests() {
+            const selectedData = [];
+            const checkboxes = document.querySelectorAll('.test-case-item input[type="checkbox"]');
+
+            checkboxes.forEach(checkbox => {
+                const itemContainer = checkbox.closest('.test-case-item');
+                const orderInput = itemContainer.querySelector('.execution-order-input');
+                const testCaseId = checkbox.value;
+
+                if (checkbox.checked) {
+                    let orderValue = parseInt(orderInput.value);
+
+                    // If the checkbox is checked but order is empty/invalid, default to 1
+                    if (isNaN(orderValue) || orderValue < 1) {
+                        orderValue = 1;
+                        orderInput.value = orderValue; // Set the visible input
+                    }
+
+                    selectedData.push({
+                        test_case_id: testCaseId,
+                        execution_order: orderValue
+                    });
+                } else {
+                    // If unchecked, ensure the order input is cleared
+                    orderInput.value = '';
+                }
+            });
+
+            // Sort selectedData by execution_order before stringifying
+            selectedData.sort((a, b) => a.execution_order - b.execution_order);
+            document.getElementById('selected_test_cases_data').value = JSON.stringify(selectedData);
+        }
+
+        // Function to initialize form fields based on pre-filled data
+        function initializeForm() {
+            const checkboxes = document.querySelectorAll('.test-case-item input[type="checkbox"]');
+
+            checkboxes.forEach(checkbox => {
+                const testCaseId = checkbox.value;
+                const itemContainer = checkbox.closest('.test-case-item');
+                const orderInput = itemContainer.querySelector('.execution-order-input');
+
+                if (initialSelectedTestCasesMap.has(testCaseId)) {
+                    checkbox.checked = true;
+                    orderInput.value = initialSelectedTestCasesMap.get(testCaseId);
+                } else {
+                    checkbox.checked = false;
+                    orderInput.value = ''; // Ensure it's empty if not selected
+                }
+            });
+            updateSelectedTests(); // Call once to set the hidden field initially
+        }
+
+        // Function to filter test cases based on search input
+        function filterTestCases() {
+            const input = document.getElementById('test_case_search');
+            const filter = input.value.toUpperCase();
+            const items = document.querySelectorAll('.test-case-item');
+
+            items.forEach(item => {
+                const titleElement = item.querySelector('.item-details-grid .title span:first-child');
+                if (titleElement) {
+                    const textValue = titleElement.textContent || titleElement.innerText;
+                    if (textValue.toUpperCase().indexOf(filter) > -1) {
+                        item.style.display = "flex";
+                    } else {
+                        item.style.display = "none";
+                    }
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', initializeForm);
+
+        // Attach event listeners to all order inputs
+        document.querySelectorAll('.execution-order-input').forEach(input => {
+            input.addEventListener('change', updateSelectedTests);
+            input.addEventListener('keyup', updateSelectedTests);
+        });
+    </script>
+</body>
+
+</html>

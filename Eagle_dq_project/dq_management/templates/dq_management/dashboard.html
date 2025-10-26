@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Eagle DQ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="icon" href="{% static 'dq_management/images/eagle_logo_bg.png' %}" type="image/png" />
+    <style>
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #f59e0b;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        .thin-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .thin-scroll::-webkit-scrollbar-thumb {
+            background-color: rgba(148, 163, 184, 0.5);
+            border-radius: 9999px;
+        }
+        .thin-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        /* Firefox */
+        .thin-scroll {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(148,163,184,0.5) transparent;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 text-gray-900">
+    {% csrf_token %}
+
+    {% include 'dq_management/includes/sidebar.html' %}
+
+    <button id="sidebarToggleBtn"
+        class="fixed bottom-6 left-6 z-50 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-3 shadow-lg focus:outline-none transition-all duration-300 flex items-center justify-center"
+        style="width: 48px; height: 48px;">
+        <span id="sidebarToggleIcon" style="font-size: 1.25rem;">
+            <i class="fas fa-chevron-left"></i>
+        </span>
+    </button>
+
+    <div id="mainContent" class="transition-all duration-300 ml-72 p-8">
+        <main class="max-w-7xl mx-auto">
+            <!-- Key Metrics Cards -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <!-- Test Result Summary Chart -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-xl font-semibold mb-2 flex items-center">
+                        <i class="fas fa-chart-pie text-blue-600 mr-2"></i>
+                        Test Result Summary
+                    </h3>
+                    <div class="flex items-center gap-2 mb-3">
+                        <p id="summaryTotals" class="text-sm text-gray-600"></p>
+                        <button id="refreshChartsBtn" class="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded border border-blue-200 hover:bg-blue-200">Refresh</button>
+                    </div>
+                    <div class="chart-container mb-4">
+                        <canvas id="testResultsChart"></canvas>
+                    </div>
+
+                    <!-- Simple Bar Chart with Toggle -->
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-sm text-gray-600">Show:</span>
+                        <button id="showFailedBtn" class="px-2 py-1 text-xs bg-red-100 text-red-700 rounded border border-red-200 active:bg-red-600 active:text-white">Failed</button>
+                        <button id="showPassedBtn" class="px-2 py-1 text-xs bg-green-100 text-green-700 rounded border border-green-200 active:bg-green-600 active:text-white">Passed</button>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="criticalityBarChart" height="180"></canvas>
+                    </div>
+                </div>
+
+                <!-- All Projects -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-xl font-semibold mb-2 flex items-center">
+                        <i class="fas fa-project-diagram text-blue-600 mr-2"></i>
+                        All Projects
+                    </h3>
+                    <div class="flex items-center gap-2 mb-3">
+                        <button id="toggleProjects" class="px-2 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded">Collapse</button>
+                        <span id="projectsCount" class="text-sm text-gray-600"></span>
+                    </div>
+                    <div class="flex gap-2 mb-3">
+                        <select id="priorityFilter" class="w-1/3 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="all">All Criticalities</option>
+                            <option value="Critical">Critical</option>
+                            <option value="High">High</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Low">Low</option>
+                            <option value="Occasional">Occasional</option>
+                        </select>
+                        <select id="statusFilter" class="w-1/3 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="all">All</option>
+                            <option value="PASSED">Passed</option>
+                            <option value="FAILED">Failed</option>
+                            <option value="NORUN">No Runs</option>
+                        </select>
+                        <input id="projectSearch" type="text" placeholder="Search projects..." class="w-1/3 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                        <button id="clearFiltersBtn" class="px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded-md text-sm">Clear All</button>
+                    </div>
+                    <div class="space-y-3 thin-scroll" style="max-height: 420px; overflow-y: auto;" id="projectsList">
+                        <!-- Skeleton Loader -->
+                        <div id="projectsSkeleton" class="space-y-3">
+                            {% for i in "123456789" %}
+                                <div class="flex justify-between items-center p-4 rounded-lg border border-gray-200 bg-gray-100 animate-pulse">
+                                    <div class="flex-1">
+                                        <div class="h-4 bg-gray-300 rounded w-3/4 mb-2"></div>
+                                        <div class="h-3 bg-gray-300 rounded w-1/2 mb-1"></div>
+                                        <div class="h-3 bg-gray-300 rounded w-2/3"></div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="h-5 bg-gray-300 rounded w-16 mb-1"></div>
+                                        <div class="h-4 bg-gray-300 rounded w-12"></div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <!-- Actual Projects List -->
+                        <div id="projectsContent" class="space-y-3" style="display: none;">
+                            {% for project in all_projects_summarized %}
+                                <div class="project-item flex justify-between items-center p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors
+                                    {% if project.overall_status == 'FAILED' %}bg-red-50{% elif project.overall_status == 'PASSED' %}bg-green-50{% else %}bg-white{% endif %}"
+                                    data-priority="{{ project.priority }}" data-status="{{ project.overall_status }}" data-name="{{ project.project_name|lower }}">
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800">{{ project.project_name }}</h4>
+                                        <p class="text-sm text-gray-600">{{ project.project_description|truncatechars:50 }}</p>
+                                        <p class="text-xs text-gray-500 mt-1">
+                                            {% if project.overall_status == 'NORUN' %}
+                                                No runs yet
+                                            {% else %}
+                                                Runs: {{ project.total_run_groups }} • Passed: {{ project.passed_test_groups }} • Failed: {{ project.failed_test_groups }}
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full priority-{{ project.priority|lower }} bg-gray-100 text-gray-800">{{ project.priority }}</span>
+                                        <p class="text-sm font-medium mt-1
+                                            {% if project.overall_status == 'FAILED' %}text-red-600{% elif project.overall_status == 'PASSED' %}text-green-600{% else %}text-gray-600{% endif %}">
+                                            {{ project.overall_status }}
+                                        </p>
+                                        <a href="{% url 'flow_view' project.project_id %}" class="text-blue-600 hover:text-blue-900 text-xs mt-1 inline-block">
+                                            <i class="fas fa-eye"></i> View Flow
+                                        </a>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                            {% if not all_projects_summarized %}
+                                <p class="text-gray-500 text-center py-4">No projects found</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Alerts & Logs Table -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-xl font-semibold mb-4 flex items-center">
+                    <i class="fas fa-exclamation-triangle text-yellow-600 mr-2"></i>
+                    Recent Alerts & Logs
+                </h3>
+                <div class="thin-scroll" style="max-height: 420px; overflow-y: auto;">
+                    <table class="w-full table-auto">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Group Name</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Criticality</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Time</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rerun</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200" id="logsTableBody">
+                            {% for log in test_group_logs %}
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{{ log.group_name|default:"N/A" }}</td>
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{{ log.project_name|default:"N/A" }}</td>
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{{ log.criticality|default:"N/A" }}</td>
+                                    <td class="px-4 py-4 whitespace-nowrap">
+                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full status-{{ log.status|lower }} bg-green-100 text-green-800">{{ log.status }}</span>
+                                    </td>
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {% if log.start_timestamp %}{{ log.start_timestamp|date:"M d, Y H:i" }}{% else %}N/A{% endif %}
+                                    </td>
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm font-medium rerun-btn text-green-600 hover:text-green-900" data-group-id="{{ log.test_group_id }}" data-group-name="{{ log.group_name|default:'N/A' }}" style="cursor: pointer;">
+                                        <i class="fas fa-play"></i> Rerun
+                                    </td>
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
+                                        <a href="{% url 'test_group_flow' log.test_group_id %}" class="text-blue-600 hover:text-blue-900">
+                                            <i class="fas fa-eye"></i> View Flow
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Pagination -->
+                <div class="flex items-center justify-between mt-4">
+                    <div class="text-sm text-gray-700">
+                        Showing <span id="startIndex">1</span> to <span id="endIndex">{{ test_group_logs|length }}</span> of {{ test_group_logs|length }} entries
+                    </div>
+                    <div class="flex space-x-1">
+                        <button id="prevPage" class="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 rounded disabled:opacity-50" disabled>Previous</button>
+                        <button id="nextPage" class="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 rounded disabled:opacity-50" disabled>Next</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal for Details -->
+    <div id="detailsModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">Test Group Run Details</h3>
+                    <button id="closeModal" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div id="modalContent" class="text-sm text-gray-500">
+                    <!-- Content will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="groupRunModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal" role="dialog"
+        aria-modal="true" aria-labelledby="groupModalTitle">
+        <div class="fixed inset-0 bg-gray-900 bg-opacity-50 modal-overlay"></div>
+        <div
+            class="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-auto p-6 relative modal-content transform transition-all">
+            <div class="flex justify-between items-center pb-3 border-b border-gray-200">
+                <h3 class="text-xl font-semibold text-gray-800" id="groupModalTitle">Group Run Status</h3>
+                <button type="button" class="text-gray-400 hover:text-gray-500" onclick="closeGroupModal()">
+                    <span class="sr-only">Close</span>
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="py-4 text-gray-700">
+                <div id="groupRunLoading" class="flex flex-col items-center justify-center text-center py-8">
+                    <div class="spinner mb-4"></div>
+                    <h4 class="text-lg font-medium text-gray-800 mb-2" id="groupRunMessage">Starting test group...
+                    </h4>
+                    <p class="text-sm text-gray-500 mb-4">This might take a while depending on the number of tests.
+                    </p>
+
+                    <div class="w-full bg-gray-200 rounded-full h-2.5 mb-4">
+                        <div id="progressBar" class="bg-amber-600 h-2.5 rounded-full" style="width: 0%"></div>
+                    </div>
+
+                    <p id="groupRunProgress" class="text-sm text-gray-700 mb-2">Executing 0 of 0 test cases.</p>
+                    <p id="currentTestName" class="text-sm text-gray-500 italic">Current test: N/A</p>
+                </div>
+                <div id="groupRunResults" class="hidden text-left">
+                    <h4 class="font-semibold mt-4 mb-2 border-b pb-1 text-gray-800">Final Results</h4>
+                    <p class="mb-2"><strong>Overall Status:</strong> <span id="finalGroupStatus"
+                            class="px-2 py-1 rounded-full text-sm font-semibold"></span></p>
+                    <p class="mb-2"><strong>Total Tests:</strong> <span id="finalTotalTests"></span></p>
+                    <p class="mb-2"><strong>Failed Tests:</strong> <span id="finalFailedTests"></span></p>
+
+                    <div id="failedTestsList" class="mt-4 hidden">
+                        <h5 class="font-semibold text-red-700">Failed Test Cases:</h5>
+                        <ul id="failedTestsUl" class="list-disc pl-5 mt-2 text-sm text-gray-700"></ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-4 border-t border-gray-200">
+                <button type="button" onclick="closeGroupModal()"
+                    class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Dynamic fetch for real-time charts
+        const ctx = document.getElementById('testResultsChart').getContext('2d');
+        const barCtx = document.getElementById('criticalityBarChart').getContext('2d');
+        const summaryTotals = document.getElementById('summaryTotals');
+        const labels = ['Critical', 'High', 'Medium', 'Low'];
+
+        let resultChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Failed', 'Passed'],
+                datasets: [{ data: [0,0], backgroundColor: ['#dc2626', '#10b981'], borderWidth: 0 }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+        });
+
+        let barChart = new Chart(barCtx, {
+            type: 'bar',
+            data: { labels, datasets: [{ label: 'Failed', data: [0,0,0,0], backgroundColor: '#dc2626', borderRadius: 6 }] },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }, plugins: { legend: { display: false } } }
+        });
+
+        let currentMode = 'failed';
+        let failedValuesCached = [];
+        let passedValuesCached = [];
+
+        function setBarMode(mode, failedValues, passedValues) {
+            if (currentMode === mode) return; // Prevent unnecessary updates
+            currentMode = mode;
+            const failedBtn = document.getElementById('showFailedBtn');
+            const passedBtn = document.getElementById('showPassedBtn');
+
+            if (mode === 'failed') {
+                barChart.data.datasets[0].label = 'Failed';
+                barChart.data.datasets[0].data = failedValues;
+                barChart.data.datasets[0].backgroundColor = '#dc2626';
+                failedBtn.classList.add('bg-red-600', 'text-white');
+                failedBtn.classList.remove('bg-red-100', 'text-red-700');
+                passedBtn.classList.remove('bg-green-600', 'text-white');
+                passedBtn.classList.add('bg-green-100', 'text-green-700');
+            } else {
+                barChart.data.datasets[0].label = 'Passed';
+                barChart.data.datasets[0].data = passedValues;
+                barChart.data.datasets[0].backgroundColor = '#10b981';
+                passedBtn.classList.add('bg-green-600', 'text-white');
+                passedBtn.classList.remove('bg-green-100', 'text-green-700');
+                failedBtn.classList.remove('bg-red-600', 'text-white');
+                failedBtn.classList.add('bg-red-100', 'text-red-700');
+            }
+            barChart.update();
+        }
+
+        async function refreshCharts() {
+            try {
+                const res = await fetch('/api/dashboard/summary/');
+                const data = await res.json();
+                const failedValues = labels.map(l => data.failed[l] || 0);
+                const passedValues = labels.map(l => data.passed[l] || 0);
+                const totalFailed = data.totals.failed || 0;
+                const totalPassed = data.totals.passed || 0;
+
+                // Update doughnut
+                resultChart.data.datasets[0].data = [totalFailed, totalPassed];
+                resultChart.update();
+
+                // Update summary
+                summaryTotals.textContent = `Total Groups: ${totalFailed + totalPassed} • Failed: ${totalFailed} • Passed: ${totalPassed}`;
+
+                // Cache the values and update bar based on current mode
+                failedValuesCached = failedValues;
+                passedValuesCached = passedValues;
+                setBarMode(currentMode, failedValuesCached, passedValuesCached);
+            } catch (e) {
+                console.error('Failed to load dashboard summary', e);
+                // Reset to zeros
+                resultChart.data.datasets[0].data = [0,0];
+                resultChart.update();
+                summaryTotals.textContent = `Total Groups: 0 • Failed: 0 • Passed: 0`;
+                failedValuesCached = [0,0,0,0];
+                passedValuesCached = [0,0,0,0];
+                setBarMode(currentMode, failedValuesCached, passedValuesCached);
+            }
+        }
+
+        document.getElementById('showFailedBtn').addEventListener('click', () => setBarMode('failed', failedValuesCached, passedValuesCached));
+        document.getElementById('showPassedBtn').addEventListener('click', () => setBarMode('passed', failedValuesCached, passedValuesCached));
+        document.getElementById('refreshChartsBtn').addEventListener('click', refreshCharts);
+
+        // Initial load and periodic refresh
+        refreshCharts();
+        setInterval(refreshCharts, 30000);
+
+        // Filter + search + collapse for projects list
+        const projectsList = document.getElementById('projectsList');
+        const priorityFilter = document.getElementById('priorityFilter');
+        const statusFilter = document.getElementById('statusFilter');
+        const projectSearch = document.getElementById('projectSearch');
+        const projectsCount = document.getElementById('projectsCount');
+        const toggleProjects = document.getElementById('toggleProjects');
+        const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+
+        function updateProjectsView() {
+            const selectedPriority = priorityFilter.value;
+            const selectedStatus = statusFilter.value;
+            const searchText = (projectSearch.value || '').trim().toLowerCase();
+            const items = projectsList.querySelectorAll('.project-item');
+            let visible = 0;
+            items.forEach(item => {
+                const matchesPriority = selectedPriority === 'all' || item.dataset.priority === selectedPriority;
+                const matchesStatus = selectedStatus === 'all' || item.dataset.status === selectedStatus;
+                const matchesSearch = !searchText || (item.dataset.name || '').includes(searchText);
+                if (matchesPriority && matchesStatus && matchesSearch) {
+                    item.style.display = 'flex';
+                    visible++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            projectsCount.textContent = `${visible} project(s) visible`;
+        }
+
+        function clearFilters() {
+            priorityFilter.value = 'all';
+            statusFilter.value = 'all';
+            projectSearch.value = '';
+            updateProjectsView();
+        }
+
+        priorityFilter.addEventListener('change', updateProjectsView);
+        statusFilter.addEventListener('change', updateProjectsView);
+        projectSearch.addEventListener('input', updateProjectsView);
+        clearFiltersBtn.addEventListener('click', clearFilters);
+        if (toggleProjects) {
+            toggleProjects.addEventListener('click', () => {
+                if (projectsList.style.display === 'none') {
+                    projectsList.style.display = '';
+                    toggleProjects.textContent = 'Collapse';
+                } else {
+                    projectsList.style.display = 'none';
+                    toggleProjects.textContent = 'Expand';
+                }
+            });
+        }
+
+        // Show skeleton initially, then content after DOM load
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                document.getElementById('projectsSkeleton').style.display = 'none';
+                document.getElementById('projectsContent').style.display = 'block';
+            }, 500); // Small delay to show skeleton briefly
+        });
+
+        // Initial compute
+        updateProjectsView();
+
+        // Pagination for logs table
+        const logsPerPage = 10;
+        let currentPage = 1;
+        const logs = Array.from(document.querySelectorAll('#logsTableBody tr'));
+        const totalPages = Math.ceil(logs.length / logsPerPage);
+
+        function showPage(page) {
+            const start = (page - 1) * logsPerPage;
+            const end = start + logsPerPage;
+
+            logs.forEach((log, index) => {
+                log.style.display = (index >= start && index < end) ? '' : 'none';
+            });
+
+            document.getElementById('startIndex').textContent = start + 1;
+            document.getElementById('endIndex').textContent = Math.min(end, logs.length);
+
+            document.getElementById('prevPage').disabled = page === 1;
+            document.getElementById('nextPage').disabled = page === totalPages;
+        }
+
+        document.getElementById('prevPage').addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                showPage(currentPage);
+            }
+        });
+
+        document.getElementById('nextPage').addEventListener('click', () => {
+            if (currentPage < totalPages) {
+                currentPage++;
+                showPage(currentPage);
+            }
+        });
+
+        // Initialize pagination
+        if (logs.length > logsPerPage) {
+            showPage(1);
+        }
+
+        // Modal functionality
+        const modal = document.getElementById('detailsModal');
+        const modalContent = document.getElementById('modalContent');
+        const closeBtn = document.getElementById('closeModal');
+
+        document.querySelectorAll('.view-details-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const runId = this.dataset.runId;
+                const details = this.dataset.details;
+                const groupName = this.dataset.groupName;
+                const projectName = this.dataset.projectName;
+
+                modalContent.innerHTML = `<h4 class="font-semibold mb-2">Run ID: ${runId}</h4><p><strong>Group Name:</strong> ${groupName}</p><p><strong>Project Name:</strong> ${projectName}</p><pre class="bg-gray-100 p-4 rounded text-xs overflow-auto max-h-96">${details}</pre>`;
+                modal.classList.remove('hidden');
+            });
+        });
+
+        closeBtn.addEventListener('click', function() {
+            modal.classList.add('hidden');
+        });
+
+        window.addEventListener('click', function(event) {
+            if (event.target === modal) {
+                modal.classList.add('hidden');
+            }
+        });
+
+        // Sidebar toggle
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        const toggleBtn = document.getElementById('sidebarToggleBtn');
+        const toggleIcon = document.getElementById('sidebarToggleIcon');
+        let sidebarVisible = true;
+
+        function getSidebarWidth() {
+            return (sidebar && sidebar.offsetWidth) ? sidebar.offsetWidth : 280;
+        }
+
+        function hideSidebar() {
+            const w = getSidebarWidth();
+            sidebar.style.marginLeft = `-${w}px`;
+            mainContent.style.marginLeft = '0';
+            toggleIcon.innerHTML = '<i class="fas fa-chevron-right"></i>';
+            sidebarVisible = false;
+        }
+
+        function showSidebar() {
+            const w = getSidebarWidth();
+            sidebar.style.marginLeft = '0';
+            mainContent.style.marginLeft = `${w}px`;
+            toggleIcon.innerHTML = '<i class="fas fa-chevron-left"></i>';
+            sidebarVisible = true;
+        }
+
+        toggleBtn.addEventListener('click', function () {
+            if (sidebarVisible) {
+                hideSidebar();
+            } else {
+                showSidebar();
+            }
+        });
+
+        function setActiveNavLink() {
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('.nav-link');
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                const href = link.getAttribute('href');
+                if (href && href === currentPath) {
+                    link.classList.add('active');
+                }
+            });
+        }
+
+        const groupRunModal = document.getElementById('groupRunModal');
+        const groupRunLoading = document.getElementById('groupRunLoading');
+        const groupRunResults = document.getElementById('groupRunResults');
+        const groupRunMessage = document.getElementById('groupRunMessage');
+        const progressBar = document.getElementById('progressBar');
+        const groupRunProgress = document.getElementById('groupRunProgress');
+        const currentTestName = document.getElementById('currentTestName');
+
+        let pollingInterval = null;
+        let currentRunId = null;
+
+        function openGroupModal() {
+            groupRunModal.classList.remove('hidden');
+            groupRunModal.classList.add('show');
+        }
+
+        function closeGroupModal() {
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+            }
+            groupRunModal.classList.remove('show');
+            groupRunModal.classList.add('hidden');
+            window.location.reload();
+        }
+
+        async function runGroupAsync(groupId, groupName) {
+            if (!confirm(`Are you sure you want to run the test group '${groupName}' now?`)) {
+                return;
+            }
+
+            openGroupModal();
+            groupRunLoading.classList.remove('hidden');
+            groupRunResults.classList.add('hidden');
+            groupRunMessage.textContent = `Starting run for group '${groupName}'...`;
+
+            try {
+                const response = await fetch(`/test_groups/${groupId}/run_async/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value }
+                });
+                if (!response.ok) {
+                    const text = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${text}`);
+                }
+                const data = await response.json();
+
+                if (data.run_id) {
+                    currentRunId = data.run_id;
+                    pollingInterval = setInterval(() => checkGroupRunStatus(currentRunId), 2000);
+                } else {
+                    throw new Error(data.message || 'Failed to start group run.');
+                }
+            } catch (error) {
+                console.error("Error starting group run:", error);
+                groupRunLoading.classList.add('hidden');
+                groupRunResults.classList.remove('hidden');
+                groupRunMessage.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        async function checkGroupRunStatus(runId) {
+            try {
+                const response = await fetch(`/test_groups/run_status/${runId}/`);
+                const statusData = await response.json();
+
+                const executedCount = statusData.executed_count || 0;
+                const totalCount = statusData.total_test_cases || 0;
+
+                groupRunProgress.textContent = `Executing ${executedCount} of ${totalCount} test cases.`;
+                currentTestName.textContent = `Current test: ${statusData.current_test_name || 'N/A'}`;
+
+                let progressPercent = 0;
+                if (totalCount > 0) {
+                    progressPercent = (executedCount / totalCount) * 100;
+                }
+                progressBar.style.width = `${progressPercent}%`;
+
+                if (statusData.status === 'COMPLETED' || statusData.status === 'ERROR') {
+                    clearInterval(pollingInterval);
+                    groupRunLoading.classList.add('hidden');
+                    groupRunResults.classList.remove('hidden');
+
+                    document.getElementById('finalTotalTests').textContent = totalCount;
+                    document.getElementById('finalFailedTests').textContent = statusData.failed_tests || 0;
+
+                    const finalStatusElement = document.getElementById('finalGroupStatus');
+                    const finalStatus = statusData.final_status || statusData.status;
+
+                    finalStatusElement.textContent = finalStatus;
+                    if (finalStatus === 'PASS') {
+                        finalStatusElement.className = 'px-2 py-1 rounded-full text-sm font-semibold status-pass';
+                    } else if (finalStatus === 'FAIL') {
+                        finalStatusElement.className = 'px-2 py-1 rounded-full text-sm font-semibold status-fail';
+                    } else {
+                        finalStatusElement.className = 'px-2 py-1 rounded-full text-sm font-semibold status-warn';
+                    }
+
+                    const failedTestsList = document.getElementById('failedTestsList');
+                    const failedTestsUl = document.getElementById('failedTestsUl');
+                    failedTestsUl.innerHTML = '';
+
+                    if (statusData.failed_tests > 0) {
+                        failedTestsList.classList.remove('hidden');
+                        statusData.results.forEach(testResult => {
+                            if (testResult.status === 'FAIL' || testResult.status === 'ERROR') {
+                                const li = document.createElement('li');
+                                const failedMessage = testResult.message || 'No message provided.';
+                                li.textContent = `${testResult.test_name || 'Unnamed Test'}: ${failedMessage}`;
+                                failedTestsUl.appendChild(li);
+                            }
+                        });
+                    } else {
+                        failedTestsList.classList.add('hidden');
+                    }
+                }
+            } catch (error) {
+                console.error("Error polling for group run status:", error);
+                clearInterval(pollingInterval);
+                groupRunLoading.classList.add('hidden');
+                groupRunResults.classList.remove('hidden');
+                groupRunMessage.textContent = `Error during status check: ${error.message}`;
+                const finalStatusElement = document.getElementById('finalGroupStatus');
+                finalStatusElement.textContent = 'ERROR';
+                finalStatusElement.className = 'px-2 py-1 rounded-full text-sm font-semibold status-warn';
+            }
+        }
+
+        // Rerun functionality with event delegation (handles dynamic rows too)
+        document.addEventListener('DOMContentLoaded', function () {
+            // Ensure CSRF token exists
+            const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+            if (!csrfInput) {
+                console.error('CSRF token input not found on dashboard page. POST requests may fail.');
+            }
+
+            document.addEventListener('click', function(e) {
+                const btn = e.target.closest('.rerun-btn');
+                if (!btn) return;
+                const groupId = btn.dataset.groupId;
+                const groupName = btn.dataset.groupName || 'Group';
+                runGroupAsync(groupId, groupName);
+            });
+
+            setActiveNavLink();
+        });
+    </script>
+</body>
+
+</html>

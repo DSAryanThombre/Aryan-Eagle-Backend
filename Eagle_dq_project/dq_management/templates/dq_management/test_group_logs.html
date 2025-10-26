@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<!-- Redirect to unified logs page -->
+<html>
+
+<head>
+    <meta http-equiv="refresh" content="0;url={% url 'logs' %}?tab=group" />
+    <script>
+        window.location.href = "{% url 'logs' %}?tab=group";
+    </script>
+    <title>Redirecting…</title>
+</head>
+
+<body>
+    If you are not redirected, <a href="{% url 'logs' %}?tab=group">click here</a>.
+</body>
+
+</html>

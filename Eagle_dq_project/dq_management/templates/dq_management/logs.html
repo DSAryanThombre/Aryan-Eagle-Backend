@@ -1,0 +1,1546 @@
+<!DOCTYPE html>
+{% load static %}
+
+
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eagle DQ - Logs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* --- Projects Dashboard theme (copied) --- */
+        body {
+            display: flex;
+            /* Changed to 100vh to ensure body fills the viewport vertically */
+            min-height: 100vh;
+            background: linear-gradient(135deg, #fef7ed 0%, #fdf4ff 25%, #f0f9ff 50%, #f0fdfa 75%, #fefce8 100%);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            position: relative;
+        }
+
+        /* Subtle background effects */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                radial-gradient(circle at 20% 80%, rgba(251, 191, 36, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.06) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(139, 92, 246, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 60% 60%, rgba(236, 72, 153, 0.04) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* compact table spacing and consistent font for denser rows */
+        th,
+        td {
+            /* Denser vertical padding */
+            padding: 0.2rem 0.6rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 0.8125rem;
+            /* ~13px for higher data density */
+            position: relative;
+            /* required for resize handle & correct positioning of query button */
+        }
+
+        /* Ensure table header text is white for contrast */
+        th {
+            color: white;
+        }
+
+        /* ------------------------------------------- */
+        /* START: Custom Scrollbar and Cell Styling */
+        /* ------------------------------------------- */
+
+        /* NEW: Custom scrollbar to be less visible */
+        .scrollable-table-container::-webkit-scrollbar,
+        .modal-body::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        .scrollable-table-container::-webkit-scrollbar-thumb,
+        .modal-body::-webkit-scrollbar-thumb {
+            background-color: rgba(139, 92, 246, 0.3);
+            /* Lighter, subtle thumb */
+            border-radius: 10px;
+        }
+
+        .scrollable-table-container::-webkit-scrollbar-thumb:hover,
+        .modal-body::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(139, 92, 246, 0.6);
+        }
+
+        .scrollable-table-container::-webkit-scrollbar-track,
+        .modal-body::-webkit-scrollbar-track {
+            background: transparent;
+            /* Makes the track invisible */
+        }
+
+        /* *** MODIFIED: query-wrapper now wraps and has a visible max-height *** */
+        .query-wrapper {
+            white-space: normal;
+            /* Allow wrapping */
+            word-break: break-all;
+            /* Allow long tokens to break */
+            font-size: 0.75rem;
+            position: relative;
+            /* Limit to max ~5 lines of text for a compact view */
+            max-height: 6.25em;
+            /* 5 lines * 1.25 line-height */
+            overflow: hidden;
+            /* Hide excess lines */
+            margin: 0;
+            line-height: 1.25;
+            color: #475569;
+        }
+        
+        /* *** NEW: message-wrapper for truncating messages *** */
+        .message-wrapper {
+            white-space: normal;
+            word-break: break-word;
+            font-size: 0.75rem; /* Matches text-xs */
+            position: relative;
+            /* Limit to max ~3 lines of text for compactness */
+            max-height: 3.75em;
+            /* 3 lines * 1.25 line-height */
+            overflow: hidden;
+            margin: 0;
+            line-height: 1.25;
+            color: #475569;
+        }
+
+
+        /* NEW: Styles for the improved results details cell */
+        .results-details-display {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            /* Reduced gap */
+            padding: 2px 0;
+            /* Reduced vertical padding */
+        }
+
+        .results-detail-item {
+            font-size: 0.75rem;
+            color: #475569;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .results-detail-item strong {
+            color: #1e293b;
+            font-weight: 500;
+        }
+
+        /* NEW: Styles for the 'View Query/Details' button and icon */
+        .view-details-btn {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: #2563eb;
+            /* Blue-600 */
+            cursor: pointer;
+            font-size: 0.75rem;
+            margin-top: 4px;
+            font-weight: 500;
+            transition: color 0.15s;
+        }
+
+        .view-details-btn:hover {
+            color: #1d4ed8;
+            /* Blue-700 */
+        }
+
+        /* NEW: Modal styles for query/details viewing */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: none;
+            /* Hidden by default, shown by JS */
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 0.75rem;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+            overflow-y: auto;
+            flex-grow: 1;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 0.875rem;
+            background-color: #f7f7f7;
+            white-space: pre-wrap;
+            /* Allow wrapping of long strings/queries */
+            word-break: break-all;
+        }
+
+        .modal-body pre {
+            white-space: pre-wrap;
+            word-break: break-all;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* ------------------------------------------- */
+        /* END: Custom Scrollbar and Cell Styling */
+        /* ------------------------------------------- */
+
+
+        /* scrollable container: adjusted to use full available vertical space */
+        .scrollable-table-container {
+            /* Finalized height calculation: 100vh - (mainContent padding 1.5rem*2) - (mainContentCard padding 2.5rem*2) - (small buffer) */
+            height: calc(100vh - 8.5rem);
+            overflow-y: auto;
+            overflow-x: auto;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            border-radius: 0.5rem;
+            background: white;
+            padding: 0.25rem;
+            /* Ensure it fills flex space */
+            flex-grow: 1;
+            /* Removed bottom padding for stretch, handled by border-radius on thead */
+            padding-bottom: 0;
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+
+        /* sticky header with solid color and shadow */
+        thead {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            /* SOLID HEADER COLOR (Purple/Violet - Tailwind's violet-600) */
+            background: #8b5cf6;
+            box-shadow: 0 4px 8px rgba(139, 92, 246, 0.3);
+            /* Add rounded top corners to the header row itself */
+            border-radius: 0.5rem 0.5rem 0 0;
+            overflow: hidden;
+            /* Important for rounding sticky headers */
+        }
+
+        /* Apply rounded corners to the top of the table itself, matching the thead */
+        #caseTable,
+        #groupTable {
+            border-collapse: separate;
+            /* Required for table border-radius */
+            border-spacing: 0;
+            /* Required for table border-radius */
+        }
+
+        /* Fix border on header cells for rounded corners */
+        thead th:first-child {
+            border-top-left-radius: 0.5rem;
+        }
+
+        thead th:last-child {
+            border-top-right-radius: 0.5rem;
+        }
+
+        /* Change the resize handle to be fully opaque for visibility on dark background */
+        .resize-handle {
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100%;
+            width: 8px;
+            cursor: col-resize;
+            z-index: 40;
+            opacity: 1;
+            background-color: rgba(255, 255, 255, 0.3);
+            transition: background-color 0.1s;
+        }
+
+        .resize-handle:hover {
+            opacity: 1;
+            background-color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* unified status badge base */
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 999px;
+            font-size: 0.6875rem;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+        }
+
+        .status-pass {
+            background: linear-gradient(90deg, #e6ffef, #bbf7d0);
+            color: #065f46;
+        }
+
+        .status-fail {
+            background: linear-gradient(90deg, #fff1f2, #fecaca);
+            color: #7f1d1d;
+        }
+
+        .status-error {
+            background: linear-gradient(90deg, #fff7ed, #fde68a);
+            color: #92400e;
+        }
+
+        .status-default {
+            background: linear-gradient(90deg, #f1f5f9, #e2e8f0);
+            color: #475569;
+        }
+
+        /* Sidebar toggle button */
+        #sidebarToggleBtn {
+            position: fixed;
+            bottom: 1rem;
+            left: 1rem;
+            z-index: 50;
+            width: 40px;
+            height: 40px;
+            background: #e0f2fe;
+            color: #2563eb;
+            border: none;
+            border-radius: 50%;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        #sidebarToggleBtn:hover {
+            background-color: #2563eb;
+            color: white;
+        }
+
+        #sidebarToggleIcon {
+            font-size: 1.5rem;
+        }
+
+        /* Filters drawer */
+        #filtersToggleBtn {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 50;
+            width: 44px;
+            height: 44px;
+            background: #ffffff;
+            color: #2563eb;
+            border: 1px solid #e2e8f0;
+            border-radius: 50%;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        #filtersToggleBtn:hover {
+            background-color: #e0f2fe;
+        }
+
+        #filtersDrawer {
+            position: fixed;
+            top: 0;
+            right: 0;
+            height: 100vh;
+            width: 320px;
+            background-color: #ffffff;
+            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 60;
+        }
+
+        #filtersDrawer.open {
+            transform: translateX(0);
+        }
+
+        #filtersCloseBtn {
+            cursor: pointer;
+        }
+
+        select {
+            appearance: auto;
+            -webkit-appearance: auto;
+            -moz-appearance: auto;
+            background-color: #fff;
+            border: 1px solid #e2e8f0;
+            padding-right: 2rem;
+            cursor: pointer;
+        }
+
+        /* restore main-content layout to take full available height */
+        .main-content-wrapper {
+            flex-grow: 1;
+            padding: 1.5rem;
+            /* Crucial for stretching content */
+            height: 100vh;
+            overflow-y: auto;
+            transition: margin-left 0.3s ease;
+            margin-left: 280px;
+        }
+
+        .main-content-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(254, 252, 232, 0.3) 25%, rgba(240, 249, 255, 0.3) 75%, rgba(255, 255, 255, 0.9) 100%);
+            backdrop-filter: blur(20px);
+            padding: 2.5rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 32px rgba(251, 191, 36, 0.08);
+            border: 1px solid rgba(251, 191, 36, 0.1);
+            /* Set height to inherit from wrapper and stretch */
+            height: calc(100% - 3rem);
+            /* 100% minus the mainContent-wrapper vertical padding (2*1.5rem = 3rem) */
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        /* content div also needs to be flexible */
+        .log-content {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        /* responsive keep in sync with sidebar include */
+        @media (max-width: 768px) {
+            .main-content-wrapper {
+                margin-left: 260px;
+            }
+        }
+
+        /* message cell: allow wrapping with a sensible max width */
+        .message-cell {
+            /* DEPRECATED: Replaced by message-wrapper and query-wrapper logic */
+            white-space: normal;
+            max-width: 28rem;
+            word-break: break-word;
+        }
+
+        /* no-data card */
+        .no-data {
+            margin: 1.25rem auto;
+            max-width: 48rem;
+            border: 1px dashed rgba(148, 163, 184, 0.25);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            text-align: center;
+            color: #475569;
+            background: rgba(248, 250, 252, 0.6);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            justify-content: center;
+        }
+
+        /* ensure th doesn't visually overflow when resized */
+        th {
+            overflow: visible;
+            user-select: none;
+            position: relative;
+        }
+
+        /* headers draggable cursor */
+        th[draggable="true"] {
+            cursor: grab;
+        }
+
+        th[draggable="true"]:active {
+            cursor: grabbing;
+        }
+
+        /* small responsive safety */
+        @media (max-width: 640px) {
+            .message-cell {
+                max-width: 14rem;
+            }
+
+            /* .query-pre { ... } */
+        }
+    </style>
+
+</head>
+
+<body class="text-slate-800">
+    {% include 'dq_management/includes/sidebar.html' %}
+    <button id="sidebarToggleBtn"
+        class="fixed bottom-4 left-4 z-50 rounded-full p-2 shadow-lg focus:outline-none transition-all duration-300 flex items-center justify-center"
+        style="width: 40px; height: 40px; background: #e0f2fe; color: #2563eb; border: none;">
+
+        <span id="sidebarToggleIcon" style="font-size: 1.5rem;">
+            <i class="fas fa-angle-left"></i>
+        </span>
+    </button>
+
+    <div id="mainContent" class="main-content-wrapper transition-all duration-300">
+        <div class="main-content-card">
+
+            <div id="tab-case-content" class="log-content">
+                <div class="scrollable-table-container">
+                    <table id="caseTable" class="min-w-full bg-white shadow-sm" style="table-layout: fixed;">
+                        <colgroup>
+                            <col style="width: 80px;">
+                            <col style="width: 120px;">
+                            <col style="width: 80px;">
+                            <col style="width: 150px;">
+                            <col style="width: 100px;">
+                            <col style="width: 150px;">
+                            <col style="width: 120px;">
+                            <col style="width: 80px;">
+                            <col style="width: 300px;">
+                            <col style="width: 100px;">
+                            <col style="width: 100px;">
+                            <col style="width: 80px;">
+                            <col style="width: 120px;">
+                            <col style="width: 120px;">
+                            <col style="width: 400px;">
+                            <col style="width: 400px;">
+                            <col style="width: 100px;">
+                            <col style="width: 100px;">
+                            <col style="width: 120px;">
+                            <col style="width: 120px;">
+                            <col style="width: 120px;">
+                            <col style="width: 120px;">
+                            <col style="width: 200px;">
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th draggable="true">Run ID<div class="resize-handle"></div>
+                                </th>
+                                <th draggable="true">Test Case ID<div class="resize-handle"></div>
+                                </th>
+                                <th draggable="true">Project ID<div class="resize-handle"></div>
+                                </th>
+                                <th draggable="true">Project Name<div class="resize-handle"></div>
+                                </th>
+                                <th draggable="true">Test Name<div class="resize-handle"></div>
+                                </th>
+                                <th draggable="true">Test Type<div class="resize-handle"></div>
+                                </th>
+                                <th draggable="true">Status<div class="resize-handle"></div>
+                                </th>
+                                <th draggable="true">Message<div class="resize-handle"></div>
+                                </th>
+                                <th draggable="true">Source Value<div class="resize-handle"></div>
+                                </th>
+                                <th draggable="true">Destination Value<div class="resize-handle"></div>
+                                </th>
+                                <th draggable="true">Difference<div class="resize-handle"></div>
+                                </th>
+                                <th draggable="true">Threshold Type<div class="resize-handle"></div>
+                                </th>
+                                <th draggable="true">Threshold Value<div class="resize-handle"></div>
+                                </th>
+                                <th draggable="true">Source Query<div class="resize-handle"></div>
+                                </th>
+                                <th draggable="true">Destination Query<div class="resize-handle"></div>
+                                </th>
+                                <th draggable="true">Source Conn<div class="resize-handle"></div>
+                                </th>
+                                <th draggable="true">Dest Conn<div class="resize-handle"></div>
+                                </th>
+                                <th draggable="true">Parent Run ID<div class="resize-handle"></div>
+                                </th>
+                                <th draggable="true">Run Timestamp<div class="resize-handle"></div>
+                                </th>
+                                <th draggable="true">Criticality<div class="resize-handle"></div>
+                                </th>
+                                <th draggable="true">Possible Resolution<div class="resize-handle"></div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in test_case_logs %}
+                            <tr>
+                                <td class="text-xs">{{ log.run_id }}</td>
+                                <td class="text-xs">{{ log.test_case_id }}</td>
+                                <td class="text-xs">{{ log.project_id }}</td>
+                                <td class="text-xs">{{ log.project_name|default:"N/A" }}</td>
+                                <td class="text-xs">{{ log.test_name }}</td>
+                                <td class="text-xs">{{ log.test_type }}</td>
+                                <td class="text-xs">
+                                    {% with status=log.run_status|stringformat:"s"|upper %}
+                                    {% if status %}
+                                    {% if status == "PASS" %}
+                                    <span class="status-badge status-pass">{{ status }}</span>
+                                    {% elif status == "ERROR" %}
+                                    <span class="status-badge status-error">{{ status }}</span>
+                                    {% elif status == "FAIL" %}
+                                    <span class="status-badge status-fail">{{ status }}</span>
+                                    {% else %}
+                                    <span class="status-badge status-default">{{ status }}</span>
+                                    {% endif %}
+                                    {% else %}
+                                    <span class="status-badge status-default">N/A</span>
+                                    {% endif %}
+                                    {% endwith %}
+                                </td>
+                                
+                                {# START: MODIFIED Run Message for Test Case Logs #}
+                                <td class="text-xs message-cell">
+                                    <div class="message-wrapper">{{ log.run_message }}</div>
+                                    <button class="view-details-btn"
+                                        onclick="openModal('Run Message', 'Message Details', '{{ log.run_message|escapejs }}')">
+                                        View Details <i class="fas fa-search-plus"></i>
+                                    </button>
+                                </td>
+                                {# END MODIFIED Run Message #}
+                                
+                                <td class="text-xs">{{ log.source_value }}</td>
+                                <td class="text-xs">{{ log.destination_value }}</td>
+                                <td class="text-xs">{{ log.difference }}</td>
+                                <td class="text-xs">{{ log.threshold_type|default:"N/A" }}</td>
+                                <td class="text-xs">{{ log.threshold_value|default:"N/A" }}</td>
+
+                                <td class="text-xs">
+                                    <div class="query-wrapper">{{ log.source_query }}</div>
+                                    <button class="view-details-btn"
+                                        onclick="openModal('Query Details', 'Source Query', '{{ log.source_query|escapejs }}')">
+                                        View Query <i class="fas fa-search-plus"></i>
+                                    </button>
+                                </td>
+
+                                <td class="text-xs">
+                                    <div class="query-wrapper">{{ log.destination_query }}</div>
+                                    <button class="view-details-btn"
+                                        onclick="openModal('Query Details', 'Destination Query', '{{ log.destination_query|escapejs }}')">
+                                        View Query <i class="fas fa-search-plus"></i>
+                                    </button>
+                                </td>
+
+                                <td class="text-xs">{{ log.source_connection_used }}</td>
+                                <td class="text-xs">{{ log.destination_connection_used }}</td>
+                                <td class="text-xs">{{ log.parent_run_id|default:'N/A' }}</td>
+                                <td class="text-xs">{{ log.run_timestamp|date:"Y-m-d H:i:s"|default:"N/A" }}</td>
+                                <td class="text-xs">{{ log.criticality|default:"N/A" }}</td>
+                                <td class="text-xs">
+                                    <div class="message-wrapper">{{ log.possible_resolution }}</div>
+                                    <button class="view-details-btn"
+                                        onclick="openModal('Possible Resolution', 'Resolution Details', '{{ log.possible_resolution|escapejs }}')">
+                                        View Details <i class="fas fa-search-plus"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% if not test_case_logs %}
+                <div class="no-data">
+                    <span style="font-size:1.25rem;color:#2563eb;"><i class="fas fa-inbox"></i></span>
+                    <span>No test case logs found yet.</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <div id="tab-group-content" class="log-content" style="display:none;">
+                <div class="scrollable-table-container">
+                    <table id="groupTable" class="min-w-full bg-white shadow-sm" style="table-layout: fixed;">
+                        <colgroup>
+                            <col style="width: 100px;">
+                            <col style="width: 120px;">
+                            <col style="width: 150px;">
+                            <col style="width: 150px;">
+                            <col style="width: 80px;">
+                            <col style="width: 300px;">
+                            <col style="width: 450px;">
+                            <col style="width: 200px;">
+                            <col style="width: 200px;">
+                            <col style="width: 120px;">
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th draggable="true">Run ID<div class="resize-rhandle"></div>
+                                </th>
+                                <th draggable="true">Test Group ID<div class="resize-handle"></div>
+                                </th>
+                                <th draggable="true">Project Name<div class="resize-handle"></div>
+                                </th>
+                                <th draggable="true">Group Name<div class="resize-handle"></div>
+                                </th>
+                                <th draggable="true">Status<div class="resize-handle"></div>
+                                </th>
+                                <th draggable="true">Message<div class="resize-handle"></div>
+                                </th>
+                                <th draggable="true">Results Details<div class="resize-handle"></div>
+                                </th>
+                                <th draggable="true">Start Time<div class="resize-handle"></div>
+                                </th>
+                                <th draggable="true">End Time<div class="resize-handle"></div>
+                                </th>
+                                <th draggable="true">Criticality<div class="resize-handle"></div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in test_group_logs %}
+                            <tr>
+                                <td class="text-xs">{{ log.run_id }}</td>
+                                <td class="text-xs">{{ log.test_group_id }}</td>
+                                <td class="text-xs">{{ log.project_name|default:"N/A" }}</td>
+                                <td class="text-xs">{{ log.group_name|default:"N/A" }}</td>
+                                <td>
+                                    {% with status=log.status|stringformat:"s"|upper %}
+                                    {% if status %}
+                                    {% if status == "PASS" %}
+                                    <span class="status-badge status-pass">{{ status }}</span>
+                                    {% elif status == "FAIL" %}
+                                    <span class="status-badge status-fail">{{ status }}</span>
+                                    {% elif status == "ERROR" %}
+                                    <span class="status-badge status-error">{{ status }}</span>
+                                    {% else %}
+                                    <span class="status-badge status-default">{{ status }}</span>
+                                    {% endif %}
+                                    {% else %}
+                                    <span class="status-badge status-default">N/A</span>
+                                    {% endif %}
+                                    {% endwith %}
+                                </td>
+
+                                {# START: MODIFIED Message for Test Group Logs #}
+                                <td class="text-sm message-cell">
+                                    <div class="message-wrapper">{{ log.message }}</div>
+                                    <button class="view-details-btn"
+                                        onclick="openModal('Group Message', 'Message Details', '{{ log.message|escapejs }}')">
+                                        View Details <i class="fas fa-search-plus"></i>
+                                    </button>
+                                </td>
+                                {# END MODIFIED Message #}
+
+                                <td>
+                                    <div id="details-{{ log.run_id }}" class="results-details-display">
+                                    </div>
+                                    <button class="view-details-btn"
+                                        onclick="openModal('Results Details', 'Full JSON Details', '{{ log.results_details|escapejs }}')">
+                                        View Details <i class="fas fa-search-plus"></i>
+                                    </button>
+                                </td>
+
+                                <td class="text-xs">{{ log.start_timestamp|date:"Y-m-d H:i:s"|default:"N/A" }}</td>
+                                <td class="text-xs">{{ log.end_timestamp|date:"Y-m-d H:i:s"|default:"N/A" }}</td>
+                                <td class="text-xs">{{ log.criticality|default:"N/A" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% if not test_group_logs %}
+                <div class="no-data">
+                    <span style="font-size:1.25rem;color:#2563eb;"><i class="fas fa-inbox"></i></span>
+                    <span>No test group logs found yet.</span>
+                </div>
+                {% endif %}
+            </div>
+
+        </div>
+
+    </div>
+    <button id="filtersToggleBtn"
+        class="fixed top-6 right-6 z-50 rounded-full p-2 shadow-lg focus:outline-none transition-all duration-300 flex items-center justify-center bg-white border border-gray-200"
+        style="width: 44px; height: 44px;">
+
+        <span style="font-size: 1.5rem;">
+            <i class="fas fa-filter"></i>
+        </span>
+    </button>
+
+    <div id="filtersDrawer"
+        class="fixed top-0 right-0 h-full w-80 bg-white shadow-xl z-50 transition-transform duration-300"
+        style="transform: translateX(100%); max-width: 100vw; overflow-y: auto;">
+        <div class="flex justify-between items-center px-6 py-4 border-b">
+            <span class="font-semibold text-lg">Filters</span>
+            <button id="filtersCloseBtn" class="text-gray-500 hover:text-gray-800 text-2xl focus:outline-none">
+                ×
+            </button>
+        </div>
+        <div class="px-6 py-4 space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Project ID</label>
+                <input type="text" id="filterProjectId" class="w-full border rounded px-3 py-2 text-sm"
+                    placeholder="Project ID">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Test Group ID</label>
+                <input type="text" id="filterTestGroupId" class="w-full border rounded px-3 py-2 text-sm"
+                    placeholder="Test Group ID">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Test Case ID</label>
+                <input type="text" id="filterTestCaseId" class="w-full border rounded px-3 py-2 text-sm"
+                    placeholder="Test Case ID">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <select id="filterStatus" class="w-full border rounded px-3 py-2 text-sm">
+                    <option value="">Any</option>
+                    <option value="pass">PASS</option>
+                    <option value="fail">FAIL</option>
+                    <option value="error">ERROR</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Test Type</label>
+                <select id="filterTestType" class="w-full border rounded px-3 py-2 text-sm">
+                    <option value="">Any</option>
+                    <option value="availability test">Availability Test</option>
+                    <option value="aggregation comparison">Aggregation Comparison</option>
+                    <option value="drift test">Drift Test</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Parent Run ID</label>
+                <input type="text" id="filterParentRunId" class="w-full border rounded px-3 py-2 text-sm"
+                    placeholder="Parent Run ID">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Run ID</label>
+                <input type="text" id="filterRunId" class="w-full border rounded px-3 py-2 text-sm"
+                    placeholder="Run ID">
+            </div>
+            <button id="applyFiltersBtn" class="w-full bg-blue-600 text-white py-2 rounded font-semibold mt-2">Apply
+                Filters</button>
+            <button id="clearFiltersBtn" class="w-full bg-gray-200 text-gray-700 py-2 rounded font-semibold mt-2">Clear
+                All</button>
+        </div>
+    </div>
+
+    <div id="dataModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle" class="font-bold text-xl"></h3>
+                <button id="modalCloseBtn" class="text-gray-500 hover:text-gray-800 text-2xl focus:outline-none">
+                    &times;
+                </button>
+            </div>
+            <div id="modalBody" class="modal-body">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sidebar toggle logic
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        const toggleBtn = document.getElementById('sidebarToggleBtn');
+        const toggleIcon = document.getElementById('sidebarToggleIcon');
+        let sidebarVisible = true;
+
+        function getSidebarWidth() {
+            // Get width of sidebar if it exists, otherwise default to 280px
+            return (sidebar && sidebar.offsetWidth) ? sidebar.offsetWidth : 280;
+        }
+
+        function hideSidebar() {
+            const w = getSidebarWidth();
+            sidebar.style.marginLeft = `-${w}px`;
+            mainContent.style.marginLeft = '0';
+            toggleIcon.innerHTML = '<i class="fas fa-angle-right"></i>';
+            sidebarVisible = false;
+        }
+
+        function showSidebar() {
+            const w = getSidebarWidth();
+            sidebar.style.marginLeft = '0';
+            mainContent.style.marginLeft = `${w}px`;
+            toggleIcon.innerHTML = '<i class="fas fa-angle-left"></i>';
+            sidebarVisible = true;
+        }
+
+        toggleBtn.addEventListener('click', function () {
+            if (sidebarVisible) hideSidebar();
+            else showSidebar();
+        });
+
+        // Filters drawer logic
+        const filtersToggleBtn = document.getElementById('filtersToggleBtn');
+        const filtersDrawer = document.getElementById('filtersDrawer');
+        const filtersCloseBtn = document.getElementById('filtersCloseBtn');
+        const applyFiltersBtn = document.getElementById('applyFiltersBtn');
+        const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+
+        filtersToggleBtn.addEventListener('click', function () {
+            filtersDrawer.style.transform = 'translateX(0)';
+            document.body.style.overflow = 'hidden';
+        });
+
+        filtersCloseBtn.addEventListener('click', function () {
+            filtersDrawer.style.transform = 'translateX(100%)';
+            document.body.style.overflow = '';
+        });
+
+        // Helper function to create a column header to index map
+        function getColumnIndexMap(tableId) {
+            const table = document.getElementById(tableId);
+            if (!table) return null;
+            const headers = Array.from(table.querySelector('thead tr').children);
+            const map = {};
+            headers.forEach((th, index) => {
+                // Use a standard name for lookup, clean up header text
+                const headerText = th.textContent.trim().toLowerCase().replace(/ /g, '');
+                map[headerText] = index;
+            });
+            return map;
+        }
+
+        // Helper function to get the text content of a specific cell in a row
+        function getCellContent(row, map, columnName) {
+            const index = map[columnName.toLowerCase().replace(/ /g, '')];
+            if (index !== undefined && row.children[index]) {
+                // For Status, we need the text of the badge
+                if (columnName === 'Status') {
+                    const badge = row.children[index].querySelector('.status-badge');
+                    return badge ? badge.textContent.trim().toLowerCase() : '';
+                }
+                // For other cells, return the text content
+                return row.children[index].textContent.trim().toLowerCase();
+            }
+            return '';
+        }
+
+        applyFiltersBtn.addEventListener('click', function () {
+
+            // Determine which tab is currently visible for filtering
+            const caseContent = document.getElementById('tab-case-content');
+            const groupContent = document.getElementById('tab-group-content');
+            let currentTab = 'case';
+            if (groupContent.style.display !== 'none') {
+                currentTab = 'group';
+            }
+
+
+            const projectId = document.getElementById('filterProjectId').value.trim().toLowerCase();
+            const testGroupId = document.getElementById('filterTestGroupId').value.trim().toLowerCase();
+            const testCaseId = document.getElementById('filterTestCaseId').value.trim().toLowerCase();
+            const status = document.getElementById('filterStatus').value.trim().toLowerCase();
+            const testType = document.getElementById('filterTestType').value.trim().toLowerCase();
+            const parentRunId = document.getElementById('filterParentRunId').value.trim().toLowerCase();
+            const runId = document.getElementById('filterRunId').value.trim().toLowerCase();
+
+
+            if (currentTab === 'case') {
+                const map = getColumnIndexMap('caseTable');
+                if (!map) return; // Exit if table not found
+
+                document.querySelectorAll('#tab-case-content tbody tr').forEach(row => {
+
+                    const rowRunId = getCellContent(row, map, 'Run ID');
+                    const rowTestCaseId = getCellContent(row, map, 'Test Case ID');
+                    const rowProjectId = getCellContent(row, map, 'Project ID');
+                    const rowTestType = getCellContent(row, map, 'Test Type');
+                    const rowStatus = getCellContent(row, map, 'Status');
+                    const rowParentRunId = getCellContent(row, map, 'Parent Run ID');
+
+                    const matches =
+                        (projectId === '' || rowProjectId.includes(projectId)) &&
+                        (testCaseId === '' || rowTestCaseId.includes(testCaseId)) &&
+                        (status === '' || rowStatus === status) &&
+                        (testType === '' || rowTestType === testType) &&
+                        (parentRunId === '' || rowParentRunId.includes(parentRunId)) &&
+                        (runId === '' || rowRunId.includes(runId));
+
+                    row.style.display = matches ? '' : 'none';
+
+                });
+
+            } else if (currentTab === 'group') {
+                const map = getColumnIndexMap('groupTable');
+                if (!map) return; // Exit if table not found
+
+                document.querySelectorAll('#tab-group-content tbody tr').forEach(row => {
+
+                    const rowRunId = getCellContent(row, map, 'Run ID');
+                    const rowTestGroupId = getCellContent(row, map, 'Test Group ID');
+                    const rowStatus = getCellContent(row, map, 'Status');
+                    // Project ID, Test Case ID, Test Type, Parent Run ID filters are not applicable for group logs in the table structure, but runId and status are.
+
+                    const matches =
+                        (testGroupId === '' || rowTestGroupId.includes(testGroupId)) &&
+                        (status === '' || rowStatus === status) &&
+                        (runId === '' || rowRunId.includes(runId));
+
+                    row.style.display = matches ? '' : 'none';
+
+                });
+
+            }
+
+            filtersDrawer.style.transform = 'translateX(100%)';
+
+            document.body.style.overflow = '';
+
+        });
+
+        clearFiltersBtn.addEventListener('click', function () {
+
+            ['filterProjectId', 'filterTestGroupId', 'filterTestCaseId', 'filterStatus', 'filterTestType', 'filterParentRunId', 'filterRunId']
+
+                .forEach(id => document.getElementById(id).value = '');
+
+            document.querySelectorAll('.log-content tbody tr').forEach(row => row.style.display = '');
+
+            filtersDrawer.style.transform = 'translateX(100%)';
+
+            document.body.style.overflow = '';
+
+        });
+
+        function getUrlParam(name) {
+
+            const params = new URLSearchParams(window.location.search);
+
+            return params.get(name);
+
+        }
+
+        // **NEW:** Function to open the modal with content
+        function openModal(title, subtitle, content) {
+            const modal = document.getElementById('dataModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+
+            // Attempt to pretty-print JSON if it looks like one (Only for "Details" or JSON-like content)
+            let formattedContent = content;
+            let finalTitle = subtitle;
+            try {
+                // Remove the extra double quotes that Django sometimes adds for string escaping
+                let cleanedContent = content.startsWith('"') && content.endsWith('"') ? content.slice(1, -1) : content;
+                const json = JSON.parse(cleanedContent);
+                // Display pretty-printed JSON
+                formattedContent = JSON.stringify(json, null, 2);
+                finalTitle = `${title} (${subtitle})`;
+            } catch (e) {
+                // Not valid JSON (e.g., a message or raw query), use original content and title
+                finalTitle = title;
+                formattedContent = content;
+            }
+
+            modalTitle.textContent = finalTitle;
+
+            // Use a <pre> tag inside the body to respect formatting/line breaks
+            modalBody.innerHTML = `<pre>${formattedContent}</pre>`;
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        }
+
+        // **NEW:** Function to close the modal
+        document.getElementById('modalCloseBtn').addEventListener('click', function (e) {
+            const modal = document.getElementById('dataModal');
+            modal.style.display = 'none';
+            document.body.style.overflow = ''; // Restore background scrolling
+        });
+
+
+        // **NEW:** Function to parse JSON and render structured details for the group table
+        function renderGroupDetails() {
+            // The template tag {{ test_group_logs|safe|escapejs }} must be populated on the server side 
+            // to contain the actual group logs data as a safe-to-use JSON string.
+            // If the variable is not defined or empty, this will gracefully fail.
+            const rawLogData = '{{ test_group_logs|safe|escapejs }}';
+            let groupLogs = [];
+            try {
+                // Clean up the string to ensure proper JSON parsing
+                const cleanedRawData = rawLogData.replace(/&quot;/g, '"');
+                groupLogs = JSON.parse(cleanedRawData);
+            } catch (e) {
+                console.warn("Could not parse test_group_logs JSON string.", e);
+                // If parsing fails, groupLogs remains an empty array, which is fine.
+            }
+
+            groupLogs.forEach(log => {
+                const container = document.getElementById(`details-${log.run_id}`);
+                if (!container || !log.results_details) return;
+
+                try {
+                    // Attempt to parse the results_details JSON string
+                    // We must clean up the string again as it comes from a Django template variable that was escaped (escapejs).
+                    let cleanedDetails = log.results_details;
+                    if (cleanedDetails.startsWith('"') && cleanedDetails.endsWith('"')) {
+                        cleanedDetails = cleanedDetails.slice(1, -1);
+                    }
+
+                    const details = JSON.parse(cleanedDetails);
+
+                    // Render structured output
+                    const status = details['Overall Status'] || details['overall_status'] || 'N/A';
+                    const total = details['Total Tests'] || details['total_tests'] || 'N/A';
+                    const failed = details['Failed Tests'] || details['failed_tests'] || 'N/A';
+                    const passed = (total !== 'N/A' && failed !== 'N/A') ? (parseInt(total) - parseInt(failed)) : 'N/A';
+
+
+                    let html = `<div class="results-detail-item">Status: <strong>${status}</strong></div>`;
+                    html += `<div class="results-detail-item">Total: <strong>${total}</strong></div>`;
+
+                    // Highlight failed count if > 0
+                    if (parseInt(failed) > 0) {
+                        html += `<div class="results-detail-item text-red-700">Failed: <strong>${failed}</strong></div>`;
+                    } else {
+                        html += `<div class="results-detail-item">Failed: <strong>${failed}</strong></div>`;
+                    }
+
+                    // Added Passed count for more info
+                    if (passed !== 'N/A' && parseInt(passed) > 0) {
+                        html += `<div class="results-detail-item text-green-700">Passed: <strong>${passed}</strong></div>`;
+                    } else if (passed !== 'N/A' && parseInt(passed) === 0) {
+                        html += `<div class="results-detail-item">Passed: <strong>${passed}</strong></div>`;
+                    }
+
+
+                    container.innerHTML = html;
+
+                } catch (e) {
+                    // Fallback for non-JSON or error logs
+                    container.innerHTML = `<div class="results-detail-item text-red-500 italic">Details parse error.</div>`;
+                    console.error("Error parsing/rendering details for run_id:", log.run_id, e);
+                }
+            });
+        }
+
+        // Initialize view based on URL parameter
+        document.addEventListener('DOMContentLoaded', function () {
+            const caseContent = document.getElementById('tab-case-content');
+            const groupContent = document.getElementById('tab-group-content');
+
+            try {
+                const requested = (getUrlParam('tab') || '').toLowerCase();
+
+                if (requested === 'group') {
+                    caseContent.style.display = 'none';
+                    groupContent.style.display = '';
+                } else {
+                    caseContent.style.display = '';
+                    groupContent.style.display = 'none';
+                }
+            } catch (e) {
+                // Default to case logs if error in parsing URL
+                caseContent.style.display = '';
+                groupContent.style.display = 'none';
+            }
+
+            // NEW: Call the function to render structured details
+            // This must be done after the DOM loads and Django variables are available.
+            try {
+                renderGroupDetails();
+            } catch (e) {
+                console.error("Error rendering group details:", e);
+            }
+        });
+
+
+        // Column resizing, drag-drop reorder, and AUTOFIT on double-click
+        (function () {
+            // Function to calculate the required width for a column
+            function calculateAutofitWidth(table, columnIndex) {
+                const tempDiv = document.createElement('div');
+                tempDiv.style.position = 'absolute';
+                tempDiv.style.visibility = 'hidden';
+                tempDiv.style.whiteSpace = 'nowrap';
+                tempDiv.style.fontFamily = 'Inter, sans-serif';
+                // Start with the default text size
+                tempDiv.style.fontSize = '0.8125rem'; 
+                document.body.appendChild(tempDiv);
+
+                let maxWidth = 40; // Minimum width for a column
+
+                // Include header width
+                const headerCell = table.querySelector('thead tr').children[columnIndex];
+                if (headerCell) {
+                    tempDiv.textContent = headerCell.textContent.trim();
+                    tempDiv.style.fontWeight = '700';
+                    maxWidth = Math.max(maxWidth, tempDiv.offsetWidth + 20); // Add padding for th
+                }
+
+                // Iterate through all body cells in the column
+                const rows = table.querySelectorAll('tbody tr');
+                rows.forEach(row => {
+                    const cell = row.children[columnIndex];
+                    if (cell && row.style.display !== 'none') { // Only consider visible rows
+                        
+                        // Determine base font size for accurate measurement
+                        const isTextXs = cell.classList.contains('text-xs') || cell.querySelector('.query-wrapper') || cell.querySelector('.results-detail-item');
+                        tempDiv.style.fontSize = isTextXs ? '0.75rem' : '0.8125rem'; 
+                        tempDiv.style.fontWeight = '400'; // Reset weight for cell content
+
+                        let contentToMeasure = '';
+
+                        const queryWrapper = cell.querySelector('.query-wrapper');
+                        const statusBadge = cell.querySelector('.status-badge');
+                        const detailsDisplay = cell.querySelector('.results-details-display');
+                        const messageWrapper = cell.querySelector('.message-wrapper'); 
+
+                        if (queryWrapper) {
+                            // For long queries (Source Query, Destination Query)
+                            contentToMeasure = queryWrapper.textContent.trim();
+                        } else if (messageWrapper) {
+                            // For Messages (Run Message/Message)
+                            contentToMeasure = messageWrapper.textContent.trim();
+                        } else if (statusBadge) {
+                            // For badges (Status)
+                            contentToMeasure = statusBadge.textContent.trim();
+                            tempDiv.style.fontWeight = '600';
+                        } else if (detailsDisplay) {
+                             // Handle complex structured data (Group Table only)
+                            tempDiv.style.whiteSpace = 'normal';
+                            tempDiv.style.fontSize = '0.75rem'; 
+                            const maxLineLength = Array.from(detailsDisplay.querySelectorAll('.results-detail-item')).reduce((max, item) => {
+                                tempDiv.textContent = item.textContent.trim();
+                                return Math.max(max, tempDiv.offsetWidth);
+                            }, 0);
+                            tempDiv.style.whiteSpace = 'nowrap';
+                            maxWidth = Math.max(maxWidth, maxLineLength + 20); 
+                            contentToMeasure = null; // Measured separately
+                        } 
+                        else {
+                            // For simple text columns
+                            contentToMeasure = cell.textContent.trim();
+                        }
+                        
+                        if (contentToMeasure !== null) {
+                            tempDiv.textContent = contentToMeasure;
+                            const currentContentWidth = tempDiv.offsetWidth + 20; // + padding
+
+                            // Calculate the ideal width, but apply a smart cap
+                            let calculatedWidth;
+                            
+                            // Define a soft cap for screen width consideration
+                            const softCap = 800; 
+
+                            if (currentContentWidth > softCap) {
+                                // If full text exceeds the cap (e.g., a massive query), use the soft cap (800px)
+                                calculatedWidth = softCap;
+                            } else if (currentContentWidth > 200) {
+                                // For moderately long content (>200px), use the full width
+                                calculatedWidth = currentContentWidth;
+                            } else {
+                                // For short content, use the full width
+                                calculatedWidth = currentContentWidth;
+                            }
+                            
+                            maxWidth = Math.max(maxWidth, calculatedWidth);
+                        }
+                    }
+                });
+
+                document.body.removeChild(tempDiv);
+
+                // Final safety measure: ensure the minimum width is respected.
+                return Math.max(40, maxWidth); 
+            }
+
+            ['caseTable', 'groupTable'].forEach(tableId => {
+                const table = document.getElementById(tableId);
+                if (!table) return;
+
+                const headerRow = table.querySelector('thead tr');
+                const colGroup = table.querySelector('colgroup');
+
+                // Apply saved widths
+                function loadColumnWidths(tableId, ths, colGroup) {
+                    try {
+                        const savedWidths = JSON.parse(localStorage.getItem('colWidths_' + tableId) || 'null');
+                        if (savedWidths && savedWidths.length === ths.length) {
+                            ths.forEach((th, i) => {
+                                const width = savedWidths[i];
+                                if (width > 40) {
+                                    const colElement = colGroup && colGroup.children[i];
+                                    if (colElement) {
+                                        // Apply width to the <col> element
+                                        colElement.style.width = width + 'px';
+                                    } else {
+                                        // Fallback to applying width to <th> if no <col>
+                                        th.style.width = width + 'px';
+                                    }
+                                }
+                            });
+                        }
+                    } catch { }
+                }
+
+                // Apply saved column order
+                function loadColumnOrder(tableId, table) {
+                    const savedOrder = JSON.parse(localStorage.getItem('colOrder_' + tableId) || 'null');
+
+                    if (!savedOrder) return;
+
+                    const headerRow = table.querySelector('thead tr');
+                    const ths = Array.from(headerRow.children);
+                    const currentHeaders = ths.map(th => th.textContent.trim());
+                    const colGroup = table.querySelector('colgroup');
+                    const colElements = colGroup ? Array.from(colGroup.children) : [];
+
+                    if (savedOrder.length !== currentHeaders.length || savedOrder.some(col => !currentHeaders.includes(col))) {
+                        localStorage.removeItem('colOrder_' + tableId);
+                        return;
+                    }
+
+                    const headerMap = {};
+                    const colMap = {};
+                    ths.forEach((th, index) => {
+                        const headerText = th.textContent.trim();
+                        headerMap[headerText] = th;
+                        if (colElements[index]) {
+                            colMap[headerText] = colElements[index];
+                        }
+                    });
+
+                    const headerFragment = document.createDocumentFragment();
+                    const colFragment = document.createDocumentFragment();
+
+                    savedOrder.forEach((headerText) => {
+                        if (headerMap[headerText]) {
+                            headerFragment.appendChild(headerMap[headerText]);
+                            if (colGroup && colMap[headerText]) {
+                                colFragment.appendChild(colMap[headerText]);
+                            }
+                        }
+                    });
+
+                    headerRow.appendChild(headerFragment);
+                    if (colGroup) {
+                        colGroup.appendChild(colFragment);
+                    }
+
+                    const rows = table.querySelectorAll('tbody tr');
+
+                    rows.forEach(row => {
+                        const cells = Array.from(row.children);
+                        const rowFragment = document.createDocumentFragment();
+
+                        const cellMap = {};
+                        currentHeaders.forEach((headerText, idx) => {
+                            cellMap[headerText] = cells[idx];
+                        });
+
+                        Array.from(headerRow.children).forEach(th => {
+                            const headerText = th.textContent.trim();
+                            const cellToMove = cellMap[headerText];
+                            if (cellToMove) {
+                                rowFragment.appendChild(cellToMove);
+                            }
+                        });
+
+                        row.innerHTML = '';
+                        row.appendChild(rowFragment);
+                    });
+                }
+
+                const initialThs = table.querySelector('thead tr').children;
+                loadColumnWidths(tableId, initialThs, colGroup);
+                loadColumnOrder(tableId, table);
+
+                const currentThs = table.querySelector('thead tr').children;
+                const currentColGroup = table.querySelector('colgroup');
+
+                // Function to save current widths
+                function saveCurrentWidths() {
+                    const widths = Array.from(headerRow.children).map((th, i) => {
+                        const col = currentColGroup ? currentColGroup.children[i] : th;
+                        return Math.round(col.offsetWidth);
+                    });
+                    try { localStorage.setItem('colWidths_' + tableId, JSON.stringify(widths)); } catch { }
+                }
+
+                // Setup Resizing and Double-Click Autofit
+                Array.from(currentThs).forEach((th, thIndex) => {
+
+                    // ------------------------------------
+                    // Double-Click (Autofit) Logic
+                    // ------------------------------------
+                    th.addEventListener('dblclick', e => {
+                        e.preventDefault(); 
+                        e.stopPropagation();
+
+                        const currentIndex = Array.from(th.parentNode.children).indexOf(th);
+                        const currentCol = currentColGroup ? currentColGroup.children[currentIndex] : th;
+
+                        const autofitWidth = calculateAutofitWidth(table, currentIndex);
+                        
+                        // Apply new width to the <col> element
+                        currentCol.style.width = autofitWidth + 'px';
+
+                        // Save the new column widths to localStorage
+                        saveCurrentWidths();
+                    });
+                    // ------------------------------------
+
+                    // Setup Resizing 
+                    if (th.querySelector('.resize-handle')) {
+                        const handle = th.querySelector('.resize-handle');
+                        let startX, startWidth;
+
+                        handle.addEventListener('mousedown', e => {
+                            e.preventDefault();
+                            // Find the correct element to measure and apply width to based on current index
+                            const currentIndex = Array.from(th.parentNode.children).indexOf(th);
+                            const currentCol = currentColGroup ? currentColGroup.children[currentIndex] : th;
+
+                            startWidth = currentCol.offsetWidth;
+                            startX = e.pageX;
+
+                            document.body.style.userSelect = 'none';
+                            document.body.style.cursor = 'col-resize';
+
+                            function onMouseMove(e) {
+                                const newWidth = startWidth + (e.pageX - startX);
+
+                                if (newWidth > 40) {
+                                    // Apply width to the <col> element
+                                    currentCol.style.width = newWidth + 'px';
+                                }
+                            }
+
+                            function onMouseUp() {
+                                // Use the new function to save the widths
+                                saveCurrentWidths(); 
+
+                                document.removeEventListener('mousemove', onMouseMove);
+                                document.removeEventListener('mouseup', onMouseUp);
+                                document.body.style.userSelect = '';
+                                document.body.style.cursor = '';
+                            }
+
+                            document.addEventListener('mousemove', onMouseMove);
+                            document.addEventListener('mouseup', onMouseUp);
+                        });
+                    }
+
+                    // Setup Drag & drop reorder
+                    th.setAttribute('draggable', true);
+
+                    // Add/remove drag class for visual feedback (optional)
+                    th.addEventListener('dragenter', () => th.classList.add('border-l-4', 'border-blue-500'));
+                    th.addEventListener('dragleave', () => th.classList.remove('border-l-4', 'border-blue-500'));
+                    th.addEventListener('drop', () => th.classList.remove('border-l-4', 'border-blue-500'));
+
+
+                    th.addEventListener('dragstart', e => {
+                        draggedTh = th;
+                        dragStartIndex = Array.from(th.parentNode.children).indexOf(th);
+                        e.dataTransfer.effectAllowed = 'move';
+                        e.dataTransfer.setData('text/plain', '');
+                        th.style.opacity = '0.5';
+                    });
+
+                    th.addEventListener('dragend', () => {
+                        draggedTh.style.opacity = '';
+                        draggedTh = null;
+                        dragStartIndex = null;
+                    });
+
+                    th.addEventListener('dragover', e => {
+                        e.preventDefault();
+                        e.dataTransfer.dropEffect = 'move';
+                    });
+
+                    th.addEventListener('drop', e => {
+                        e.preventDefault();
+
+                        if (!draggedTh || draggedTh === th) return;
+
+                        const tr = th.parentNode;
+                        const dragEndIndex = Array.from(tr.children).indexOf(th); 
+                        const colGroup = table.querySelector('colgroup');
+                        const colToMove = colGroup ? Array.from(colGroup.children)[dragStartIndex] : null;
+                        
+                        const originalHeaders = Array.from(tr.children).map(th => th.textContent.trim());
+
+                        // 1. Perform the header reorder
+                        if (dragEndIndex > dragStartIndex) {
+                            tr.insertBefore(draggedTh, tr.children[dragEndIndex + 1] || null);
+                            if (colGroup && colToMove) {
+                                colGroup.insertBefore(colToMove, colGroup.children[dragEndIndex + 1] || null);
+                            }
+                        } else {
+                            tr.insertBefore(draggedTh, tr.children[dragEndIndex]);
+                            if (colGroup && colToMove) {
+                                colGroup.insertBefore(colToMove, colGroup.children[dragEndIndex]);
+                            }
+                        }
+
+                        // 2. Get the new header order
+                        const newHeaders = Array.from(tr.children).map(th => th.textContent.trim());
+
+                        // 3. Reorder tbody cells for each row
+                        const rows = table.querySelectorAll('tbody tr');
+
+                        rows.forEach(row => {
+                            const cells = Array.from(row.children);
+                            const rowFragment = document.createDocumentFragment();
+
+                            const cellMap = {};
+                            originalHeaders.forEach((headerText, idx) => {
+                                cellMap[headerText] = cells[idx];
+                            });
+
+                            newHeaders.forEach(headerText => {
+                            
+                                const cellToMove = cellMap[headerText];
+                                if (cellToMove) {
+                                    rowFragment.appendChild(cellToMove);
+                                }
+                            });
+
+                            row.innerHTML = '';
+                            row.appendChild(rowFragment);
+                        });
+
+
+                        // 4. Save new order
+                        try { localStorage.setItem('colOrder_' + tableId, JSON.stringify(newHeaders)); } catch { }
+
+                        // 5. Save new widths 
+                        saveCurrentWidths();
+
+                        // Cleanup
+                        th.classList.remove('border-l-4', 'border-blue-500');
+                    });
+
+                });
+
+            });
+
+        })();
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eagle DQ - Projects Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="icon" href="{% static 'dq_management/images/eagle_logo_bg.png' %}" type="image/png" />
+    <style>
+        /* All your original CSS styles are included here */
+        body {
+            display: flex;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #fef7ed 0%, #fdf4ff 25%, #f0f9ff 50%, #f0fdfa 75%, #fefce8 100%);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                radial-gradient(circle at 20% 80%, rgba(251, 191, 36, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.06) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(139, 92, 246, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 60% 60%, rgba(236, 72, 153, 0.04) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 280px;
+            height: 100vh;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(254, 252, 232, 0.9) 50%, rgba(240, 249, 255, 0.9) 100%);
+            backdrop-filter: blur(20px);
+            box-shadow: 2px 0 20px rgba(251, 191, 36, 0.1);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex-shrink: 0;
+            transition: margin-left 0.3s ease;
+            z-index: 40;
+            border-right: 1px solid rgba(251, 191, 36, 0.1);
+        }
+
+        .main-content-wrapper {
+            flex-grow: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            transition: margin-left 0.3s ease;
+            margin-left: 280px;
+        }
+
+        .main-content-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(254, 252, 232, 0.3) 25%, rgba(240, 249, 255, 0.3) 75%, rgba(255, 255, 255, 0.9) 100%);
+            backdrop-filter: blur(20px);
+            padding: 2.5rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 32px rgba(251, 191, 36, 0.08);
+            border: 1px solid rgba(251, 191, 36, 0.1);
+        }
+
+        .logo-container {
+            background: transparent;
+            border-radius: 0.5rem;
+            padding: 0.25rem 0.5rem;
+            margin-bottom: 1.25rem;
+            box-shadow: none;
+            border: none;
+            backdrop-filter: none;
+        }
+
+        .site-header-logo {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+            margin-right: 0.5rem;
+            vertical-align: middle;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 1rem 1.25rem;
+            border-radius: 0.75rem;
+            color: #475569;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin-bottom: 0.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 100%;
+            background: linear-gradient(90deg, rgba(251, 191, 36, 0.1) 0%, rgba(14, 165, 233, 0.05) 100%);
+            transition: width 0.3s ease;
+            z-index: -1;
+        }
+
+        .nav-link:hover::before {
+            width: 100%;
+        }
+
+        .nav-link:hover {
+            color: #334155;
+            transform: translateX(4px);
+        }
+
+        .nav-link.active {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.12) 0%, rgba(14, 165, 233, 0.08) 100%);
+            color: #1e293b;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(251, 191, 36, 0.1);
+        }
+
+        .nav-link i {
+            margin-right: 1rem;
+            width: 20px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .nav-link:hover i {
+            transform: scale(1.1);
+        }
+
+        /* 🌟 Enhanced Project Card Styling 🌟 */
+        .project-card {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 1rem;
+            /* Lighter background for better contrast */
+            background: rgba(255, 255, 255, 0.98); 
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(251, 191, 36, 0.15); /* Slightly darker border */
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer; /* Indicate clickability */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* Initial subtle shadow */
+        }
+
+        /* Animated border effect on hover */
+        .project-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px; /* Thicker accent line */
+            background: linear-gradient(90deg, transparent 0%, #f59e0b 25%, #0ea5e9 75%, transparent 100%); /* Solid colors for accent */
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.5s ease;
+        }
+
+        .project-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .project-card:hover {
+            transform: translateY(-8px); /* More pronounced lift */
+            box-shadow: 0 25px 50px rgba(251, 191, 36, 0.2); /* Stronger shadow on hover */
+            border-color: rgba(14, 165, 233, 0.3); /* Blue accent border on hover */
+        }
+
+        .add-project-card {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            min-height: 200px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 1rem;
+            border: 2px dashed rgba(251, 191, 36, 0.5);
+            background: rgba(255, 255, 255, 0.6);
+            box-shadow: none;
+            cursor: pointer;
+        }
+
+        .add-project-card:hover {
+            border-color: rgba(14, 165, 233, 0.8);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(240, 249, 255, 0.8) 100%);
+            transform: scale(1.03);
+            box-shadow: 0 10px 30px rgba(14, 165, 233, 0.15);
+        }
+
+        .search-input {
+            transition: all 0.3s ease;
+            border-radius: 1rem;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(254, 252, 232, 0.3) 50%, rgba(240, 249, 255, 0.3) 100%);
+            border: 1px solid rgba(251, 191, 36, 0.1);
+            backdrop-filter: blur(20px);
+        }
+
+        .search-input:focus {
+            border-color: rgba(251, 191, 36, 0.3);
+            box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.08);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(254, 252, 232, 0.4) 100%);
+            transform: scale(1.02);
+        }
+
+        /* Status Colors - Retained but ensured clear contrast */
+        .status-pass {
+            background: #ecfdf5; /* Light Green */
+            color: #047857;
+            border: 1px solid #d1fae5;
+        }
+
+        .status-fail {
+            background: #fef2f2; /* Light Red */
+            color: #b91c1c;
+            border: 1px solid #fee2e2;
+        }
+
+        .status-warn {
+            background: #fffdf5; /* Light Yellow */
+            color: #b45309;
+            border: 1px solid #fde68a;
+        }
+
+        .status-default {
+            background: #f1f5f9; /* Light Slate */
+            color: #475569;
+            border: 1px solid #e2e8f0;
+        }
+
+        .header-title {
+            background: linear-gradient(135deg, #1e293b 0%, #475569 50%, #0369a1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Enhanced Priority Badge */
+        .priority-badge {
+            background: #fefce8; /* Very Light Yellow */
+            color: #78350f; /* Dark Brown Text */
+            border: 1px solid #fde68a; /* Yellow Border */
+            font-weight: 600;
+            padding: 0.25rem 0.75rem; /* Slightly larger padding */
+        }
+
+        .toggle-btn {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(254, 252, 232, 0.8) 100%);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(251, 191, 36, 0.15);
+            color: #475569;
+            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.12);
+        }
+
+        .toggle-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 16px rgba(251, 191, 36, 0.18);
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 260px;
+            }
+
+            .main-content-wrapper {
+                margin-left: 260px;
+            }
+        }
+    </style>
+</head>
+
+<body class="text-slate-800">
+    {% csrf_token %}
+
+    {% include 'dq_management/includes/sidebar.html' %}
+
+    <button id="sidebarToggleBtn"
+        class="toggle-btn fixed bottom-6 left-6 z-50 rounded-full p-3 shadow-lg focus:outline-none transition-all duration-300 flex items-center justify-center"
+        style="width: 48px; height: 48px;">
+        <span id="sidebarToggleIcon" style="font-size: 1.25rem;">
+            <i class="fas fa-chevron-left"></i>
+        </span>
+    </button>
+
+    <div id="mainContent" class="main-content-wrapper transition-all duration-300">
+        <header class="main-content-card mb-8">
+            <div class="max-w-7xl mx-auto text-center">
+                <div class="flex items-center justify-center mb-4">
+                    <i
+                        class="fas fa-feather-alt text-3xl bg-gradient-to-r from-amber-500 to-blue-500 bg-clip-text text-transparent mr-3"></i>
+                    <h1 class="text-4xl font-bold header-title">
+                        Projects Overview
+                    </h1>
+                </div>
+                <p class="text-slate-600 mb-8 text-lg">Monitor and manage your data quality projects</p>
+
+                <div class="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="relative">
+                        <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
+                        <input id="projectFilterInput" oninput="filterProjects()" type="text"
+                            placeholder="Search by project name..."
+                            class="search-input w-full pl-12 pr-4 py-3 text-sm focus:outline-none text-slate-700 placeholder-slate-400">
+                    </div>
+                    <div class="relative">
+                        <i class="fas fa-hashtag absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
+                        <input id="projectIdFilterInput" oninput="filterProjects()" type="text"
+                            placeholder="Filter by ID..."
+                            class="search-input w-full pl-12 pr-4 py-3 text-sm focus:outline-none text-slate-700 placeholder-slate-400">
+                    </div>
+                    <div class="relative">
+                        <i class="fas fa-flag absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
+                        <input id="priorityFilterInput" oninput="filterProjects()" type="text"
+                            placeholder="Filter by Priority..."
+                            class="search-input w-full pl-12 pr-4 py-3 text-sm focus:outline-none text-slate-700 placeholder-slate-400">
+                    </div>
+                    <div class="relative">
+                        <i class="fas fa-exclamation-triangle absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
+                        <input id="criticalityFilterInput" oninput="filterProjects()" type="text"
+                            placeholder="Filter by Criticality..."
+                            class="search-input w-full pl-12 pr-4 py-3 text-sm focus:outline-none text-slate-700 placeholder-slate-400">
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+            {% if messages %}
+            <div class="mb-6">
+                {% for message in messages %}
+                <div class="p-4 mb-4 rounded-xl text-sm font-medium border backdrop-filter backdrop-blur-sm
+                    {% if 'success' in message.tags %}
+                        bg-gradient-to-r from-green-50 to-emerald-50 text-green-800 border-green-200
+                    {% elif 'error' in message.tags %}
+                        bg-gradient-to-r from-red-50 to-rose-50 text-red-800 border-red-200
+                    {% else %}
+                        bg-gradient-to-r from-blue-50 to-sky-50 text-blue-800 border-blue-200
+                    {% endif %}">
+                    <div class="flex items-center">
+                        {% if 'success' in message.tags %}
+                        <i class="fas fa-check-circle mr-2"></i>
+                        {% elif 'error' in message.tags %}
+                        <i class="fas fa-exclamation-circle mr-2"></i>
+                        {% else %}
+                        <i class="fas fa-info-circle mr-2"></i>
+                        {% endif %}
+                        {{ message }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+
+                <a href="{% url "create_project" %}" class="add-project-card group w-full">
+                    <div class="flex flex-col items-center p-4">
+                        <i
+                            class="fas fa-plus-circle text-6xl text-amber-500 group-hover:text-blue-500 transition-colors duration-300"></i>
+                        <h3
+                            class="mt-4 text-xl font-bold text-slate-700 group-hover:text-slate-800 transition-colors duration-300">
+                            Add New Project
+                        </h3>
+                        <p class="text-sm text-slate-500 mt-1">Define data quality goals</p>
+                    </div>
+                </a>
+
+                {% if projects %}
+                {% for project in projects %}
+
+                <div
+                    class="project-card group w-full relative" data-project-name="{{ project.project_name }}"
+                    data-project-id="{{ project.project_id }}" data-project-priority="{{ project.priority }}" data-project-criticality="{{ project.criticality_level }}">
+
+                    <a href="{% url 'project_details' project_id=project.project_id %}" class="absolute inset-0 z-10"></a>
+
+                    <div class="flex items-start justify-between mb-3 relative z-20">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center mb-2">
+                                <i
+                                    class="fas fa-folder-open text-slate-500 mr-2 group-hover:text-slate-600 transition-colors"></i>
+                                <h3
+                                    class="text-sm md:text-base lg:text-lg font-semibold text-slate-800 group-hover:text-slate-900 transition-colors truncate"
+                                    title="{{ project.project_name }}">
+                                    {{ project.project_name }}
+                                </h3>
+                            </div>
+                            {% if project.project_description %}
+                            <p class="text-xs md:text-sm lg:text-base text-slate-600 line-clamp-2" title="{{ project.project_description }}">{{ project.project_description }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="flex items-center space-x-2">
+                            <div class="flex opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                <a href="{% url 'edit_project' project_id=project.project_id %}"
+                                    class="text-slate-400 hover:text-blue-500 transition-colors p-1 rounded-full hover:bg-slate-100 relative z-30"
+                                    title="Edit Project Details" onclick="event.stopPropagation()">
+                                    <i class="fas fa-edit text-sm"></i>
+                                </a>
+
+                                <button onclick="deleteProjectConfirmation('{% url 'delete_project' project_id=project.project_id %}', event)"
+                                    class="text-slate-400 hover:text-red-500 transition-colors p-1 rounded-full hover:bg-slate-100 relative z-30"
+                                    title="Delete Project" onclick="event.stopPropagation()">
+                                    <i class="fas fa-trash-alt text-sm"></i>
+                                </button>
+                            </div>
+
+                            {% if project.status and project.status != 'N/A' %}
+                            <span class="px-3 py-1 rounded-full text-xs font-medium relative z-20
+                                {% if project.status == 'PASS' %}status-pass
+                                {% elif project.status == 'FAIL' %}status-fail
+                                {% elif project.status == 'WARN' %}status-warn
+                                {% else %}status-default{% endif %}">
+                                {{ project.status }}
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="space-y-3 pt-3 border-t border-slate-100 relative z-20">
+                        {% if project.project_id %}
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-slate-500">Project ID</span>
+                            <code class="px-2 py-1 bg-slate-100 text-slate-700 rounded text-sm font-mono font-medium">
+                                {{ project.project_id }}
+                            </code>
+                        </div>
+                        {% endif %}
+
+                        {% if project.priority %}
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-slate-500">Priority</span>
+                            <span class="priority-badge px-3 py-1 rounded-full text-sm font-semibold">
+                                {{ project.priority }}
+                            </span>
+                        </div>
+                        {% endif %}
+
+                        {% if project.criticality_level %}
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-slate-500">Criticality</span>
+                            <span class="px-3 py-1 rounded-full text-sm font-semibold bg-red-100 text-red-800 border border-red-200">
+                                {{ project.criticality_level }}
+                            </span>
+                        </div>
+                        {% endif %}
+
+                        {% if project.updated_at %}
+                        <div>
+                            <div class="flex items-center text-sm text-slate-500">
+                                <i class="far fa-clock mr-2"></i>
+                                <span>Updated {{ project.updated_at|date:"M j, Y H:i:s"|default:"N/A" }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="col-span-full text-center py-12" id="emptyState">
+                    <i class="fas fa-folder-open text-6xl text-slate-300 mb-4"></i>
+                    <h3 class="text-xl font-semibold text-slate-600 mb-2">No projects found</h3>
+                    <p class="text-slate-500">Start by creating your first data quality project</p>
+                </div>
+                {% endif %}
+
+            </section>
+        </main>
+    </div>
+
+    <div id="projectModal" class="hidden"></div>
+
+    <script>
+        // Sidebar and filter functions (unchanged)
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        const toggleBtn = document.getElementById('sidebarToggleBtn');
+        const toggleIcon = document.getElementById('sidebarToggleIcon');
+        let sidebarVisible = true;
+
+        function getSidebarWidth() {
+            return (sidebar && sidebar.offsetWidth) ? sidebar.offsetWidth : 280;
+        }
+
+        function hideSidebar() {
+            const w = getSidebarWidth();
+            sidebar.style.marginLeft = `-${w}px`;
+            mainContent.style.marginLeft = '0';
+            toggleIcon.innerHTML = '<i class="fas fa-chevron-right"></i>';
+            sidebarVisible = false;
+        }
+
+        function showSidebar() {
+            const w = getSidebarWidth();
+            sidebar.style.marginLeft = '0';
+            mainContent.style.marginLeft = `${w}px`;
+            toggleIcon.innerHTML = '<i class="fas fa-chevron-left"></i>';
+            sidebarVisible = true;
+        }
+
+        toggleBtn.addEventListener('click', function () {
+            if (sidebarVisible) {
+                hideSidebar();
+            } else {
+                showSidebar();
+            }
+        });
+
+        function filterProjects() {
+            const nameInput = document.getElementById('projectFilterInput').value.toLowerCase();
+            const idInput = document.getElementById('projectIdFilterInput').value.toLowerCase();
+            const priorityInput = document.getElementById('priorityFilterInput').value.toLowerCase();
+            const criticalityInput = document.getElementById('criticalityFilterInput').value.toLowerCase();
+
+            const cards = document.querySelectorAll('.project-card');
+            let found = false;
+
+            cards.forEach((card, index) => {
+                const name = card.dataset.projectName ? card.dataset.projectName.toLowerCase() : '';
+                const id = card.dataset.projectId ? card.dataset.projectId.toLowerCase() : '';
+                const priority = card.dataset.projectPriority ? card.dataset.projectPriority.toLowerCase() : '';
+                const criticality = card.dataset.projectCriticality ? card.dataset.projectCriticality.toLowerCase() : '';
+
+                const matchesName = name.includes(nameInput);
+                const matchesId = id.includes(idInput);
+                const matchesPriority = priorityInput === '' || priority.includes(priorityInput);
+                const matchesCriticality = criticalityInput === '' || criticality.includes(criticalityInput);
+
+                if (matchesName && matchesId && matchesPriority && matchesCriticality) {
+                    card.style.display = 'block';
+                    card.style.opacity = '0';
+                    setTimeout(() => {
+                        card.style.opacity = '1';
+                    }, index * 50);
+                    found = true;
+                } else {
+                    card.style.opacity = '0';
+                    setTimeout(() => {
+                        card.style.display = 'none';
+                    }, 200);
+                }
+            });
+
+            const emptyState = document.getElementById('emptyState');
+            const isFiltering = nameInput !== '' || idInput !== '' || priorityInput !== '' || criticalityInput !== '';
+
+            if (emptyState) {
+                emptyState.style.display = (!found && isFiltering) ? 'block' : 'none';
+            }
+        }
+
+        function setActiveNavLink() {
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('.nav-link');
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                const href = link.getAttribute('href');
+                if (href && href === currentPath) {
+                    link.classList.add('active');
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            setActiveNavLink();
+
+            const cards = document.querySelectorAll('.project-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    card.style.transition = 'all 0.4s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                document.getElementById('projectFilterInput').value = '';
+                document.getElementById('projectIdFilterInput').value = '';
+                document.getElementById('priorityFilterInput').value = '';
+                document.getElementById('criticalityFilterInput').value = '';
+                filterProjects();
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const img = document.querySelector('.site-logo-img');
+            if (!img) return;
+            const url = img.getAttribute('src');
+            fetch(url, { method: 'HEAD' })
+                .then(resp => {
+                    if (!resp.ok) {
+                        console.warn('Logo static file not found (HEAD):', url, resp.status);
+                        img.style.display = 'none';
+                        const fb = document.getElementById('logoFallback');
+                        if (fb) fb.style.display = 'flex';
+                    }
+                })
+                .catch(err => {
+                    console.warn('Logo HEAD check failed:', err, url);
+                    img.style.display = 'none';
+                    const fb = document.getElementById('logoFallback');
+                    if (fb) fb.style.display = 'flex';
+                });
+        });
+
+
+        // 🐛 FIX 1: Corrected Delete function URL parameter usage and improved logic 🐛
+        function deleteProjectConfirmation(url, event) {
+            if (event) {
+                event.preventDefault(); // Stop the card's main link from triggering
+                event.stopPropagation(); // Stop event from bubbling to parent elements
+            }
+
+            const project_id = url.split('/').filter(Boolean).pop();
+
+            const confirmed = confirm(`Are you sure you want to delete Project ${project_id}? This action cannot be undone and will delete all associated test cases and groups.`);
+
+            if (confirmed) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = url;
+
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+
+                if (!csrfToken) {
+                    alert("Security Error: Cannot perform delete action (CSRF token missing).");
+                    return;
+                }
+
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrfmiddlewaretoken';
+                csrfInput.value = csrfToken;
+                form.appendChild(csrfInput);
+
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+    </script>
+</body>
+
+</html>
