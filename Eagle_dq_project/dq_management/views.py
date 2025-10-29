@@ -38,7 +38,9 @@ from .services import (
     get_test_group_logs_from_db,
     schedule_test_group_logic,
     get_available_connection_sources,
-    _to_json_safe  # Import the helper function
+    _to_json_safe,  # Import the helper function
+    start_project_run_task,
+    get_project_run_status
 )
 from .chart_utils import make_criticality_bar_chart
 from .models import TestGroupLog
@@ -461,9 +463,15 @@ def create_test_group(request, project_id):
     if not project:
         messages.error(request, "Project not found.")
         return redirect('projects_dashboard')
-    
+
     available_test_cases = get_test_cases_for_project_from_db(project_id)
-    
+
+    # Fetch existing test groups to determine taken execution orders
+    existing_groups = get_test_groups_for_project_from_db(project_id)
+    taken_orders = {group.get('execution_order') for group in existing_groups if group.get('execution_order')}
+    max_order = max(taken_orders) if taken_orders else 0
+    available_orders = [i for i in range(1, max_order + 2) if i not in taken_orders]
+
     context = {
         'project': project,
         'available_test_cases': available_test_cases,
@@ -471,6 +479,8 @@ def create_test_group(request, project_id):
         'group_description_prefill': '',
         'schedule_cron_prefill': '',
         'created_by_prefill': '',
+        'execution_order_prefill': available_orders[0] if available_orders else 1,
+        'available_execution_orders': available_orders,
         'selected_test_cases_prefill': [],
     }
 
@@ -479,9 +489,10 @@ def create_test_group(request, project_id):
         group_description = request.POST.get('group_description')
         schedule_cron = request.POST.get('schedule_cron')
         created_by = request.POST.get('created_by')
+        execution_order = int(request.POST.get('execution_order', 1))
         selected_test_cases_json = request.POST.get('selected_test_cases')
         selected_test_cases_data = json.loads(selected_test_cases_json) if selected_test_cases_json else []
-        
+
         group_errors = []
         if not group_name.strip():
             group_errors.append("Test Group Name cannot be empty.")
@@ -489,20 +500,23 @@ def create_test_group(request, project_id):
             group_errors.append("Created By cannot be empty.")
         if not selected_test_cases_data:
             group_errors.append("At least one test case must be selected for the group.")
-        
+        if execution_order < 1:
+            group_errors.append("Execution Order must be a positive integer.")
+
         if group_errors:
             for error in group_errors:
                 messages.error(request, error)
-            
+
             context.update({
                 'group_name_prefill': group_name,
                 'group_description_prefill': group_description,
                 'schedule_cron_prefill': schedule_cron,
                 'created_by_prefill': created_by,
+                'execution_order_prefill': execution_order,
                 'selected_test_cases_prefill': [tc['test_case_id'] for tc in selected_test_cases_data],
             })
             return render(request, 'dq_management/create_test_group.html', context)
-        
+
         new_group_id = str(uuid.uuid4())
         # Call the ORM-based save_test_group_to_db
         success = save_test_group_to_db(
@@ -512,7 +526,8 @@ def create_test_group(request, project_id):
             group_description=group_description,
             schedule_cron=schedule_cron,
             created_by=created_by,
-            selected_test_cases_data=selected_test_cases_data
+            selected_test_cases_data=selected_test_cases_data,
+            execution_order=execution_order
         )
 
         if success:
@@ -561,7 +576,17 @@ def edit_test_group(request, group_id):
     available_test_cases = get_test_cases_for_project_from_db(project_id)
     selected_test_cases_data = get_test_cases_in_group_from_db(group_id)
     selected_test_case_ids = [tc['id'] for tc in selected_test_cases_data]
-    
+
+    # Fetch existing test groups to determine taken execution orders, excluding current group
+    existing_groups = get_test_groups_for_project_from_db(project_id)
+    current_order = group_data.get('execution_order')
+    taken_orders = {group.get('execution_order') for group in existing_groups if group.get('execution_order') and group.get('test_group_id') != group_id}
+    max_order = max(taken_orders) if taken_orders else 0
+    available_orders = [i for i in range(1, max_order + 2) if i not in taken_orders]
+    if current_order and current_order not in available_orders:
+        available_orders.append(current_order)
+        available_orders.sort()
+
     context = {
         'project': project,
         'available_test_cases': available_test_cases,
@@ -570,6 +595,8 @@ def edit_test_group(request, group_id):
         'group_description_prefill': group_data.get('group_description'),
         'schedule_cron_prefill': group_data.get('schedule_cron'),
         'created_by_prefill': group_data.get('created_by'),
+        'execution_order_prefill': current_order or 1,
+        'available_execution_orders': available_orders,
         'selected_test_cases_prefill': selected_test_case_ids,
         'group_data': group_data,
         'selected_test_cases_data': json.dumps(_to_json_safe(selected_test_cases_data)),  # Use the helper
@@ -580,7 +607,8 @@ def edit_test_group(request, group_id):
         group_description = request.POST.get('group_description')
         schedule_cron = request.POST.get('schedule_cron')
         created_by = request.POST.get('created_by')
-        
+        execution_order = int(request.POST.get('execution_order', 1))
+
         selected_test_cases_json = request.POST.get('selected_test_cases')
         new_selected_test_cases = json.loads(selected_test_cases_json) if selected_test_cases_json else []
 
@@ -591,20 +619,23 @@ def edit_test_group(request, group_id):
             group_errors.append("Created By cannot be empty.")
         if not new_selected_test_cases:
             group_errors.append("At least one test case must be selected for the group.")
-        
+        if execution_order < 1:
+            group_errors.append("Execution Order must be a positive integer.")
+
         if group_errors:
             for error in group_errors:
                 messages.error(request, error)
-            
+
             context.update({
                 'group_name_prefill': group_name,
                 'group_description_prefill': group_description,
                 'schedule_cron_prefill': schedule_cron,
                 'created_by_prefill': created_by,
+                'execution_order_prefill': execution_order,
                 'selected_test_cases_prefill': [tc['test_case_id'] for tc in new_selected_test_cases],
             })
             return render(request, 'dq_management/create_test_group.html', context)
-        
+
         # Call the ORM-based save_test_group_to_db
         success = save_test_group_to_db(
             group_id=group_id,
@@ -613,7 +644,8 @@ def edit_test_group(request, group_id):
             group_description=group_description,
             schedule_cron=schedule_cron,
             created_by=created_by,
-            selected_test_cases_data=new_selected_test_cases
+            selected_test_cases_data=new_selected_test_cases,
+            execution_order=execution_order
         )
 
         if success:
@@ -1192,4 +1224,19 @@ def test_group_flow(request, group_id):
     }
 
     return render(request, 'dq_management/flow.html', context)
+
+
+def run_project_async(request, project_id):
+    if request.method == 'POST':
+        logger.info(f"Received request to start async run for project: {project_id}")
+        # Call the ORM-based start_project_run_task
+        run_id = start_project_run_task(project_id)
+        return JsonResponse({"run_id": run_id}, status=200)
+    return JsonResponse({"error": "Invalid request method"}, status=405)
+
+
+def get_project_run_status(request, run_id):
+    status_data = get_project_run_status(run_id)
+    serializable_status_data = convert_numpy_types(status_data)
+    return JsonResponse(serializable_status_data)
 

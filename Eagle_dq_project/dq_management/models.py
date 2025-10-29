@@ -85,6 +85,7 @@ class TestCase(models.Model):
     def __str__(self):
         return self.test_name
 
+
 # --- 3. TEST_GROUPS Table ---
 class TestGroup(models.Model):
     test_group_id = models.CharField(max_length=36, primary_key=True)
@@ -99,7 +100,8 @@ class TestGroup(models.Model):
     created_by = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+    execution_order = models.IntegerField(blank = False, null = False)
+
     test_cases = models.ManyToManyField(
         TestCase,
         through='TestGroupTestCase',
@@ -194,6 +196,8 @@ class TestCaseLog(models.Model):
     def __str__(self):
         return f"Log {self.run_id} - {self.test_name or 'N/A'} - {self.run_status or 'N/A'}"
 
+
+# --- 7. PROJECT_LOGS Table ---
 class ProjectLogs(models.Model):
     run_id = models.CharField(max_length=255, primary_key=True)
     project_id = models.CharField(max_length=36, blank=True, null=False, db_column='PROJECT_ID')

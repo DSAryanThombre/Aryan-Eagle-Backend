@@ -54,6 +54,10 @@ urlpatterns = [
     path('test_groups/<str:group_id>/run_async/', views.run_test_group_async, name='run_test_group_async'),
     path('test_groups/run_status/<str:run_id>/', views.get_run_status, name='get_run_status'),
     path('test_groups/<str:group_id>/schedule/', views.schedule_test_group, name='schedule_test_group'),
+
+    # API endpoints for asynchronous project runs
+    path('projects/<str:project_id>/run_async/', views.run_project_async, name='run_project_async'),
+    path('projects/run_status/<str:run_id>/', views.get_project_run_status, name='get_project_run_status'),
     
     # Log pages
     path('test_case_logs/', views.test_case_logs, name='test_case_logs'),

@@ -7,11 +7,12 @@ import os
 import copy
 import numpy as np
 import subprocess
+import time
 from decimal import Decimal
 from django.conf import settings
 from django.db import connections
 
-from dq_management.models import Project, TestCase, TestGroup, TestGroupTestCase, TestCaseLog, TestGroupLog
+from dq_management.models import Project, TestCase, TestGroup, TestGroupTestCase, TestCaseLog, TestGroupLog, ProjectLogs
 from dq_management.dq_core import build_dynamic_aggregation_query, execute_query_to_dataframe
 from dq_management.test_case_manager import TestCaseProcessor
 from dq_management.airflow_dag_generator import generate_dag_file
@@ -410,7 +411,7 @@ def get_test_group_details_from_db(group_id):
         logger.exception(f"Error fetching test group {group_id} details from Snowflake:")
         return None
 
-def save_test_group_to_db(group_id, project_id, group_name, group_description, schedule_cron, created_by, selected_test_cases_data):
+def save_test_group_to_db(group_id, project_id, group_name, group_description, schedule_cron, created_by, selected_test_cases_data, execution_order):
     try:
         total_tests_count = len(selected_test_cases_data) if selected_test_cases_data else 0
         test_group, created = TestGroup.objects.using('snowflake_dev').update_or_create(
@@ -420,6 +421,7 @@ def save_test_group_to_db(group_id, project_id, group_name, group_description, s
                 'group_description': group_description, 'schedule_cron': schedule_cron,
                 'created_by': created_by,
                 'total_tests': total_tests_count, # Update total tests count on save
+                'execution_order': execution_order,
             }
         )
         if created:
@@ -855,4 +857,150 @@ def _execute_group_in_background(run_id, group_id):
         GROUP_RUN_STATUS[run_id]["final_status"] = overall_group_status
         GROUP_RUN_STATUS[run_id]["failed_tests"] = failed_tests_count
         logger.info(f"Background run for group {group_id} finished.")
+
+PROJECT_RUN_STATUS = {}
+
+def start_project_run_task(project_id):
+    run_id = str(uuid.uuid4())
+    PROJECT_RUN_STATUS[run_id] = {
+        "status": "PENDING", "total_test_groups": 0, "executed_count": 0,
+        "current_group_name": "Preparing to run...", "results": []
+    }
+    thread = threading.Thread(target=_execute_project_in_background, args=(run_id, project_id))
+    thread.daemon = True
+    thread.start()
+    logger.info(f"Started background run for project {project_id} with run ID: {run_id}")
+    return run_id
+
+def get_project_run_status(run_id):
+    return PROJECT_RUN_STATUS.get(run_id, {"status": "NOT_FOUND", "message": "Run ID not found."})
+
+def _execute_project_in_background(run_id, project_id):
+    overall_project_status = "PASS"
+    failed_groups_count = 0
+    all_group_results = []
+    start_time = datetime.now()
+    total_groups = 0
+    try:
+        project_meta = get_project_from_db(project_id)
+        if not project_meta:
+            PROJECT_RUN_STATUS[run_id]["status"] = "ERROR"
+            PROJECT_RUN_STATUS[run_id]["current_group_name"] = "Project not found."
+            logger.error(f"Project {project_id} not found for background run.")
+            return
+        test_groups_in_project = get_test_groups_for_project_from_db(project_id)
+        # Sort by execution_order if available, else by name
+        test_groups_in_project.sort(key=lambda x: (x.get('execution_order', 999), x['name']))
+        total_groups = len(test_groups_in_project)
+        PROJECT_RUN_STATUS[run_id]["total_test_groups"] = total_groups
+        PROJECT_RUN_STATUS[run_id]["status"] = "RUNNING"
+        logger.info(f"Starting background run for project {project_id}. Total groups: {total_groups}")
+        log_project_status_orm(
+            run_id=run_id, project_id=project_id, project_name=project_meta['name'],
+            status="RUNNING", message="Project run started.",
+            results_details={"test_groups_in_project": total_groups},
+            start_time=start_time
+        )
+        for index, group in enumerate(test_groups_in_project):
+            group_id = group['id']
+            group_name = group['name']
+            PROJECT_RUN_STATUS[run_id]["executed_count"] = index + 1
+            PROJECT_RUN_STATUS[run_id]["current_group_name"] = group_name
+            logger.info(f"     - Executing group {index + 1}/{total_groups}: '{group_name}' ({group_id})")
+            result = {"status": "ERROR", "message": "Group execution failed unexpectedly."}
+            try:
+                # Use the existing group run logic
+                group_run_id = start_group_run_task(group_id)
+                # Wait for group run to complete
+                while True:
+                    status = get_group_run_status(group_run_id)
+                    if status.get("status") == "COMPLETED":
+                        result = {
+                            "status": status.get("final_status", "ERROR"),
+                            "message": f"Group run completed with status {status.get('final_status', 'ERROR')}",
+                            "failed_tests": status.get("failed_tests", 0),
+                            "total_tests": status.get("total_test_cases", 0)
+                        }
+                        break
+                    elif status.get("status") == "ERROR":
+                        result = {"status": "ERROR", "message": "Group run failed."}
+                        break
+                    time.sleep(1)  # Poll every second
+            except Exception as e:
+                logger.exception(f"     -> Error running test group {group_id} in project {project_id}: {e}")
+                result = {"status": "ERROR", "message": f"Execution failed: {e}"}
+            all_group_results.append({
+                "test_group_id": group_id,
+                "group_name": group_name,
+                "status": result.get("status"),
+                "message": result.get("message"),
+                "failed_tests": result.get("failed_tests", 0),
+                "total_tests": result.get("total_tests", 0)
+            })
+            logger.info(f"     -> Group '{group_name}' status: {result.get('status')}")
+            if result.get('status') == 'FAIL':
+                failed_groups_count += 1
+                if overall_project_status == "PASS":
+                    overall_project_status = "FAIL"
+            elif result.get('status') == 'ERROR':
+                overall_project_status = "ERROR"
+        PROJECT_RUN_STATUS[run_id]["results"] = all_group_results
+    except Exception as e:
+        logger.exception(f"CRITICAL ERROR: Failed to run project {project_id}: {e}")
+        overall_project_status = "ERROR"
+    finally:
+        end_time = datetime.now()
+        final_message = f"Project run finished with status: {overall_project_status}."
+        detailed_results = {
+            "Overall Status": overall_project_status, "Total Groups": total_groups,
+            "Failed Groups": failed_groups_count,
+            "Failed Test Groups": [
+                {
+                    "test_group_id": res.get('test_group_id'), "group_name": res.get('group_name'),
+                    "status": res.get('status'), "message": res.get('message')
+                }
+                for res in all_group_results if res.get("status") in ("FAIL", "ERROR")
+            ]
+        }
+        log_project_status_orm(
+            run_id=run_id, project_id=project_id, project_name=project_meta['name'],
+            status=overall_project_status, message=final_message,
+            results_details=json.dumps(detailed_results, indent=4), start_time=start_time, end_time=end_time
+        )
+        # --- Update the Project model instance with the latest run stats ---
+        try:
+            Project.objects.using('snowflake_dev').filter(project_id=project_id).update(
+                last_run=end_time,
+                status=overall_project_status,
+                total_groups=total_groups,
+                failed_groups=failed_groups_count
+            )
+            logger.info(f"Updated Project {project_id} with final status and stats.")
+        except Exception as e:
+            logger.error(f"Failed to update Project {project_id} with stats: {e}")
+
+        PROJECT_RUN_STATUS[run_id]["status"] = "COMPLETED"
+        PROJECT_RUN_STATUS[run_id]["final_status"] = overall_project_status
+        PROJECT_RUN_STATUS[run_id]["failed_groups"] = failed_groups_count
+        logger.info(f"Background run for project {project_id} finished.")
+
+def log_project_status_orm(run_id, project_id, project_name, status, message, results_details, start_time, end_time=None):
+    try:
+        criticality = None
+        try:
+            project_obj = Project.objects.using('snowflake_dev').get(project_id=project_id)
+            criticality = project_obj.criticality_level
+        except Project.DoesNotExist:
+            criticality = None
+        ProjectLogs.objects.using('snowflake_dev').update_or_create(
+            run_id=run_id,
+            defaults={
+                'project_id': project_id, 'project_name': project_name, 'criticality': criticality,
+                'status': status, 'message': message, 'results_details': _to_json_safe(results_details),
+                'start_timestamp': start_time, 'end_timestamp': end_time
+            }
+        )
+        logger.info(f"Project log for {run_id} updated successfully.")
+    except Exception as e:
+        logger.exception(f"Error creating/updating ProjectLogs for run {run_id}: {e}")
 

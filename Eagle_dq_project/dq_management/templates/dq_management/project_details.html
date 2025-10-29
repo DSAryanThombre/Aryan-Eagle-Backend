@@ -595,6 +595,9 @@
                                             Description</th>
                                         <th scope="col"
                                             class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                                            Execution Order</th>
+                                        <th scope="col"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                                             Schedule</th>
                                         <th scope="col"
                                             class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
@@ -628,6 +631,8 @@
                                         <td class="px-6 py-4 text-sm text-gray-500 max-w-xs overflow-hidden text-ellipsis"
                                             title="{{ group.group_description|default:" N/A" }}">
                                             {{ group.group_description|default:"N/A" }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ group.execution_order|default:"N/A" }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {{ group.schedule_cron|default:"Not Scheduled" }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">
