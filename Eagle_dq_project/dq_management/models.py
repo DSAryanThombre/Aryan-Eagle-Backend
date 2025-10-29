@@ -146,6 +146,7 @@ class TestGroupLog(models.Model):
     status = models.CharField(max_length=50)
     message = models.TextField(max_length=1000, blank=True, null=True)
     results_details = models.JSONField(blank=True, null=True)
+    execution_type = models.CharField(max_length=20,blank = True, null=True)
 
     class Meta:
         managed = False
@@ -181,6 +182,8 @@ class TestCaseLog(models.Model):
     destination_connection_used = models.CharField(max_length=255, blank=True, null=True)
     parent_run_id = models.CharField(max_length=255, blank=True, null=True)
     possible_resolution = models.TextField(max_length=4000, blank=True, null=True)
+    execution_type = models.CharField(max_length=20,blank = True, null=True)
+
 
     class Meta:
         managed = False
@@ -191,4 +194,23 @@ class TestCaseLog(models.Model):
     def __str__(self):
         return f"Log {self.run_id} - {self.test_name or 'N/A'} - {self.run_status or 'N/A'}"
 
-        
+class ProjectLogs(models.Model):
+    run_id = models.CharField(max_length=255, primary_key=True)
+    project_id = models.CharField(max_length=36, blank=True, null=False, db_column='PROJECT_ID')
+    project_name = models.CharField(max_length=255, blank=True, null=False)
+    criticality = models.CharField(max_length=50, blank=True, null=True) 
+    start_timestamp = models.DateTimeField(blank=True, null=True)
+    end_timestamp = models.DateTimeField(blank=True, null=True)
+    status = models.CharField(max_length=50)
+    message = models.TextField(max_length=1000, blank=True, null=True)
+    results_details = models.JSONField(blank=True, null=True)
+    execution_type = models.CharField(max_length=255,blank=True, null=True)
+
+    class Meta:
+            managed = False
+            db_table = 'PROJECT_LOGS'
+            verbose_name = 'Project Log'
+            verbose_name_plural = 'Project Logs'
+
+    def __str__(self):
+        return F"Log { self.run_id } - { self.project_name or 'N/A' } - { self.run_status or 'N/A' }"
