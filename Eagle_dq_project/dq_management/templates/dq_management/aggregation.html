@@ -631,15 +631,15 @@
             if (customSqlInput) customSqlInput.removeAttribute('required');
 
             const isCustomSqlProvided = customSqlInput && customSqlInput.value.trim() !== '';
-
+            const isDaxQueryProvided = isPowerBI && document.getElementById(prefix + '_dax_query')?.value.trim() !== '';
 
             if (isPowerBI) {
                 // If Power BI is selected, require Workspace and Dataset IDs
                 document.getElementById(prefix + '_workspace_id')?.setAttribute('required', 'required');
                 document.getElementById(prefix + '_dataset_id')?.setAttribute('required', 'required');
 
-                // If Custom DAX is not used, the SQL fields (which now act as structured DAX inputs) are required
-                if (!isCustomSqlProvided) {
+                // If neither Custom SQL nor Custom DAX is provided, the SQL fields (which now act as structured DAX inputs) are required
+                if (!isCustomSqlProvided && !isDaxQueryProvided) {
                     document.getElementById(prefix + '_table')?.setAttribute('required', 'required');
                     document.getElementById(prefix + '_date_column')?.setAttribute('required', 'required');
                     document.getElementById(prefix + '_date_value')?.setAttribute('required', 'required');
@@ -746,6 +746,7 @@
                 });
                 document.getElementById(prefix + '_aggregation_type').addEventListener('input', () => toggleAggColumn(prefix));
                 document.getElementById(prefix + '_custom_sql').addEventListener('input', () => toggleRequiredFields(prefix));
+                document.getElementById(prefix + '_dax_query').addEventListener('input', () => toggleRequiredFields(prefix));
             });
         });
     </script>

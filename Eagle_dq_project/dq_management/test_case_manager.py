@@ -153,7 +153,7 @@ class TestCaseProcessor:
                 source_db_config, config.get('source_table'), config.get('source_date_column'),
                 config.get('source_date_value'), config.get('source_aggregation_type'),
                 config.get('source_aggregation_column'), config.get('source_group_by_column'),
-                config.get('source_additional_filters')
+                config.get('source_additional_filters'), config.get('source_custom_sql')
             )
             result['source_query'] = source_query_str
             df_source, source_exec_error = execute_query_to_dataframe(source_conn_name, source_query_str)
@@ -197,7 +197,7 @@ class TestCaseProcessor:
                 destination_db_config, config.get('destination_table'), config.get('destination_date_column'),
                 config.get('destination_date_value'), config.get('destination_aggregation_type'),
                 config.get('destination_aggregation_column'), config.get('destination_group_by_column'),
-                config.get('destination_additional_filters')
+                config.get('destination_additional_filters'), config.get('destination_custom_sql')
             )
             result['destination_query'] = destination_query_str
             df_destination, destination_exec_error = execute_query_to_dataframe(destination_conn_name, destination_query_str)

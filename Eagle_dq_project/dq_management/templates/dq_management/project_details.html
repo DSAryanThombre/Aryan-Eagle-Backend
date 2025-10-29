@@ -339,8 +339,25 @@
             </div>
 
             <div class="mt-6">
-                <input type="text" id="projectSearch" placeholder="Search by test case name or ID..." onkeyup="filterProjects()"
-                    class="w-full sm:w-96 px-5 py-3 focus:outline-none text-stone-700 placeholder-stone-500 transition-all search-input" />
+                <div class="flex flex-wrap gap-4 items-center">
+                    <input type="text" id="projectSearch" placeholder="Search by test case name/ID or group name..." onkeyup="filterProjects()"
+                        class="w-full sm:w-96 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-stone-700 placeholder-stone-500 transition-all" />
+                    <div id="testCasesFilters" class="flex gap-4 items-center hidden">
+                        <select id="categoryFilter" onchange="filterProjects()" class="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500">
+                            <option value="All">All Categories</option>
+                            <option value="POWER BI">POWER BI</option>
+                            <option value="SQL">SQL</option>
+                            <option value="SAP">SAP</option>
+                            <option value="TBH">TBH</option>
+                        </select>
+                        <select id="testTypeFilter" onchange="filterProjects()" class="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500">
+                            <option value="All">All Test Types</option>
+                            <option value="Aggregation Comparison">Aggregation Comparison</option>
+                            <option value="Drift Test">Drift Test</option>
+                            <option value="Availability Test">Availability Test</option>
+                        </select>
+                    </div>
+                </div>
             </div>
 
 
@@ -863,6 +880,14 @@
             evt.currentTarget.setAttribute('aria-selected', 'true');
             evt.currentTarget.classList.remove('border-transparent', 'text-gray-700', 'hover:text-amber-700');
             evt.currentTarget.classList.add('border-amber-600', 'text-gray-900', 'font-semibold');
+
+            // Show/hide filters based on active tab
+            const testCasesFilters = document.getElementById('testCasesFilters');
+            if (tabName === 'testCasesTab') {
+                testCasesFilters.classList.remove('hidden');
+            } else {
+                testCasesFilters.classList.add('hidden');
+            }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -877,13 +902,40 @@
             const currentActiveTab = document.querySelector('.tab-btn.active').id.replace('tab-btn-', '');
 
             if (currentActiveTab === 'testCases') {
-                document.querySelectorAll('#testCases tbody tr').forEach(row => {
-                    const nameCell = row.querySelector('td:nth-child(2)');
-                    const idCell = row.querySelector('td:nth-child(1)');
+                const categoryFilter = document.getElementById('categoryFilter').value;
+                const testTypeFilter = document.getElementById('testTypeFilter').value;
+
+                document.querySelectorAll('#testCasesTab tbody tr').forEach(row => {
+                    const cells = row.querySelectorAll('td');
+                    if (cells.length < 4) return;
+
+                    const idText = cells[0].textContent.toLowerCase();
+                    const categoryText = cells[1].textContent.toLowerCase();
+                    const nameText = cells[2].textContent.toLowerCase();
+                    const testTypeText = cells[3].textContent.toLowerCase();
+
+                    // Check search filter
+                    const matchesSearch = searchInput === '' ||
+                        nameText.includes(searchInput) ||
+                        idText.includes(searchInput);
+
+                    // Check category filter
+                    const matchesCategory = categoryFilter === 'All' ||
+                        categoryText.includes(categoryFilter.toLowerCase());
+
+                    // Check test type filter
+                    const matchesTestType = testTypeFilter === 'All' ||
+                        testTypeText.includes(testTypeFilter.toLowerCase());
+
+                    // Show row only if all filters match
+                    row.style.display = (matchesSearch && matchesCategory && matchesTestType) ? '' : 'none';
+                });
+            } else if (currentActiveTab === 'testGroups') {
+                document.querySelectorAll('#testGroupsTab tbody tr').forEach(row => {
+                    const nameCell = row.querySelector('td:nth-child(1)');
                     if (!nameCell) return;
                     const nameText = nameCell.textContent.toLowerCase();
-                    const idText = idCell.textContent.toLowerCase();
-                    row.style.display = nameText.includes(searchInput) || idText.includes(searchInput) ? '' : 'none';
+                    row.style.display = nameText.includes(searchInput) ? '' : 'none';
                 });
             }
         }

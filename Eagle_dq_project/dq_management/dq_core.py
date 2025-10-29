@@ -41,10 +41,14 @@ def execute_query_to_dataframe(connection_name: str, query: str, params: tuple =
 # --- The dynamic query builder remains largely unchanged ---
 def build_dynamic_aggregation_query(db_config, table, date_column, date_value,
                                     aggregation_type, aggregation_column,
-                                    group_by_column=None, additional_filters=None):
+                                    group_by_column=None, additional_filters=None, custom_sql=None):
     """
     Builds a dynamic SQL aggregation query based on provided parameters.
+    If custom_sql is provided, returns it directly.
     """
+    if custom_sql and custom_sql.strip():
+        return custom_sql.strip()
+
     # This logic is solid and remains the same.
     database = db_config.get('db') or db_config.get('NAME')
     schema = db_config.get('schema')
