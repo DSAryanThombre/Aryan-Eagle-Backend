@@ -370,6 +370,10 @@
                     class="btn-primary bg-blue-500 hover:bg-blue-600 inline-flex items-center px-4 py-2 text-sm">
                     <i class="fas fa-layer-group mr-2"></i> Create Test Group
                 </a>
+                <button type="button" onclick="runProjectAsync('{{ project.project_id }}', '{{ project.project_name }}')"
+                    class="btn-primary bg-green-500 hover:bg-green-600 inline-flex items-center px-4 py-2 text-sm">
+                    <i class="fas fa-play-circle mr-2"></i> Run Project
+                </button>
             </div>
         </header>
 
@@ -827,7 +831,7 @@
                     </svg>
                 </button>
             </div>
-    
+
             <div class="py-4 text-gray-700">
                 <div id="groupRunLoading" class="flex flex-col items-center justify-center text-center py-8">
                     <div class="spinner mb-4"></div>
@@ -835,11 +839,11 @@
                     </h4>
                     <p class="text-sm text-gray-500 mb-4">This might take a while depending on the number of tests.
                     </p>
-    
+
                     <div class="w-full bg-gray-200 rounded-full h-2.5 mb-4">
                         <div id="progressBar" class="bg-amber-600 h-2.5 rounded-full" style="width: 0%"></div>
                     </div>
-    
+
                     <p id="groupRunProgress" class="text-sm text-gray-700 mb-2">Executing 0 of 0 test cases.</p>
                     <p id="currentTestName" class="text-sm text-gray-500 italic">Current test: N/A</p>
                 </div>
@@ -849,16 +853,67 @@
                             class="px-2 py-1 rounded-full text-sm font-semibold"></span></p>
                     <p class="mb-2"><strong>Total Tests:</strong> <span id="finalTotalTests"></span></p>
                     <p class="mb-2"><strong>Failed Tests:</strong> <span id="finalFailedTests"></span></p>
-    
+
                     <div id="failedTestsList" class="mt-4 hidden">
                         <h5 class="font-semibold text-red-700">Failed Test Cases:</h5>
                         <ul id="failedTestsUl" class="list-disc pl-5 mt-2 text-sm text-gray-700"></ul>
                     </div>
                 </div>
             </div>
-    
+
             <div class="flex justify-end pt-4 border-t border-gray-200">
                 <button type="button" onclick="closeGroupModal()"
+                    class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="projectRunModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal" role="dialog"
+        aria-modal="true" aria-labelledby="projectModalTitle">
+        <div class="fixed inset-0 bg-gray-900 bg-opacity-50 modal-overlay"></div>
+        <div
+            class="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-auto p-6 relative modal-content transform transition-all">
+            <div class="flex justify-between items-center pb-3 border-b border-gray-200">
+                <h3 class="text-xl font-semibold text-gray-800" id="projectModalTitle">Project Run Status</h3>
+                <button type="button" class="text-gray-400 hover:text-gray-500" onclick="closeProjectModal()">
+                    <span class="sr-only">Close</span>
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="py-4 text-gray-700">
+                <div id="projectRunLoading" class="flex flex-col items-center justify-center text-center py-8">
+                    <div class="spinner mb-4"></div>
+                    <h4 class="text-lg font-medium text-gray-800 mb-2" id="projectRunMessage">Starting project run...
+                    </h4>
+                    <p class="text-sm text-gray-500 mb-4">This might take a while depending on the number of test groups.
+                    </p>
+
+                    <div class="w-full bg-gray-200 rounded-full h-2.5 mb-4">
+                        <div id="projectProgressBar" class="bg-green-600 h-2.5 rounded-full" style="width: 0%"></div>
+                    </div>
+
+                    <p id="projectRunProgress" class="text-sm text-gray-700 mb-2">Executing 0 of 0 test groups.</p>
+                    <p id="currentGroupName" class="text-sm text-gray-500 italic">Current group: N/A</p>
+                </div>
+                <div id="projectRunResults" class="hidden text-left">
+                    <h4 class="font-semibold mt-4 mb-2 border-b pb-1 text-gray-800">Final Results</h4>
+                    <p class="mb-2"><strong>Overall Status:</strong> <span id="finalProjectStatus"
+                            class="px-2 py-1 rounded-full text-sm font-semibold"></span></p>
+                    <p class="mb-2"><strong>Total Groups:</strong> <span id="finalTotalGroups"></span></p>
+                    <p class="mb-2"><strong>Failed Groups:</strong> <span id="finalFailedGroups"></span></p>
+
+                    <div id="failedGroupsList" class="mt-4 hidden">
+                        <h5 class="font-semibold text-red-700">Failed Test Groups:</h5>
+                        <ul id="failedGroupsUl" class="list-disc pl-5 mt-2 text-sm text-gray-700"></ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-4 border-t border-gray-200">
+                <button type="button" onclick="closeProjectModal()"
                     class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">Close</button>
             </div>
         </div>
@@ -1038,8 +1093,18 @@
         const groupRunProgress = document.getElementById('groupRunProgress');
         const currentTestName = document.getElementById('currentTestName');
 
+        const projectRunModal = document.getElementById('projectRunModal');
+        const projectRunLoading = document.getElementById('projectRunLoading');
+        const projectRunResults = document.getElementById('projectRunResults');
+        const projectRunMessage = document.getElementById('projectRunMessage');
+        const projectProgressBar = document.getElementById('projectProgressBar');
+        const projectRunProgress = document.getElementById('projectRunProgress');
+        const currentGroupName = document.getElementById('currentGroupName');
+
         let pollingInterval = null;
         let currentRunId = null;
+        let projectPollingInterval = null;
+        let currentProjectRunId = null;
 
         function openGroupModal() {
             groupRunModal.classList.remove('hidden');
@@ -1148,6 +1213,118 @@
                 groupRunResults.classList.remove('hidden');
                 groupRunMessage.textContent = `Error during status check: ${error.message}`;
                 const finalStatusElement = document.getElementById('finalGroupStatus');
+                finalStatusElement.textContent = 'ERROR';
+                finalStatusElement.className = 'px-2 py-1 rounded-full text-sm font-semibold status-warn';
+            }
+        }
+
+        function openProjectModal() {
+            projectRunModal.classList.remove('hidden');
+            projectRunModal.classList.add('show');
+        }
+
+        function closeProjectModal() {
+            if (projectPollingInterval) {
+                clearInterval(projectPollingInterval);
+            }
+            projectRunModal.classList.remove('show');
+            projectRunModal.classList.add('hidden');
+            window.location.reload();
+        }
+
+        async function runProjectAsync(projectId, projectName) {
+            if (!confirm(`Are you sure you want to run the project '${projectName}' now?`)) {
+                return;
+            }
+
+            openProjectModal();
+            projectRunLoading.classList.remove('hidden');
+            projectRunResults.classList.add('hidden');
+            projectRunMessage.textContent = `Starting run for project '${projectName}'...`;
+
+            try {
+                const response = await fetch(`{% url 'run_project_async' project_id='PROJECT_ID_PLACEHOLDER' %}`.replace('PROJECT_ID_PLACEHOLDER', projectId), {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+                });
+                const data = await response.json();
+
+                if (response.ok && data.run_id) {
+                    currentProjectRunId = data.run_id;
+                    projectPollingInterval = setInterval(() => checkProjectRunStatus(currentProjectRunId), 2000);
+                } else {
+                    throw new Error(data.message || 'Failed to start project run.');
+                }
+            } catch (error) {
+                console.error("Error starting project run:", error);
+                projectRunLoading.classList.add('hidden');
+                projectRunResults.classList.remove('hidden');
+                projectRunMessage.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        async function checkProjectRunStatus(runId) {
+            try {
+                const response = await fetch(`{% url 'get_project_run_status' run_id='RUN_ID_PLACEHOLDER' %}`.replace('RUN_ID_PLACEHOLDER', runId));
+                const statusData = await response.json();
+
+                const executedCount = statusData.executed_count || 0;
+                const totalCount = statusData.total_test_groups || 0;
+
+                projectRunProgress.textContent = `Executing ${executedCount} of ${totalCount} test groups.`;
+                currentGroupName.textContent = `Current group: ${statusData.current_group_name || 'N/A'}`;
+
+                let progressPercent = 0;
+                if (totalCount > 0) {
+                    progressPercent = (executedCount / totalCount) * 100;
+                }
+                projectProgressBar.style.width = `${progressPercent}%`;
+
+                if (statusData.status === 'COMPLETED' || statusData.status === 'ERROR') {
+                    clearInterval(projectPollingInterval);
+                    projectRunLoading.classList.add('hidden');
+                    projectRunResults.classList.remove('hidden');
+
+                    document.getElementById('finalTotalGroups').textContent = totalCount;
+                    document.getElementById('finalFailedGroups').textContent = statusData.failed_groups || 0;
+
+                    const finalStatusElement = document.getElementById('finalProjectStatus');
+                    const finalStatus = statusData.final_status || statusData.status;
+
+                    finalStatusElement.textContent = finalStatus;
+                    if (finalStatus === 'PASS') {
+                        finalStatusElement.className = 'px-2 py-1 rounded-full text-sm font-semibold status-pass';
+                    } else if (finalStatus === 'FAIL') {
+                        finalStatusElement.className = 'px-2 py-1 rounded-full text-sm font-semibold status-fail';
+                    } else {
+                        finalStatusElement.className = 'px-2 py-1 rounded-full text-sm font-semibold status-warn';
+                    }
+
+                    const failedGroupsList = document.getElementById('failedGroupsList');
+                    const failedGroupsUl = document.getElementById('failedGroupsUl');
+                    failedGroupsUl.innerHTML = '';
+
+                    if (statusData.failed_groups > 0) {
+                        failedGroupsList.classList.remove('hidden');
+                        statusData.results.forEach(groupResult => {
+                            if (groupResult.status === 'FAIL' || groupResult.status === 'ERROR') {
+                                const li = document.createElement('li');
+                                const failedMessage = groupResult.message || 'No message provided.';
+                                li.textContent = `${groupResult.group_name || 'Unnamed Group'}: ${failedMessage}`;
+                                failedGroupsUl.appendChild(li);
+                            }
+                        });
+                    } else {
+                        failedGroupsList.classList.add('hidden');
+                    }
+                }
+            } catch (error) {
+                console.error("Error polling for project run status:", error);
+                clearInterval(projectPollingInterval);
+                projectRunLoading.classList.add('hidden');
+                projectRunResults.classList.remove('hidden');
+                projectRunMessage.textContent = `Error during status check: ${error.message}`;
+                const finalStatusElement = document.getElementById('finalProjectStatus');
                 finalStatusElement.textContent = 'ERROR';
                 finalStatusElement.className = 'px-2 py-1 rounded-full text-sm font-semibold status-warn';
             }

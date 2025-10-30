@@ -40,7 +40,7 @@ from .services import (
     get_available_connection_sources,
     _to_json_safe,  # Import the helper function
     start_project_run_task,
-    get_project_run_status
+    get_project_run_status as get_project_run_status_service
 )
 from .chart_utils import make_criticality_bar_chart
 from .models import TestGroupLog
@@ -1236,7 +1236,7 @@ def run_project_async(request, project_id):
 
 
 def get_project_run_status(request, run_id):
-    status_data = get_project_run_status(run_id)
+    status_data = get_project_run_status_service(run_id)
     serializable_status_data = convert_numpy_types(status_data)
     return JsonResponse(serializable_status_data)
 
