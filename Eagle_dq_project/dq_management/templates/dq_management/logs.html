@@ -772,6 +772,102 @@
                 {% endif %}
             </div>
 
+            <div id="tab-project-content" class="log-content" style="display:none;">
+                <div class="scrollable-table-container">
+                    <table id="projectTable" class="min-w-full bg-white shadow-sm" style="table-layout: fixed;">
+                        <colgroup>
+                            <col style="width: 100px;">
+                            <col style="width: 120px;">
+                            <col style="width: 150px;">
+                            <col style="width: 80px;">
+                            <col style="width: 300px;">
+                            <col style="width: 450px;">
+                            <col style="width: 200px;">
+                            <col style="width: 200px;">
+                            <col style="width: 120px;">
+                            <col style="width: 120px;">
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th draggable="true">Run ID<div class="resize-handle"></div>
+                                </th>
+                                <th draggable="true">Project ID<div class="resize-handle"></div>
+                                </th>
+                                <th draggable="true">Project Name<div class="resize-handle"></div>
+                                </th>
+                                <th draggable="true">Status<div class="resize-handle"></div>
+                                </th>
+                                <th draggable="true">Message<div class="resize-handle"></div>
+                                </th>
+                                <th draggable="true">Results Details<div class="resize-handle"></div>
+                                </th>
+                                <th draggable="true">Start Time<div class="resize-handle"></div>
+                                </th>
+                                <th draggable="true">End Time<div class="resize-handle"></div>
+                                </th>
+                                <th draggable="true">Criticality<div class="resize-handle"></div>
+                                </th>
+                                <th draggable="true">Execution Type<div class="resize-handle"></div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in project_logs %}
+                            <tr>
+                                <td class="text-xs">{{ log.run_id }}</td>
+                                <td class="text-xs">{{ log.project_id }}</td>
+                                <td class="text-xs">{{ log.project_name|default:"N/A" }}</td>
+                                <td>
+                                    {% with status=log.status|stringformat:"s"|upper %}
+                                    {% if status %}
+                                    {% if status == "PASS" %}
+                                    <span class="status-badge status-pass">{{ status }}</span>
+                                    {% elif status == "FAIL" %}
+                                    <span class="status-badge status-fail">{{ status }}</span>
+                                    {% elif status == "ERROR" %}
+                                    <span class="status-badge status-error">{{ status }}</span>
+                                    {% else %}
+                                    <span class="status-badge status-default">{{ status }}</span>
+                                    {% endif %}
+                                    {% else %}
+                                    <span class="status-badge status-default">N/A</span>
+                                    {% endif %}
+                                    {% endwith %}
+                                </td>
+                                <td class="text-sm message-cell">
+                                    <div class="message-wrapper">{{ log.message }}</div>
+                                    <button class="view-details-btn"
+                                        onclick="openModal('Project Message', 'Message Details', '{{ log.message|escapejs }}')">
+                                        View Details <i class="fas fa-search-plus"></i>
+                                    </button>
+                                </td>
+                                <td>
+                                    <div id="project-details-{{ log.run_id }}" class="results-details-display">
+                                    </div>
+                                    <button class="view-details-btn"
+                                        onclick="openModal('Results Details', 'Full JSON Details', '{{ log.results_details|escapejs }}')">
+                                        View Details <i class="fas fa-search-plus"></i>
+                                    </button>
+                                </td>
+                                <td class="text-xs">{{ log.start_timestamp|date:"Y-m-d H:i:s"|default:"N/A" }}</td>
+                                <td class="text-xs">{{ log.end_timestamp|date:"Y-m-d H:i:s"|default:"N/A" }}</td>
+                                <td class="text-xs">{{ log.criticality|default:"N/A" }}</td>
+                                <td class="text-xs">{{ log.execution_type|default:"N/A" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            
+                {% if not project_logs %}
+                <div class="no-data">
+                    <span style="font-size:1.25rem;color:#2563eb;"><i class="fas fa-inbox"></i></span>
+                    <span>No project logs found yet.</span>
+                </div>
+                {% endif %}
+            </div>
+            
+
         </div>
 
     </div>
@@ -939,76 +1035,48 @@
 
         applyFiltersBtn.addEventListener('click', function () {
 
-            // Determine which tab is currently visible for filtering
-            const caseContent = document.getElementById('tab-case-content');
-            const groupContent = document.getElementById('tab-group-content');
-            let currentTab = 'case';
-            if (groupContent.style.display !== 'none') {
-                currentTab = 'group';
-            }
+                // ... (inside the listener)
+                const caseContent = document.getElementById('tab-case-content');
+                const groupContent = document.getElementById('tab-group-content');
+                const projectContent = document.getElementById('tab-project-content'); // <-- ADD THIS
+                let currentTab = 'case';
 
+                if (groupContent.style.display !== 'none') {
+                    currentTab = 'group';
+                } else if (projectContent.style.display !== 'none') { // <-- ADD THIS ELSE IF
+                    currentTab = 'project';
+                }
 
-            const projectId = document.getElementById('filterProjectId').value.trim().toLowerCase();
-            const testGroupId = document.getElementById('filterTestGroupId').value.trim().toLowerCase();
-            const testCaseId = document.getElementById('filterTestCaseId').value.trim().toLowerCase();
-            const status = document.getElementById('filterStatus').value.trim().toLowerCase();
-            const testType = document.getElementById('filterTestType').value.trim().toLowerCase();
-            const parentRunId = document.getElementById('filterParentRunId').value.trim().toLowerCase();
-            const runId = document.getElementById('filterRunId').value.trim().toLowerCase();
+                // ... (filter value declarations remain the same)
 
+                if (currentTab === 'case') {
+                    // ... (existing case logic)
+                } else if (currentTab === 'group') {
+                    // ... (existing group logic)
 
-            if (currentTab === 'case') {
-                const map = getColumnIndexMap('caseTable');
-                if (!map) return; // Exit if table not found
+                } else if (currentTab === 'project') { // <-- ADD THIS ENTIRE BLOCK
+                    const map = getColumnIndexMap('projectTable');
+                    if (!map) return;
 
-                document.querySelectorAll('#tab-case-content tbody tr').forEach(row => {
+                    document.querySelectorAll('#tab-project-content tbody tr').forEach(row => {
+                        const rowRunId = getCellContent(row, map, 'Run ID');
+                        const rowProjectId = getCellContent(row, map, 'Project ID');
+                        const rowStatus = getCellContent(row, map, 'Status');
 
-                    const rowRunId = getCellContent(row, map, 'Run ID');
-                    const rowTestCaseId = getCellContent(row, map, 'Test Case ID');
-                    const rowProjectId = getCellContent(row, map, 'Project ID');
-                    const rowTestType = getCellContent(row, map, 'Test Type');
-                    const rowStatus = getCellContent(row, map, 'Status');
-                    const rowParentRunId = getCellContent(row, map, 'Parent Run ID');
+                        // Filters applicable to project logs
+                        const matches =
+                            (projectId === '' || rowProjectId.includes(projectId)) &&
+                            (status === '' || rowStatus === status) &&
+                            (runId === '' || rowRunId.includes(runId));
+                        // Other filters don't apply to this table
 
-                    const matches =
-                        (projectId === '' || rowProjectId.includes(projectId)) &&
-                        (testCaseId === '' || rowTestCaseId.includes(testCaseId)) &&
-                        (status === '' || rowStatus === status) &&
-                        (testType === '' || rowTestType === testType) &&
-                        (parentRunId === '' || rowParentRunId.includes(parentRunId)) &&
-                        (runId === '' || rowRunId.includes(runId));
+                        row.style.display = matches ? '' : 'none';
+                    });
+                }
 
-                    row.style.display = matches ? '' : 'none';
-
-                });
-
-            } else if (currentTab === 'group') {
-                const map = getColumnIndexMap('groupTable');
-                if (!map) return; // Exit if table not found
-
-                document.querySelectorAll('#tab-group-content tbody tr').forEach(row => {
-
-                    const rowRunId = getCellContent(row, map, 'Run ID');
-                    const rowTestGroupId = getCellContent(row, map, 'Test Group ID');
-                    const rowStatus = getCellContent(row, map, 'Status');
-                    // Project ID, Test Case ID, Test Type, Parent Run ID filters are not applicable for group logs in the table structure, but runId and status are.
-
-                    const matches =
-                        (testGroupId === '' || rowTestGroupId.includes(testGroupId)) &&
-                        (status === '' || rowStatus === status) &&
-                        (runId === '' || rowRunId.includes(runId));
-
-                    row.style.display = matches ? '' : 'none';
-
-                });
-
-            }
-
-            filtersDrawer.style.transform = 'translateX(100%)';
-
-            document.body.style.overflow = '';
-
-        });
+                filtersDrawer.style.transform = 'translateX(100%)';
+                document.body.style.overflow = '';
+            });
 
         clearFiltersBtn.addEventListener('click', function () {
 
@@ -1135,35 +1203,108 @@
             });
         }
 
+        // **NEW:** Function to parse JSON and render structured details for the PROJECT table
+            function renderProjectDetails() {
+                // This variable must be populated by the Django view
+                const rawLogData = '{{ project_logs|safe|escapejs }}';
+                let projectLogs = [];
+                try {
+                    const cleanedRawData = rawLogData.replace(/&quot;/g, '"');
+                    projectLogs = JSON.parse(cleanedRawData);
+                } catch (e) {
+                    console.warn("Could not parse project_logs JSON string.", e);
+                }
+
+                projectLogs.forEach(log => {
+                    // Target the new project table's detail cell
+                    const container = document.getElementById(`project-details-${log.run_id}`);
+                    if (!container || !log.results_details) return;
+
+                    try {
+                        let cleanedDetails = log.results_details;
+                        // Clean up string if it's double-escaped
+                        if (cleanedDetails.startsWith('"') && cleanedDetails.endsWith('"')) {
+                            cleanedDetails = cleanedDetails.slice(1, -1);
+                        }
+
+                        // Parse the inner JSON string
+                        const details = JSON.parse(cleanedDetails);
+
+                        // Render structured output (for project logs)
+                        const status = details['Overall Status'] || details['overall_status'] || 'N/A';
+                        const total = details['Total Groups'] || details['total_groups'] || 'N/A';
+                        const failed = details['Failed Groups'] || details['failed_groups'] || 'N/A';
+                        const passed = (total !== 'N/A' && failed !== 'N/A') ? (parseInt(total) - parseInt(failed)) : 'N/A';
+
+                        let html = `<div class="results-detail-item">Status: <strong>${status}</strong></div>`;
+                        html += `<div class="results-detail-item">Total Groups: <strong>${total}</strong></div>`;
+
+                        if (parseInt(failed) > 0) {
+                            html += `<div class="results-detail-item text-red-700">Failed Groups: <strong>${failed}</strong></div>`;
+                        } else {
+                            html += `<div class="results-detail-item">Failed Groups: <strong>${failed}</strong></div>`;
+                        }
+
+                        if (passed !== 'N/A' && parseInt(passed) > 0) {
+                            html += `<div class="results-detail-item text-green-700">Passed Groups: <strong>${passed}</strong></div>`;
+                        } else if (passed !== 'N/A' && parseInt(passed) === 0) {
+                            html += `<div class="results-detail-item">Passed Groups: <strong>${passed}</strong></div>`;
+                        }
+
+                        container.innerHTML = html;
+
+                    } catch (e) {
+                        // Fallback for non-JSON or error logs
+                        container.innerHTML = `<div class="results-detail-item text-red-500 italic">Details parse error.</div>`;
+                        console.error("Error parsing/rendering project details for run_id:", log.run_id, e);
+                    }
+                });
+            }
+
         // Initialize view based on URL parameter
         document.addEventListener('DOMContentLoaded', function () {
-            const caseContent = document.getElementById('tab-case-content');
-            const groupContent = document.getElementById('tab-group-content');
+                const caseContent = document.getElementById('tab-case-content');
+                const groupContent = document.getElementById('tab-group-content');
+                const projectContent = document.getElementById('tab-project-content'); // <-- ADD THIS
 
-            try {
-                const requested = (getUrlParam('tab') || '').toLowerCase();
+                try {
+                    const requested = (getUrlParam('tab') || '').toLowerCase();
 
-                if (requested === 'group') {
-                    caseContent.style.display = 'none';
-                    groupContent.style.display = '';
-                } else {
+                    if (requested === 'group') {
+                        caseContent.style.display = 'none';
+                        groupContent.style.display = '';
+                        projectContent.style.display = 'none'; // <-- ADD THIS
+                    } else if (requested === 'project') { // <-- ADD THIS ELSE IF
+                        caseContent.style.display = 'none';
+                        groupContent.style.display = 'none';
+                        projectContent.style.display = '';
+                    } else {
+                        // Default to case logs
+                        caseContent.style.display = '';
+                        groupContent.style.display = 'none';
+                        projectContent.style.display = 'none'; // <-- ADD THIS
+                    }
+                } catch (e) {
+                    // Default to case logs if error
                     caseContent.style.display = '';
                     groupContent.style.display = 'none';
+                    projectContent.style.display = 'none'; // <-- ADD THIS
                 }
-            } catch (e) {
-                // Default to case logs if error in parsing URL
-                caseContent.style.display = '';
-                groupContent.style.display = 'none';
-            }
 
-            // NEW: Call the function to render structured details
-            // This must be done after the DOM loads and Django variables are available.
-            try {
-                renderGroupDetails();
-            } catch (e) {
-                console.error("Error rendering group details:", e);
-            }
-        });
+                // ... (existing call to renderGroupDetails)
+                try {
+                    renderGroupDetails();
+                } catch (e) {
+                    console.error("Error rendering group details:", e);
+                }
+
+                // ADD THIS NEW TRY/CATCH BLOCK
+                try {
+                    renderProjectDetails();
+                } catch (e) {
+                    console.error("Error rendering project details:", e);
+                }
+            });
 
 
         // Column resizing, drag-drop reorder, and AUTOFIT on double-click
@@ -1266,7 +1407,7 @@
                 return Math.max(40, maxWidth); 
             }
 
-            ['caseTable', 'groupTable'].forEach(tableId => {
+            ['caseTable', 'groupTable', 'projectTable'].forEach(tableId => {
                 const table = document.getElementById(tableId);
                 if (!table) return;
 
