@@ -414,11 +414,11 @@
                                     <i class="fas fa-edit text-sm"></i>
                                 </a>
 
-                                <button onclick="deleteProjectConfirmation('{% url 'delete_project' project_id=project.project_id %}', event)"
+                                <!-- <button onclick="deleteProjectConfirmation('{% url 'delete_project' project_id=project.project_id %}', event)"
                                     class="text-slate-400 hover:text-red-500 transition-colors p-1 rounded-full hover:bg-slate-100 relative z-30"
                                     title="Delete Project" onclick="event.stopPropagation()">
                                     <i class="fas fa-trash-alt text-sm"></i>
-                                </button>
+                                </button> -->
                             </div>
 
                             {% if project.status and project.status != 'N/A' %}
