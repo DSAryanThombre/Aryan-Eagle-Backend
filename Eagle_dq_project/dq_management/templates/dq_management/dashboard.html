@@ -1,0 +1,1442 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Eagle DQ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="icon" href="{% static 'dq_management/images/eagle_logo_bg.png' %}" type="image/png" />
+
+<style>
+    :root {
+        /* Light Mode Colors */
+        --bg-primary: linear-gradient(135deg, #fef7ed 0%, #fdf4ff 25%, #f0f9ff 50%, #f0fdfa 75%, #fefce8 100%);
+        --text-primary: #1e293b;
+        --text-secondary: #475569;
+        --text-muted: #64748b;
+        --card-enhanced-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(254, 247, 237, 0.8) 100%);
+        --card-enhanced-border: rgba(251, 191, 36, 0.2);
+        --card-enhanced-hover-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(240, 249, 255, 0.85) 100%);
+        --card-enhanced-hover-border: rgba(251, 191, 36, 0.4);
+        --card-enhanced-hover-shadow: 0 12px 24px rgba(14, 165, 233, 0.15), 0 0 0 1px rgba(251, 191, 36, 0.3);
+        --card-enhanced-before-bg: linear-gradient(90deg, #0ea5e9 0%, #fbbf24 50%, #0ea5e9 100%);
+        --card-chart-bg: linear-gradient(135deg, rgba(254, 247, 237, 0.9) 0%, rgba(240, 249, 255, 0.85) 50%, rgba(255, 253, 245, 0.9) 100%);
+        --card-chart-border: rgba(251, 191, 36, 0.25);
+        --card-chart-hover-shadow: 0 16px 32px rgba(14, 165, 233, 0.2), 0 0 0 1px rgba(251, 191, 36, 0.4);
+        --card-chart-before-bg: linear-gradient(90deg, #0ea5e9, #14b8a6, #fbbf24);
+        --card-projects-bg: linear-gradient(135deg, rgba(253, 244, 255, 0.9) 0%, rgba(240, 253, 250, 0.85) 50%, rgba(255, 251, 235, 0.9) 100%);
+        --card-projects-border: rgba(167, 139, 250, 0.25);
+        --card-projects-hover-shadow: 0 16px 32px rgba(167, 139, 250, 0.2), 0 0 0 1px rgba(251, 191, 36, 0.4);
+        --card-projects-before-bg: linear-gradient(90deg, #a78bfa, #fbbf24, #a78bfa);
+        --card-logs-bg: linear-gradient(135deg, rgba(255, 247, 237, 0.9) 0%, rgba(254, 252, 232, 0.85) 100%);
+        --card-logs-border: rgba(251, 191, 36, 0.3);
+        --card-logs-hover-shadow: 0 16px 32px rgba(251, 191, 36, 0.25), 0 0 0 1px rgba(251, 191, 36, 0.5);
+        --card-logs-before-bg: linear-gradient(90deg, #fbbf24, #f59e0b);
+        --gradient-text: linear-gradient(135deg, #475569 0%, #0ea5e9 50%, #fbbf24 100%);
+        --status-pass-bg: #ecfdf5;
+        --status-pass-color: #047857;
+        --status-fail-bg: #fef2f2;
+        --status-fail-color: #b91c1c;
+        --status-warn-bg: #fffbeb;
+        --status-warn-color: #b45309;
+        --status-norun-bg: #f1f5f9;
+        --status-norun-color: #475569;
+        --priority-critical-bg: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+        --priority-critical-color: #b91c1c;
+        --priority-critical-border: #fecaca;
+        --priority-critical-shadow: 0 2px 4px rgba(185, 28, 28, 0.1);
+        --priority-high-bg: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+        --priority-high-color: #ea580c;
+        --priority-high-border: #fed7aa;
+        --priority-high-shadow: 0 2px 4px rgba(234, 88, 12, 0.1);
+        --priority-medium-bg: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+        --priority-medium-color: #b45309;
+        --priority-medium-border: #fde68a;
+        --priority-medium-shadow: 0 2px 4px rgba(180, 83, 9, 0.1);
+        --priority-low-bg: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        --priority-low-color: #0369a1;
+        --priority-low-border: #bae6fd;
+        --priority-low-shadow: 0 2px 4px rgba(3, 105, 161, 0.1);
+        --priority-occasional-bg: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        --priority-occasional-color: #475569;
+        --priority-occasional-border: #e2e8f0;
+        --priority-occasional-shadow: 0 2px 4px rgba(71, 85, 105, 0.1);
+        --project-item-bg: rgba(255, 255, 255, 0.6);
+        --project-item-border: rgba(251, 191, 36, 0.15);
+        --project-item-hover-bg: rgba(255, 255, 255, 0.8);
+        --project-item-hover-border: rgba(251, 191, 36, 0.3);
+        --project-item-selected-bg: linear-gradient(135deg, rgba(14, 165, 233, 0.15) 0%, rgba(251, 191, 36, 0.1) 100%);
+        --project-item-selected-border: #0ea5e9;
+        --project-item-selected-shadow: 0 4px 16px rgba(14, 165, 233, 0.25);
+        --project-item-bg-red: linear-gradient(135deg, rgba(254, 242, 242, 0.8) 0%, rgba(255, 255, 255, 0.6) 100%);
+        --project-item-bg-green: linear-gradient(135deg, rgba(236, 253, 245, 0.8) 0%, rgba(255, 255, 255, 0.6) 100%);
+        --project-item-bg-white: linear-gradient(135deg, rgba(248, 250, 252, 0.8) 0%, rgba(255, 255, 255, 0.6) 100%);
+        --btn-primary-bg: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+        --btn-primary-hover-bg: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+        --btn-primary-hover-shadow: 0 4px 12px rgba(14, 165, 233, 0.4);
+        --btn-secondary-bg: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        --btn-secondary-hover-bg: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        --btn-secondary-hover-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);
+        --toggle-btn-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(254, 252, 232, 0.8) 100%);
+        --toggle-btn-border: rgba(251, 191, 36, 0.15);
+        --toggle-btn-shadow: 0 4px 12px rgba(251, 191, 36, 0.12);
+        --toggle-btn-hover-shadow: 0 6px 16px rgba(251, 191, 36, 0.18);
+        --spinner-border: rgba(14, 165, 233, 0.1);
+        --spinner-border-top: #0ea5e9;
+        --scrollbar-track: rgba(241, 245, 249, 0.5);
+        --scrollbar-thumb: linear-gradient(135deg, #0ea5e9, #fbbf24);
+        --scrollbar-thumb-hover: linear-gradient(135deg, #0284c7, #f59e0b);
+        --table-header-bg: #f9fafb;
+        --table-header-color: #374151;
+        --table-row-hover: #f9fafb;
+        --modal-overlay: rgba(107, 114, 128, 0.5);
+        --modal-bg: #ffffff;
+        --modal-border: #d1d5db;
+        --form-input-bg: #ffffff;
+        --form-input-border: #d1d5db;
+        --form-input-focus-ring: rgba(14, 165, 233, 0.5);
+        --form-input-focus-border: #0ea5e9;
+    }
+
+    [data-theme="dark"] {
+        /* Dark Mode Colors */
+        --bg-primary: linear-gradient(135deg, #0f172a 0%, #1e1b4b 25%, #164e63 50%, #134e4a 75%, #365314 100%);
+        --text-primary: #f1f5f9;
+        --text-secondary: #cbd5e1;
+        --text-muted: #94a3b8;
+        --card-enhanced-bg: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(51, 65, 85, 0.8) 100%);
+        --card-enhanced-border: rgba(251, 191, 36, 0.3);
+        --card-enhanced-hover-bg: linear-gradient(135deg, rgba(51, 65, 85, 0.98) 0%, rgba(30, 58, 138, 0.85) 100%);
+        --card-enhanced-hover-border: rgba(251, 191, 36, 0.5);
+        --card-enhanced-hover-shadow: 0 12px 24px rgba(14, 165, 233, 0.2), 0 0 0 1px rgba(251, 191, 36, 0.4);
+        --card-enhanced-before-bg: linear-gradient(90deg, #0ea5e9 0%, #fbbf24 50%, #0ea5e9 100%);
+        --card-chart-bg: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(22, 78, 99, 0.85) 50%, rgba(54, 83, 20, 0.9) 100%);
+        --card-chart-border: rgba(251, 191, 36, 0.3);
+        --card-chart-hover-shadow: 0 16px 32px rgba(14, 165, 233, 0.25), 0 0 0 1px rgba(251, 191, 36, 0.5);
+        --card-chart-before-bg: linear-gradient(90deg, #0ea5e9, #14b8a6, #fbbf24);
+        --card-projects-bg: linear-gradient(135deg, rgba(30, 27, 75, 0.9) 0%, rgba(19, 78, 74, 0.85) 50%, rgba(54, 83, 20, 0.9) 100%);
+        --card-projects-border: rgba(167, 139, 250, 0.3);
+        --card-projects-hover-shadow: 0 16px 32px rgba(167, 139, 250, 0.25), 0 0 0 1px rgba(251, 191, 36, 0.5);
+        --card-projects-before-bg: linear-gradient(90deg, #a78bfa, #fbbf24, #a78bfa);
+        --card-logs-bg: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(54, 83, 20, 0.85) 100%);
+        --card-logs-border: rgba(251, 191, 36, 0.4);
+        --card-logs-hover-shadow: 0 16px 32px rgba(251, 191, 36, 0.3), 0 0 0 1px rgba(251, 191, 36, 0.6);
+        --card-logs-before-bg: linear-gradient(90deg, #fbbf24, #f59e0b);
+        --gradient-text: linear-gradient(135deg, #cbd5e1 0%, #0ea5e9 50%, #fbbf24 100%);
+        --status-pass-bg: #0f5132;
+        --status-pass-color: #a7f3d0;
+        --status-fail-bg: #7f1d1d;
+        --status-fail-color: #fca5a5;
+        --status-warn-bg: #78350f;
+        --status-warn-color: #fcd34d;
+        --status-norun-bg: #1e293b;
+        --status-norun-color: #cbd5e1;
+        --priority-critical-bg: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%);
+        --priority-critical-color: #fca5a5;
+        --priority-critical-border: #dc2626;
+        --priority-critical-shadow: 0 2px 4px rgba(185, 28, 28, 0.2);
+        --priority-high-bg: linear-gradient(135deg, #9a3412 0%, #c2410c 100%);
+        --priority-high-color: #fed7aa;
+        --priority-high-border: #ea580c;
+        --priority-high-shadow: 0 2px 4px rgba(234, 88, 12, 0.2);
+        --priority-medium-bg: linear-gradient(135deg, #78350f 0%, #92400e 100%);
+        --priority-medium-color: #fde68a;
+        --priority-medium-border: #d97706;
+        --priority-medium-shadow: 0 2px 4px rgba(180, 83, 9, 0.2);
+        --priority-low-bg: linear-gradient(135deg, #0c4a6e 0%, #0369a1 100%);
+        --priority-low-color: #bae6fd;
+        --priority-low-border: #0284c7;
+        --priority-low-shadow: 0 2px 4px rgba(3, 105, 161, 0.2);
+        --priority-occasional-bg: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        --priority-occasional-color: #cbd5e1;
+        --priority-occasional-border: #475569;
+        --priority-occasional-shadow: 0 2px 4px rgba(71, 85, 105, 0.2);
+        --project-item-bg: rgba(30, 41, 59, 0.6);
+        --project-item-border: rgba(251, 191, 36, 0.2);
+        --project-item-hover-bg: rgba(51, 65, 85, 0.8);
+        --project-item-hover-border: rgba(251, 191, 36, 0.4);
+        --project-item-selected-bg: linear-gradient(135deg, rgba(14, 165, 233, 0.2) 0%, rgba(251, 191, 36, 0.15) 100%);
+        --project-item-selected-border: #0ea5e9;
+        --project-item-selected-shadow: 0 4px 16px rgba(14, 165, 233, 0.3);
+        --project-item-bg-red: linear-gradient(135deg, rgba(127, 29, 29, 0.8) 0%, rgba(30, 41, 59, 0.6) 100%);
+        --project-item-bg-green: linear-gradient(135deg, rgba(15, 81, 50, 0.8) 0%, rgba(30, 41, 59, 0.6) 100%);
+        --project-item-bg-white: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(51, 65, 85, 0.6) 100%);
+        --btn-primary-bg: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+        --btn-primary-hover-bg: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+        --btn-primary-hover-shadow: 0 4px 12px rgba(14, 165, 233, 0.5);
+        --btn-secondary-bg: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        --btn-secondary-hover-bg: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        --btn-secondary-hover-shadow: 0 4px 12px rgba(251, 191, 36, 0.5);
+        --toggle-btn-bg: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(54, 83, 20, 0.8) 100%);
+        --toggle-btn-border: rgba(251, 191, 36, 0.2);
+        --toggle-btn-shadow: 0 4px 12px rgba(251, 191, 36, 0.15);
+        --toggle-btn-hover-shadow: 0 6px 16px rgba(251, 191, 36, 0.2);
+        --spinner-border: rgba(14, 165, 233, 0.2);
+        --spinner-border-top: #0ea5e9;
+        --scrollbar-track: rgba(30, 41, 59, 0.5);
+        --scrollbar-thumb: linear-gradient(135deg, #0ea5e9, #fbbf24);
+        --scrollbar-thumb-hover: linear-gradient(135deg, #0284c7, #f59e0b);
+        --table-header-bg: #1f2937;
+        --table-header-color: #f3f4f6;
+        --table-row-hover: #374151;
+        --modal-overlay: rgba(0, 0, 0, 0.6);
+        --modal-bg: #1f2937;
+        --modal-border: #374151;
+        --form-input-bg: #374151;
+        --form-input-border: #4b5563;
+        --form-input-focus-ring: rgba(14, 165, 233, 0.5);
+        --form-input-focus-border: #0ea5e9;
+    }
+
+    @keyframes gradient-shift {
+
+        0%,
+        100% {
+            background-position: 0% 50%;
+        }
+
+        50% {
+            background-position: 100% 50%;
+        }
+    }
+
+    body {
+        background: linear-gradient(135deg, #fef7ed 0%, #fdf4ff 25%, #f0f9ff 50%, #f0fdfa 75%, #fefce8 100%);
+        background-size: 200% 200%;
+        animation: gradient-shift 15s ease infinite;
+        min-height: 100vh;
+    }
+
+    .card-enhanced {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(254, 247, 237, 0.8) 100%);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(251, 191, 36, 0.2);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .card-enhanced::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #0ea5e9 0%, #fbbf24 50%, #0ea5e9 100%);
+        background-size: 200% 100%;
+        animation: shimmer 3s ease-in-out infinite;
+    }
+
+    @keyframes shimmer {
+
+        0%,
+        100% {
+            background-position: 0% 0%;
+        }
+
+        50% {
+            background-position: 100% 0%;
+        }
+    }
+
+    .card-enhanced:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 24px rgba(14, 165, 233, 0.15), 0 0 0 1px rgba(251, 191, 36, 0.3);
+        border-color: rgba(251, 191, 36, 0.4);
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(240, 249, 255, 0.85) 100%);
+    }
+
+    .card-chart {
+        background: linear-gradient(135deg, rgba(254, 247, 237, 0.9) 0%, rgba(240, 249, 255, 0.85) 50%, rgba(255, 253, 245, 0.9) 100%);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(251, 191, 36, 0.25);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .card-chart::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #0ea5e9, #14b8a6, #fbbf24);
+    }
+
+    .card-chart:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 32px rgba(14, 165, 233, 0.2), 0 0 0 1px rgba(251, 191, 36, 0.4);
+        border-color: rgba(14, 165, 233, 0.4);
+    }
+
+    .card-projects {
+        background: linear-gradient(135deg, rgba(253, 244, 255, 0.9) 0%, rgba(240, 253, 250, 0.85) 50%, rgba(255, 251, 235, 0.9) 100%);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(167, 139, 250, 0.25);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .card-projects::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #a78bfa, #fbbf24, #a78bfa);
+        background-size: 200% 100%;
+        animation: shimmer 3s ease-in-out infinite;
+    }
+
+    .card-projects:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 32px rgba(167, 139, 250, 0.2), 0 0 0 1px rgba(251, 191, 36, 0.4);
+        border-color: rgba(167, 139, 250, 0.4);
+    }
+
+    .card-logs {
+        background: linear-gradient(135deg, rgba(255, 247, 237, 0.9) 0%, rgba(254, 252, 232, 0.85) 100%);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(251, 191, 36, 0.3);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .card-logs::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #fbbf24, #f59e0b);
+    }
+
+    .card-logs:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 32px rgba(251, 191, 36, 0.25), 0 0 0 1px rgba(251, 191, 36, 0.5);
+        border-color: rgba(251, 191, 36, 0.5);
+    }
+
+    .gradient-text {
+        background: linear-gradient(135deg, #475569 0%, #0ea5e9 50%, #fbbf24 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .status-pass {
+        background: #ecfdf5;
+        color: #047857;
+    }
+
+    .status-fail {
+        background: #fef2f2;
+        color: #b91c1c;
+    }
+
+    .status-warn {
+        background: #fffbeb;
+        color: #b45309;
+    }
+
+    .status-norun {
+        background: #f1f5f9;
+        color: #475569;
+    }
+
+    .priority-critical {
+        background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+        color: #b91c1c;
+        border: 1px solid #fecaca;
+        box-shadow: 0 2px 4px rgba(185, 28, 28, 0.1);
+    }
+
+    .priority-high {
+        background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+        color: #ea580c;
+        border: 1px solid #fed7aa;
+        box-shadow: 0 2px 4px rgba(234, 88, 12, 0.1);
+    }
+
+    .priority-medium {
+        background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+        color: #b45309;
+        border: 1px solid #fde68a;
+        box-shadow: 0 2px 4px rgba(180, 83, 9, 0.1);
+    }
+
+    .priority-low {
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        color: #0369a1;
+        border: 1px solid #bae6fd;
+        box-shadow: 0 2px 4px rgba(3, 105, 161, 0.1);
+    }
+
+    .priority-occasional {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        color: #475569;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 2px 4px rgba(71, 85, 105, 0.1);
+    }
+
+    .project-item {
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(251, 191, 36, 0.15);
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .project-item:hover {
+        background: rgba(255, 255, 255, 0.8);
+        border-color: rgba(251, 191, 36, 0.3);
+        transform: translateX(4px);
+        box-shadow: 0 4px 12px rgba(14, 165, 233, 0.1);
+    }
+
+    .project-item.selected {
+        background: linear-gradient(135deg, rgba(14, 165, 233, 0.15) 0%, rgba(251, 191, 36, 0.1) 100%);
+        border: 2px solid #0ea5e9;
+        transform: translateX(4px);
+        box-shadow: 0 4px 16px rgba(14, 165, 233, 0.25);
+    }
+
+    .project-item.selected::after {
+        content: '✓';
+        position: absolute;
+        right: 12px;
+        top: 12px;
+        background: linear-gradient(135deg, #0ea5e9, #fbbf24);
+        color: white;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 14px;
+    }
+
+    .project-item.bg-red-50 {
+        background: linear-gradient(135deg, rgba(254, 242, 242, 0.8) 0%, rgba(255, 255, 255, 0.6) 100%);
+        border-left: 3px solid #b91c1c;
+        position: relative;
+    }
+
+    .project-item.bg-green-50 {
+        background: linear-gradient(135deg, rgba(236, 253, 245, 0.8) 0%, rgba(255, 255, 255, 0.6) 100%);
+        border-left: 3px solid #047857;
+        position: relative;
+    }
+
+    .project-item.bg-white {
+        background: linear-gradient(135deg, rgba(248, 250, 252, 0.8) 0%, rgba(255, 255, 255, 0.6) 100%);
+        border-left: 3px solid #94a3b8;
+        position: relative;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+        color: white;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+        box-shadow: 0 4px 12px rgba(14, 165, 233, 0.4);
+        transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        color: white;
+        transition: all 0.3s ease;
+    }
+
+    .btn-secondary:hover {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);
+        transform: translateY(-1px);
+    }
+
+    .toggle-btn {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(254, 252, 232, 0.8) 100%);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(251, 191, 36, 0.15);
+        color: #475569;
+        box-shadow: 0 4px 12px rgba(251, 191, 36, 0.12);
+    }
+
+    .toggle-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 16px rgba(251, 191, 36, 0.18);
+    }
+
+
+    .spinner {
+        border: 3px solid rgba(14, 165, 233, 0.1);
+        border-top: 3px solid #0ea5e9;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    .thin-scroll::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    .thin-scroll::-webkit-scrollbar-track {
+        background: rgba(241, 245, 249, 0.5);
+        border-radius: 10px;
+    }
+
+    .thin-scroll::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #0ea5e9, #fbbf24);
+        border-radius: 10px;
+    }
+
+    .thin-scroll::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(135deg, #0284c7, #f59e0b);
+    }
+
+    .sidebar-hidden {
+        transform: translateX(-280px) !important;
+    }
+
+    #mainContent.sidebar-hidden {
+        margin-left: 0 !important;
+    }
+</style>
+</head>
+
+<body class="bg-gray-50 text-gray-900">
+    {% csrf_token %}
+
+    {% include 'dq_management/includes/sidebar.html' %}
+    
+    <button id="sidebarToggleBtn"
+        class="toggle-btn fixed bottom-6 left-6 z-50 rounded-full p-3 shadow-lg focus:outline-none transition-all duration-300 flex items-center justify-center"
+        style="width: 48px; height: 48px;">
+        <span id="sidebarToggleIcon" style="font-size: 1.25rem;">
+            <i class="fas fa-chevron-left"></i>
+        </span>
+    </button>
+    
+    <div id="mainContent" class="transition-all duration-300 flex ml-72">
+        <main class="flex-1 p-8">
+            <!-- Key Metrics Cards -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <!-- Test Result Summary Chart -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-xl font-semibold mb-2 flex items-center">
+                        <i class="fas fa-chart-pie text-blue-600 mr-2"></i>
+                        Test Result Summary
+                    </h3>
+                    <div class="flex items-center gap-2 mb-3">
+                        <p id="summaryTotals" class="text-sm text-gray-600"></p>
+                        <button id="refreshChartsBtn" class="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded border border-blue-200 hover:bg-blue-200">Refresh</button>
+                    </div>
+                    <div class="chart-container mb-4">
+                        <canvas id="testResultsChart"></canvas>
+                    </div>
+
+                    <!-- Simple Bar Chart with Toggle -->
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-sm text-gray-600">Show:</span>
+                        <button id="showFailedBtn" class="px-2 py-1 text-xs bg-red-100 text-red-700 rounded border border-red-200 active:bg-red-600 active:text-white">Failed</button>
+                        <button id="showPassedBtn" class="px-2 py-1 text-xs bg-green-100 text-green-700 rounded border border-green-200 active:bg-green-600 active:text-white">Passed</button>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="criticalityBarChart" height="180"></canvas>
+                    </div>
+                </div>
+
+                <!-- All Projects -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-xl font-semibold mb-2 flex items-center">
+                        <i class="fas fa-project-diagram text-blue-600 mr-2"></i>
+                        All Projects
+                    </h3>
+                    <div class="flex items-center gap-2 mb-3">
+                        <button id="toggleProjects" class="px-2 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded">Collapse</button>
+                        <span id="projectsCount" class="text-sm text-gray-600"></span>
+                    </div>
+                    <div class="flex gap-2 mb-3">
+                        <select id="priorityFilter" class="w-1/3 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="all">All Criticalities</option>
+                            <option value="Critical">Critical</option>
+                            <option value="High">High</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Low">Low</option>
+                            <option value="Occasional">Occasional</option>
+                        </select>
+                        <select id="statusFilter" class="w-1/3 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="all">All</option>
+                            <option value="PASSED">Passed</option>
+                            <option value="FAILED">Failed</option>
+                            <option value="NORUN">No Runs</option>
+                        </select>
+                        <input id="projectSearch" type="text" placeholder="Search projects..." class="w-1/3 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                        <button id="clearFiltersBtn" class="px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded-md text-sm">Clear All</button>
+                    </div>
+                    <div class="space-y-3 thin-scroll" style="max-height: 420px; overflow-y: auto;" id="projectsList">
+                        <!-- Skeleton Loader -->
+                        <div id="projectsSkeleton" class="space-y-3">
+                            {% for i in "123456789" %}
+                                <div class="flex justify-between items-center p-4 rounded-lg border border-gray-200 bg-gray-100 animate-pulse">
+                                    <div class="flex-1">
+                                        <div class="h-4 bg-gray-300 rounded w-3/4 mb-2"></div>
+                                        <div class="h-3 bg-gray-300 rounded w-1/2 mb-1"></div>
+                                        <div class="h-3 bg-gray-300 rounded w-2/3"></div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="h-5 bg-gray-300 rounded w-16 mb-1"></div>
+                                        <div class="h-4 bg-gray-300 rounded w-12"></div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <!-- Actual Projects List -->
+                        <div id="projectsContent" class="space-y-3" style="display: none;">
+                            {% for project in all_projects_summarized %}
+                                <div class="project-item flex justify-between items-center p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors
+                                    {% if project.overall_status == 'FAILED' %}bg-red-50{% elif project.overall_status == 'PASSED' %}bg-green-50{% else %}bg-white{% endif %}"
+                                    data-priority="{{ project.priority }}" data-status="{{ project.overall_status }}" data-name="{{ project.project_name|lower }}">
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800">{{ project.project_name }}</h4>
+                                        <p class="text-sm text-gray-600">{{ project.project_description|truncatechars:50 }}</p>
+                                        <p class="text-xs text-gray-500 mt-1">
+                                            {% if project.overall_status == 'NORUN' %}
+                                                No runs yet
+                                            {% else %}
+                                                Runs: {{ project.total_run_groups }} • Passed: {{ project.passed_test_groups }} • Failed: {{ project.failed_test_groups }}
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full priority-{{ project.priority|lower }} bg-gray-100 text-gray-800">{{ project.priority }}</span>
+                                        <p class="text-sm font-medium mt-1
+                                            {% if project.overall_status == 'FAILED' %}text-red-600{% elif project.overall_status == 'PASSED' %}text-green-600{% else %}text-gray-600{% endif %}">
+                                            {{ project.overall_status }}
+                                        </p>
+                                        <a href="{% url 'flow_view' project.project_id %}" class="text-blue-600 hover:text-blue-900 text-xs mt-1 inline-block">
+                                            <i class="fas fa-eye"></i> View Flow
+                                        </a>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                            {% if not all_projects_summarized %}
+                                <p class="text-gray-500 text-center py-4">No projects found</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Alerts & Logs Table -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-xl font-semibold mb-4 flex items-center">
+                    <i class="fas fa-exclamation-triangle text-yellow-600 mr-2"></i>
+                    Recent Alerts & Logs
+                </h3>
+                <!-- Filter Badge -->
+                <div id="filterBadge" class="mb-4 hidden flex items-center bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <span class="text-blue-800 font-medium">Filtered by: <span id="filterProjectName"></span></span>
+                    <button id="clearFilterBtn" class="ml-auto text-blue-600 hover:text-blue-800 font-bold text-lg">&times;</button>
+                </div>
+                <div class="thin-scroll" style="max-height: 420px; overflow-y: auto;">
+                    <table class="w-full table-auto">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Group Name</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Criticality</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Time</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rerun</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200" id="logsTableBody">
+                            {% for log in test_group_logs %}
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{{ log.group_name|default:"N/A" }}</td>
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{{ log.project_name|default:"N/A" }}</td>
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{{ log.criticality|default:"N/A" }}</td>
+                                    <td class="px-4 py-4 whitespace-nowrap">
+                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full status-{{ log.status|lower }} bg-green-100 text-green-800">{{ log.status }}</span>
+                                    </td>
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {% if log.start_timestamp %}{{ log.start_timestamp|date:"M d, Y H:i" }}{% else %}N/A{% endif %}
+                                    </td>
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm font-medium rerun-btn text-green-600 hover:text-green-900" data-group-id="{{ log.test_group_id }}" data-group-name="{{ log.group_name|default:'N/A' }}" style="cursor: pointer;">
+                                        <i class="fas fa-play"></i> Rerun
+                                    </td>
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
+                                        <button class="view-flow-btn text-blue-600 hover:text-blue-900" data-group-id="{{ log.test_group_id }}">
+                                            <i class="fas fa-eye"></i> View Flow
+                                        </button>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Pagination -->
+                <div class="flex items-center justify-between mt-4">
+                    <div class="text-sm text-gray-700">
+                        Showing <span id="startIndex">1</span> to <span id="endIndex">{{ test_group_logs|length }}</span> of <span id="totalEntries">{{ test_group_logs|length }}</span> entries
+                    </div>
+                    <div class="flex space-x-1">
+                        <button id="prevPage" class="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 rounded disabled:opacity-50" disabled>Previous</button>
+                        <button id="nextPage" class="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 rounded disabled:opacity-50" disabled>Next</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal for Details -->
+    <div id="detailsModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">Test Group Run Details</h3>
+                    <button id="closeModal" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div id="modalContent" class="text-sm text-gray-500">
+                    <!-- Content will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Group Flow -->
+    <div id="groupFlowModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-4/5 lg:w-3/4 shadow-lg rounded-md bg-white max-h-screen overflow-y-auto">
+            <div class="mt-3">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium text-gray-900" id="flowModalTitle">Group Flow</h3>
+                    <button id="closeFlowModal" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div id="flowModalContent" class="text-sm text-gray-500">
+                    <!-- Flow content will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="groupRunModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal" role="dialog"
+        aria-modal="true" aria-labelledby="groupModalTitle">
+        <div class="fixed inset-0 bg-gray-900 bg-opacity-50 modal-overlay"></div>
+        <div
+            class="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-auto p-6 relative modal-content transform transition-all">
+            <div class="flex justify-between items-center pb-3 border-b border-gray-200">
+                <h3 class="text-xl font-semibold text-gray-800" id="groupModalTitle">Group Run Status</h3>
+                <button type="button" class="text-gray-400 hover:text-gray-500" onclick="closeGroupModal()">
+                    <span class="sr-only">Close</span>
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="py-4 text-gray-700">
+                <div id="groupRunLoading" class="flex flex-col items-center justify-center text-center py-8">
+                    <div class="spinner mb-4"></div>
+                    <h4 class="text-lg font-medium text-gray-800 mb-2" id="groupRunMessage">Starting test group...
+                    </h4>
+                    <p class="text-sm text-gray-500 mb-4">This might take a while depending on the number of tests.
+                    </p>
+
+                    <div class="w-full bg-gray-200 rounded-full h-2.5 mb-4">
+                        <div id="progressBar" class="bg-amber-600 h-2.5 rounded-full" style="width: 0%"></div>
+                    </div>
+
+                    <p id="groupRunProgress" class="text-sm text-gray-700 mb-2">Executing 0 of 0 test cases.</p>
+                    <p id="currentTestName" class="text-sm text-gray-500 italic">Current test: N/A</p>
+                </div>
+                <div id="groupRunResults" class="hidden text-left">
+                    <h4 class="font-semibold mt-4 mb-2 border-b pb-1 text-gray-800">Final Results</h4>
+                    <p class="mb-2"><strong>Overall Status:</strong> <span id="finalGroupStatus"
+                            class="px-2 py-1 rounded-full text-sm font-semibold"></span></p>
+                    <p class="mb-2"><strong>Total Tests:</strong> <span id="finalTotalTests"></span></p>
+                    <p class="mb-2"><strong>Failed Tests:</strong> <span id="finalFailedTests"></span></p>
+
+                    <div id="failedTestsList" class="mt-4 hidden">
+                        <h5 class="font-semibold text-red-700">Failed Test Cases:</h5>
+                        <ul id="failedTestsUl" class="list-disc pl-5 mt-2 text-sm text-gray-700"></ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-4 border-t border-gray-200">
+                <button type="button" onclick="closeGroupModal()"
+                    class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // THIS IS THE MAIN FIX:
+        // We wrap EVERYTHING in a DOMContentLoaded listener
+        // to ensure the HTML is loaded before we try to find elements.
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // Dynamic fetch for real-time charts
+            const ctx = document.getElementById('testResultsChart').getContext('2d');
+            const barCtx = document.getElementById('criticalityBarChart').getContext('2d');
+            const summaryTotals = document.getElementById('summaryTotals');
+            const labels = ['Critical', 'High', 'Medium', 'Low'];
+
+            let resultChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Failed', 'Passed'],
+                    datasets: [{ data: [0, 0], backgroundColor: ['#dc2626', '#10b981'], borderWidth: 0 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+            });
+
+            let barChart = new Chart(barCtx, {
+                type: 'bar',
+                data: { labels, datasets: [{ label: 'Failed', data: [0, 0, 0, 0], backgroundColor: '#dc2626', borderRadius: 6 }] },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }, plugins: { legend: { display: false } } }
+            });
+
+            let currentMode = 'failed';
+            let failedValuesCached = [];
+            let passedValuesCached = [];
+
+            function setBarMode(mode, failedValues, passedValues) {
+                if (currentMode === mode) return; // Prevent unnecessary updates
+                currentMode = mode;
+                const failedBtn = document.getElementById('showFailedBtn');
+                const passedBtn = document.getElementById('showPassedBtn');
+
+                if (mode === 'failed') {
+                    barChart.data.datasets[0].label = 'Failed';
+                    barChart.data.datasets[0].data = failedValues;
+                    barChart.data.datasets[0].backgroundColor = '#dc2626';
+                    failedBtn.classList.add('bg-red-600', 'text-white');
+                    failedBtn.classList.remove('bg-red-100', 'text-red-700');
+                    passedBtn.classList.remove('bg-green-600', 'text-white');
+                    passedBtn.classList.add('bg-green-100', 'text-green-700');
+                } else {
+                    barChart.data.datasets[0].label = 'Passed';
+                    barChart.data.datasets[0].data = passedValues;
+                    barChart.data.datasets[0].backgroundColor = '#10b981';
+                    passedBtn.classList.add('bg-green-600', 'text-white');
+                    passedBtn.classList.remove('bg-green-100', 'text-green-700');
+                    failedBtn.classList.remove('bg-red-600', 'text-white');
+                    failedBtn.classList.add('bg-red-100', 'text-red-700');
+                }
+                barChart.update();
+            }
+
+            async function refreshCharts() {
+                try {
+                    const res = await fetch('/api/dashboard/summary/');
+                    const data = await res.json();
+                    const failedValues = labels.map(l => data.failed[l] || 0);
+                    const passedValues = labels.map(l => data.passed[l] || 0);
+                    const totalFailed = data.totals.failed || 0;
+                    const totalPassed = data.totals.passed || 0;
+
+                    // Update doughnut
+                    resultChart.data.datasets[0].data = [totalFailed, totalPassed];
+                    resultChart.update();
+
+                    // Update summary
+                    summaryTotals.textContent = `Total Groups: ${totalFailed + totalPassed} • Failed: ${totalFailed} • Passed: ${totalPassed}`;
+
+                    // Cache the values and update bar based on current mode
+                    failedValuesCached = failedValues;
+                    passedValuesCached = passedValues;
+                    setBarMode(currentMode, failedValuesCached, passedValuesCached);
+                } catch (e) {
+                    console.error('Failed to load dashboard summary', e);
+                    // Reset to zeros
+                    resultChart.data.datasets[0].data = [0, 0];
+                    resultChart.update();
+                    summaryTotals.textContent = `Total Groups: 0 • Failed: 0 • Passed: 0`;
+                    failedValuesCached = [0, 0, 0, 0];
+                    passedValuesCached = [0, 0, 0, 0];
+                    setBarMode(currentMode, failedValuesCached, passedValuesCached);
+                }
+            }
+
+            document.getElementById('showFailedBtn').addEventListener('click', () => setBarMode('failed', failedValuesCached, passedValuesCached));
+            document.getElementById('showPassedBtn').addEventListener('click', () => setBarMode('passed', failedValuesCached, passedValuesCached));
+            document.getElementById('refreshChartsBtn').addEventListener('click', refreshCharts);
+
+            // Initial load and periodic refresh
+            refreshCharts();
+            setInterval(refreshCharts, 30000);
+
+            // Filter + search + collapse for projects list
+            const projectsList = document.getElementById('projectsList');
+            const priorityFilter = document.getElementById('priorityFilter');
+            const statusFilter = document.getElementById('statusFilter');
+            const projectSearch = document.getElementById('projectSearch');
+            const projectsCount = document.getElementById('projectsCount');
+            const toggleProjects = document.getElementById('toggleProjects');
+            const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+
+            function updateProjectsView() {
+                const selectedPriority = priorityFilter.value;
+                const selectedStatus = statusFilter.value;
+                const searchText = (projectSearch.value || '').trim().toLowerCase();
+                const items = projectsList.querySelectorAll('.project-item');
+                let visible = 0;
+                items.forEach(item => {
+                    const matchesPriority = selectedPriority === 'all' || item.dataset.priority === selectedPriority;
+                    const matchesStatus = selectedStatus === 'all' || item.dataset.status === selectedStatus;
+                    const matchesSearch = !searchText || (item.dataset.name || '').includes(searchText);
+                    if (matchesPriority && matchesStatus && matchesSearch) {
+                        item.style.display = 'flex';
+                        visible++;
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+                projectsCount.textContent = `${visible} project(s) visible`;
+            }
+
+            function clearFilters() {
+                priorityFilter.value = 'all';
+                statusFilter.value = 'all';
+                projectSearch.value = '';
+                updateProjectsView();
+            }
+
+            priorityFilter.addEventListener('change', updateProjectsView);
+            statusFilter.addEventListener('change', updateProjectsView);
+            projectSearch.addEventListener('input', updateProjectsView);
+            clearFiltersBtn.addEventListener('click', clearFilters);
+            if (toggleProjects) {
+                toggleProjects.addEventListener('click', () => {
+                    if (projectsList.style.display === 'none') {
+                        projectsList.style.display = '';
+                        toggleProjects.textContent = 'Collapse';
+                    } else {
+                        projectsList.style.display = 'none';
+                        toggleProjects.textContent = 'Expand';
+                    }
+                });
+            }
+
+            // Show skeleton initially, then content after DOM load
+            setTimeout(() => {
+                document.getElementById('projectsSkeleton').style.display = 'none';
+                document.getElementById('projectsContent').style.display = 'block';
+            }, 500); // Small delay to show skeleton briefly
+
+            // Initial compute
+            updateProjectsView();
+
+            // Pagination for logs table
+            const logsPerPage = 10;
+            let currentPage = 1;
+            const allLogs = Array.from(document.querySelectorAll('#logsTableBody tr'));
+            let filteredLogs = allLogs;
+            let selectedProject = null;
+
+            function showPage(page) {
+                const logs = filteredLogs;
+                const totalPages = Math.ceil(logs.length / logsPerPage);
+                const start = (page - 1) * logsPerPage;
+                const end = start + logsPerPage;
+
+                // Hide all logs first
+                allLogs.forEach(log => log.style.display = 'none');
+
+                // Show only filtered logs for current page
+                logs.forEach((log, index) => {
+                    if (index >= start && index < end) {
+                        log.style.display = '';
+                    }
+                });
+
+                document.getElementById('startIndex').textContent = logs.length > 0 ? start + 1 : 0;
+                document.getElementById('endIndex').textContent = Math.min(end, logs.length);
+                document.getElementById('totalEntries').textContent = logs.length;
+
+                document.getElementById('prevPage').disabled = page === 1 || logs.length === 0;
+                document.getElementById('nextPage').disabled = page === totalPages || logs.length === 0;
+            }
+
+            function filterLogsByProject(projectName) {
+                if (selectedProject === projectName) {
+                    // Deselect if same project clicked
+                    selectedProject = null;
+                    filteredLogs = allLogs;
+                    document.getElementById('filterBadge').classList.add('hidden');
+                    document.querySelectorAll('.project-item').forEach(item => item.classList.remove('selected'));
+                } else {
+                    selectedProject = projectName;
+                    filteredLogs = allLogs.filter(log => {
+                        const projectCell = log.querySelector('td:nth-child(2)');
+                        return projectCell && projectCell.textContent.trim().toLowerCase() === projectName.toLowerCase();
+                    });
+                    document.getElementById('filterProjectName').textContent = projectName;
+                    document.getElementById('filterBadge').classList.remove('hidden');
+                    document.querySelectorAll('.project-item').forEach(item => {
+                        if (item.dataset.name && item.dataset.name.toLowerCase() === projectName.toLowerCase()) {
+                            item.classList.add('selected');
+                        } else {
+                            item.classList.remove('selected');
+                        }
+                    });
+                }
+                currentPage = 1; // Reset to first page
+                showPage(currentPage);
+            }
+
+            function clearFilter() {
+                selectedProject = null;
+                filteredLogs = allLogs;
+                document.getElementById('filterBadge').classList.add('hidden');
+                document.querySelectorAll('.project-item').forEach(item => item.classList.remove('selected'));
+                currentPage = 1;
+                showPage(currentPage);
+            }
+
+            // Add click event to project items
+            document.addEventListener('click', function (e) {
+                const projectItem = e.target.closest('.project-item');
+                if (projectItem && !e.target.closest('a')) { // Prevent trigger on "View Flow" link
+                    e.preventDefault();
+                    const projectName = projectItem.querySelector('h4').textContent.trim();
+                    filterLogsByProject(projectName);
+                }
+            });
+
+            // Clear filter button
+            document.getElementById('clearFilterBtn').addEventListener('click', clearFilter);
+
+            document.getElementById('prevPage').addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    showPage(currentPage);
+                }
+            });
+
+            document.getElementById('nextPage').addEventListener('click', () => {
+                const totalPages = Math.ceil(filteredLogs.length / logsPerPage); // Recalculate totalPages
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    showPage(currentPage);
+                }
+            });
+
+            // Initialize pagination
+            showPage(currentPage); // Call showPage once to set up initial state
+
+            // Modal functionality
+            const modal = document.getElementById('detailsModal');
+            const modalContent = document.getElementById('modalContent');
+            const closeBtn = document.getElementById('closeModal');
+
+            document.querySelectorAll('.view-details-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const runId = this.dataset.runId;
+                    const details = this.dataset.details;
+                    const groupName = this.dataset.groupName;
+                    const projectName = this.dataset.projectName;
+
+                    modalContent.innerHTML = `<h4 class="font-semibold mb-2">Run ID: ${runId}</h4><p><strong>Group Name:</strong> ${groupName}</p><p><strong>Project Name:</strong> ${projectName}</p><pre class="bg-gray-100 p-4 rounded text-xs overflow-auto max-h-96">${details}</pre>`;
+                    modal.classList.remove('hidden');
+                });
+            });
+
+            if (closeBtn) {
+                closeBtn.addEventListener('click', function () {
+                    modal.classList.add('hidden');
+                });
+            }
+
+            window.addEventListener('click', function (event) {
+                if (event.target === modal) {
+                    modal.classList.add('hidden');
+                }
+            });
+
+            // Sidebar toggle
+            // ALL THIS CODE WILL NOW WORK:
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            const toggleBtn = document.getElementById('sidebarToggleBtn');
+            const toggleIcon = document.getElementById('sidebarToggleIcon');
+            let sidebarVisible = true;
+
+            function getSidebarWidth() {
+                return (sidebar && sidebar.offsetWidth) ? sidebar.offsetWidth : 280;
+            }
+
+            function hideSidebar() {
+                const w = getSidebarWidth();
+                if (sidebar) { // Still good to keep this check
+                    sidebar.style.transform = `translateX(-${w}px)`;
+                }
+                if (mainContent) {
+                    mainContent.style.marginLeft = '0';
+                }
+                if (toggleIcon) {
+                    toggleIcon.innerHTML = '<i class="fas fa-chevron-right"></i>';
+                }
+                sidebarVisible = false;
+            }
+
+            function showSidebar() {
+                const w = getSidebarWidth();
+                if (sidebar) {
+                    sidebar.style.transform = 'translateX(0)';
+                }
+                if (mainContent) {
+                    mainContent.style.marginLeft = `${w}px`;
+                }
+                if (toggleIcon) {
+                    toggleIcon.innerHTML = '<i class="fas fa-chevron-left"></i>';
+                }
+                sidebarVisible = true;
+            }
+
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', function () {
+                    if (sidebarVisible) {
+                        hideSidebar();
+                    } else {
+                        showSidebar();
+                    }
+                });
+            }
+
+            function setActiveNavLink() {
+                const currentPath = window.location.pathname;
+                const navLinks = document.querySelectorAll('.nav-link');
+
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    const href = link.getAttribute('href');
+                    if (href && href === currentPath) {
+                        link.classList.add('active');
+                    }
+                });
+            }
+
+            const groupRunModal = document.getElementById('groupRunModal');
+            const groupRunLoading = document.getElementById('groupRunLoading');
+            const groupRunResults = document.getElementById('groupRunResults');
+            const groupRunMessage = document.getElementById('groupRunMessage');
+            const progressBar = document.getElementById('progressBar');
+            const groupRunProgress = document.getElementById('groupRunProgress');
+            const currentTestName = document.getElementById('currentTestName');
+
+            let pollingInterval = null;
+            let currentRunId = null;
+
+            function openGroupModal() {
+                groupRunModal.classList.remove('hidden');
+                groupRunModal.classList.add('show');
+            }
+
+            // Make closeGroupModal available globally for onclick=""
+            // A bit of a hack, but necessary for inline HTML attributes.
+            // A better way would be to add an event listener.
+            window.closeGroupModal = function () {
+                if (pollingInterval) {
+                    clearInterval(pollingInterval);
+                }
+                groupRunModal.classList.remove('show');
+                groupRunModal.classList.add('hidden');
+                window.location.reload();
+            }
+
+            async function runGroupAsync(groupId, groupName) {
+                if (!confirm(`Are you sure you want to run the test group '${groupName}' now?`)) {
+                    return;
+                }
+
+                openGroupModal();
+                groupRunLoading.classList.remove('hidden');
+                groupRunResults.classList.add('hidden');
+                groupRunMessage.textContent = `Starting run for group '${groupName}'...`;
+
+                try {
+                    const response = await fetch(`/test_groups/${groupId}/run_async/`, {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value }
+                    });
+                    if (!response.ok) {
+                        const text = await response.text();
+                        throw new Error(`HTTP ${response.status}: ${text}`);
+                    }
+                    const data = await response.json();
+
+                    if (data.run_id) {
+                        currentRunId = data.run_id;
+                        pollingInterval = setInterval(() => checkGroupRunStatus(currentRunId), 2000);
+                    } else {
+                        throw new Error(data.message || 'Failed to start group run.');
+                    }
+                } catch (error) {
+                    console.error("Error starting group run:", error);
+                    groupRunLoading.classList.add('hidden');
+                    groupRunResults.classList.remove('hidden');
+                    groupRunMessage.textContent = `Error: ${error.message}`;
+                }
+            }
+
+            async function checkGroupRunStatus(runId) {
+                try {
+                    const response = await fetch(`/test_groups/run_status/${runId}/`);
+                    const statusData = await response.json();
+
+                    const executedCount = statusData.executed_count || 0;
+                    const totalCount = statusData.total_test_cases || 0;
+
+                    groupRunProgress.textContent = `Executing ${executedCount} of ${totalCount} test cases.`;
+                    currentTestName.textContent = `Current test: ${statusData.current_test_name || 'N/A'}`;
+
+                    let progressPercent = 0;
+                    if (totalCount > 0) {
+                        progressPercent = (executedCount / totalCount) * 100;
+                    }
+                    progressBar.style.width = `${progressPercent}%`;
+
+                    if (statusData.status === 'COMPLETED' || statusData.status === 'ERROR') {
+                        clearInterval(pollingInterval);
+                        groupRunLoading.classList.add('hidden');
+                        groupRunResults.classList.remove('hidden');
+
+                        document.getElementById('finalTotalTests').textContent = totalCount;
+                        document.getElementById('finalFailedTests').textContent = statusData.failed_tests || 0;
+
+                        const finalStatusElement = document.getElementById('finalGroupStatus');
+                        const finalStatus = statusData.final_status || statusData.status;
+
+                        finalStatusElement.textContent = finalStatus;
+                        if (finalStatus === 'PASS') {
+                            finalStatusElement.className = 'px-2 py-1 rounded-full text-sm font-semibold status-pass';
+                        } else if (finalStatus === 'FAIL') {
+                            finalStatusElement.className = 'px-2 py-1 rounded-full text-sm font-semibold status-fail';
+                        } else {
+                            finalStatusElement.className = 'px-2 py-1 rounded-full text-sm font-semibold status-warn';
+                        }
+
+                        const failedTestsList = document.getElementById('failedTestsList');
+                        const failedTestsUl = document.getElementById('failedTestsUl');
+                        failedTestsUl.innerHTML = '';
+
+                        if (statusData.failed_tests > 0) {
+                            failedTestsList.classList.remove('hidden');
+                            statusData.results.forEach(testResult => {
+                                if (testResult.status === 'FAIL' || testResult.status === 'ERROR') {
+                                    const li = document.createElement('li');
+                                    const failedMessage = testResult.message || 'No message provided.';
+                                    li.textContent = `${testResult.test_name || 'Unnamed Test'}: ${failedMessage}`;
+                                    failedTestsUl.appendChild(li);
+                                }
+                            });
+                        } else {
+                            failedTestsList.classList.add('hidden');
+                        }
+                    }
+                } catch (error) {
+                    console.error("Error polling for group run status:", error);
+                    clearInterval(pollingInterval);
+                    groupRunLoading.classList.add('hidden');
+                    groupRunResults.classList.remove('hidden');
+                    groupRunMessage.textContent = `Error during status check: ${error.message}`;
+                    const finalStatusElement = document.getElementById('finalGroupStatus');
+                    finalStatusElement.textContent = 'ERROR';
+                    finalStatusElement.className = 'px-2 py-1 rounded-full text-sm font-semibold status-warn';
+                }
+            }
+
+            // Rerun functionality with event delegation
+            // Ensure CSRF token exists
+            const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+            if (!csrfInput) {
+                console.error('CSRF token input not found on dashboard page. POST requests may fail.');
+            }
+
+            document.addEventListener('click', function (e) {
+                const btn = e.target.closest('.rerun-btn');
+                if (!btn) return;
+                const groupId = btn.dataset.groupId;
+                const groupName = btn.dataset.groupName || 'Group';
+                runGroupAsync(groupId, groupName);
+            });
+
+            // View Flow modal functionality
+            document.addEventListener('click', function (e) {
+                const btn = e.target.closest('.view-flow-btn');
+                if (!btn) return;
+                const groupId = btn.dataset.groupId;
+                openFlowModal(groupId);
+            });
+
+            setActiveNavLink();
+
+
+            // Function to open the flow modal
+            async function openFlowModal(groupId) {
+                const modal = document.getElementById('groupFlowModal');
+                const modalTitle = document.getElementById('flowModalTitle');
+                const modalContent = document.getElementById('flowModalContent');
+
+                modalTitle.textContent = 'Loading Group Flow...';
+                modalContent.innerHTML = '<div class="flex justify-center"><div class="spinner"></div></div>';
+                modal.classList.remove('hidden');
+
+                try {
+                    const response = await fetch(`/api/test_groups/${groupId}/flow_data/`);
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    const data = await response.json();
+
+                    modalTitle.textContent = `Flow for ${data.group.name}`;
+
+                    // Build HTML flow
+                    let html = '<div class="flow-container space-y-4">';
+
+                    // Group box
+                    const groupStatusClass = getStatusClass(data.group.status);
+                    html += `<div class="flow-item p-4 rounded-lg border ${groupStatusClass} text-center font-semibold">`;
+                    html += `${data.group.name} (Group)<br><small>Status: ${data.group.status}</small>`;
+                    html += '</div>';
+
+                    // Arrow
+                    if (data.tests.length > 0) {
+                        html += '<div class="text-center text-gray-500"><i class="fas fa-arrow-down"></i></div>';
+                    }
+
+                    // Test cases
+                    data.tests.forEach((test, index) => {
+                        const testStatusClass = getStatusClass(test.status);
+                        html += `<div class="flow-item p-4 rounded-lg border ${testStatusClass}">`;
+                        html += `<strong>${test.name}</strong><br>`;
+                        html += `<small>Category: ${test.category} | Type: ${test.type} | Order: ${test.order} | Status: ${test.status || 'Not Run'}</small>`;
+                        if (test.run_message) {
+                            html += `<br><small class="text-gray-600">Message: ${test.run_message}</small>`;
+                        }
+                        if (test.possible_resolution) {
+                            html += `<br><small class="text-blue-600">Resolution: ${test.possible_resolution}</small>`;
+                        }
+                        html += '</div>';
+
+                        // Arrow between tests
+                        if (index < data.tests.length - 1) {
+                            html += '<div class="text-center text-gray-500"><i class="fas fa-arrow-down"></i></div>';
+                        }
+                    });
+
+                    html += '</div>';
+                    modalContent.innerHTML = html;
+
+                } catch (error) {
+                    console.error('Error loading flow data:', error);
+                    modalTitle.textContent = 'Error Loading Flow';
+                    modalContent.innerHTML = `<p class="text-red-600">Failed to load flow data: ${error.message}</p>`;
+                }
+            }
+
+            // Function to get CSS class for status
+            function getStatusClass(status) {
+                switch (status.toUpperCase()) {
+                    case 'PASS': return 'bg-green-100 border-green-300 text-green-800';
+                    case 'FAIL': return 'bg-red-100 border-red-300 text-red-800';
+                    case 'ERROR': return 'bg-orange-100 border-orange-300 text-orange-800';
+                    case 'RUNNING': return 'bg-blue-100 border-blue-300 text-blue-800';
+                    default: return 'bg-gray-100 border-gray-300 text-gray-800';
+                }
+            }
+
+            // Close flow modal
+            document.getElementById('closeFlowModal').addEventListener('click', function () {
+                document.getElementById('groupFlowModal').classList.add('hidden');
+            });
+
+            // Close modal when clicking outside
+            document.getElementById('groupFlowModal').addEventListener('click', function (event) {
+                if (event.target === this) {
+                    this.classList.add('hidden');
+                }
+            });
+
+            // Dashboard Theme Toggle
+            const themeToggleDashboard = document.getElementById('themeToggleDashboard');
+            const themeIconDashboard = document.getElementById('themeIconDashboard');
+
+            if (themeToggleDashboard && themeIconDashboard) {
+                // Get saved theme or default to light
+                const savedTheme = localStorage.getItem('eagle-dq-theme') || 'light';
+
+                // Apply theme on page load
+                function applyThemeDashboard(theme) {
+                    document.documentElement.setAttribute('data-theme', theme);
+                    if (theme === 'dark') {
+                        themeIconDashboard.innerHTML = '<i class="fas fa-sun"></i>';
+                    } else {
+                        themeIconDashboard.innerHTML = '<i class="fas fa-moon"></i>';
+                    }
+                }
+
+                // Apply saved theme
+                applyThemeDashboard(savedTheme);
+
+                // Listen for theme changes from sidebar
+                window.addEventListener('themeChanged', function(e) {
+                    const theme = e.detail.theme;
+                    applyThemeDashboard(theme);
+                });
+
+                // Toggle theme on click
+                themeToggleDashboard.addEventListener('click', function() {
+                    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+                    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+                    applyThemeDashboard(newTheme);
+                    localStorage.setItem('eagle-dq-theme', newTheme);
+                    // Dispatch event to sync with sidebar
+                    window.dispatchEvent(new CustomEvent('themeChanged', { detail: { theme: newTheme } }));
+                });
+            }
+
+        });
+
+    </script>
+</body>
+
+</html>

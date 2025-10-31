@@ -1,0 +1,1429 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eagle DQ - Project Details: {{ project.project_name|default:"Loading..." }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="icon" href="{% static 'dq_management/images/eagle_logo_bg.png' %}" type="image/png" />
+    <style>
+        /* --- CORE THEME STYLES (COPIED FROM projects_dashboard.html) --- */
+        body {
+            display: flex;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #fef7ed 0%, #fdf4ff 25%, #f0f9ff 50%, #f0fdfa 75%, #fefce8 100%);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            position: relative;
+        }
+
+        /* Colorful eagle-inspired background pattern */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                radial-gradient(circle at 20% 80%, rgba(251, 191, 36, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.06) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(139, 92, 246, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 60% 60%, rgba(236, 72, 153, 0.04) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 280px;
+            height: 100vh;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(254, 252, 232, 0.9) 50%, rgba(240, 249, 255, 0.9) 100%);
+            backdrop-filter: blur(20px);
+            box-shadow: 2px 0 20px rgba(251, 191, 36, 0.1);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex-shrink: 0;
+            transition: margin-left 0.3s ease;
+            z-index: 40;
+            border-right: 1px solid rgba(251, 191, 36, 0.1);
+        }
+
+        .main-content-wrapper {
+            flex-grow: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            transition: margin-left 0.3s ease;
+            margin-left: 280px;
+            /* This is critical for initial positioning */
+        }
+
+        .main-content-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(254, 252, 232, 0.3) 25%, rgba(240, 249, 255, 0.3) 75%, rgba(255, 255, 255, 0.9) 100%);
+            backdrop-filter: blur(20px);
+            padding: 2.5rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 32px rgba(251, 191, 36, 0.08);
+            border: 1px solid rgba(251, 191, 36, 0.1);
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 1rem 1.25rem;
+            border-radius: 0.75rem;
+            color: #475569;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin-bottom: 0.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 100%;
+            background: linear-gradient(90deg, rgba(251, 191, 36, 0.1) 0%, rgba(14, 165, 233, 0.05) 100%);
+            transition: width 0.3s ease;
+            z-index: -1;
+        }
+
+        .nav-link:hover::before {
+            width: 100%;
+        }
+
+        .nav-link:hover {
+            color: #334155;
+            transform: translateX(4px);
+        }
+
+        .nav-link.active {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.12) 0%, rgba(14, 165, 233, 0.08) 100%);
+            color: #1e293b;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(251, 191, 36, 0.1);
+        }
+
+        .nav-link i {
+            margin-right: 1rem;
+            width: 20px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .header-title {
+            background: linear-gradient(135deg, #1e293b 0%, #475569 50%, #0369a1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Status badges */
+        .status-pass {
+            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+            color: #166534;
+            border: 1px solid rgba(34, 197, 94, 0.2);
+        }
+
+        .status-fail {
+            background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
+            color: #991b1b;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .status-warn {
+            background: linear-gradient(135deg, #fffbeb 0%, #fed7aa 100%);
+            color: #92400e;
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        .status-default {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            color: #475569;
+            border: 1px solid rgba(71, 85, 105, 0.2);
+        }
+
+        .priority-badge {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(14, 165, 233, 0.05) 100%);
+            color: #1e293b;
+            border: 1px solid rgba(251, 191, 36, 0.2);
+        }
+
+        /* New styles specific to the Project Details page structure */
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem 0.5rem 0 0;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+            color: #475569;
+        }
+
+        .tab-btn:hover {
+            color: #1e293b;
+        }
+
+        .tab-btn.active {
+            border-bottom-color: #f59e0b;
+            /* Amber */
+            font-weight: 600;
+            color: #1e293b;
+            background-color: rgba(255, 255, 255, 0.7);
+        }
+
+        .btn-primary {
+            transition: all 0.3s ease;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            background-color: #f59e0b;
+            /* Amber 500 */
+            color: white;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-primary:hover {
+            background-color: #d97706;
+            /* Amber 600 */
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);
+        }
+
+        .btn-secondary {
+            transition: all 0.3s ease;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            background-color: #fef3c7;
+            /* Amber 100 */
+            color: #b45309;
+            /* Amber 800 */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-secondary:hover {
+            background-color: #fde68a;
+            /* Amber 200 */
+            transform: translateY(-1px);
+        }
+
+        /* Small action button styling */
+        .btn-action-small {
+            padding: 0.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            transition: all 0.2s;
+        }
+
+        .btn-action-small:hover {
+            background-color: rgba(251, 191, 36, 0.1);
+            transform: scale(1.1);
+        }
+
+        /* Spinner for modals */
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #f59e0b;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            animation: spin 1s linear infinite;
+        }
+        
+        /* Modal styling */
+        .modal-content {
+            border-radius: 2rem; /* More curved */
+            background: linear-gradient(135deg, rgba(207, 206, 185, 0.95) 0%, rgba(254, 252, 232, 0.8) 100%);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        .modal-content-box { /* Targeted specifically for the testTypeModal */
+            transition: all 0.3s ease-out; /* Add this or similar to your existing .modal-content or a new class */
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        } */
+    </style>
+</head>
+
+<body class="text-slate-800">
+    {% include 'dq_management/includes/sidebar.html' %}
+
+    <button id="sidebarToggleBtn"
+        class="toggle-btn fixed bottom-6 left-6 z-50 rounded-full p-3 shadow-lg focus:outline-none transition-all duration-300 flex items-center justify-center"
+        style="width: 48px; height: 48px;">
+        <span id="sidebarToggleIcon" style="font-size: 1.25rem;">
+            <i class="fas fa-chevron-left"></i>
+        </span>
+    </button>
+
+    <div id="mainContent" class="main-content-wrapper transition-all duration-300">
+        <header class="main-content-card mb-8 p-6">
+            <div>
+                <div class="flex flex-wrap items-center justify-between mb-4 gap-4">
+                    <h1 class="text-4xl font-bold header-title flex items-center">
+                        <i class="fas fa-project-diagram text-3xl mr-3" style="color:#f59e0b;"></i>
+                        {{ project.project_name|default:"Project Details" }}
+                    </h1>
+                    <a href="{% url 'projects_dashboard' %}"
+                        class="btn-secondary inline-flex items-center px-4 py-2 text-sm flex-shrink-0">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Back to Dashboard
+                    </a>
+                    
+                </div>
+
+                <p class="text-slate-600 text-lg mb-4">{{ project.project_description|default:"N/A" }}</p>
+
+                <div class="flex flex-wrap items-center gap-x-6 text-sm text-slate-700 mb-6">
+                    <div class="flex items-center">
+                        <strong>Project ID:</strong>
+                        <code class="bg-slate-100 px-1 rounded text-slate-700 ml-1">
+                            {{ project.project_id|default:"N/A" }}
+                        </code>
+                    </div>
+                    <div class="flex items-center">
+                        <strong>Priority:</strong>
+                        <span class="priority-badge px-2 py-0.5 rounded-full text-xs font-semibold ml-1">
+                            {{ project.priority|default:"N/A" }}
+                        </span>
+                    </div>
+                    {% if project.criticality_level %}
+                    <div class="flex items-center">
+                        <strong>Criticality:</strong>
+                        <span class="px-2 py-0.5 rounded-full text-xs font-semibold ml-1 bg-red-100 text-red-800 border border-red-200">
+                            {{ project.criticality_level }}
+                        </span>
+                    </div>
+                    {% endif %}
+                    <div class="flex items-center">
+                        <strong>Created:</strong>
+                        <span class="ml-1">{{ project.created_at|date:"M j, Y H:i"|default:"N/A" }}</span>
+                    </div>
+                    <div class="flex items-center"> 
+                        <strong>Last Updated:</strong> 
+                        <span class="ml-1">{{ project.updated_at|date:"Y-m-d H:i:s"|default:"N/A" }}</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="mt-6">
+                <div class="flex flex-wrap gap-4 items-center">
+                    <input type="text" id="projectSearch" placeholder="Search by test case name/ID or group name..." onkeyup="filterProjects()"
+                        class="w-full sm:w-96 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-stone-700 placeholder-stone-500 transition-all" />
+                    <div id="testCasesFilters" class="flex gap-4 items-center hidden">
+                        <select id="categoryFilter" onchange="filterProjects()" class="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500">
+                            <option value="All">All Categories</option>
+                            <option value="POWER BI">POWER BI</option>
+                            <option value="SQL">SQL</option>
+                            <option value="SAP">SAP</option>
+                            <option value="TBH">TBH</option>
+                        </select>
+                        <select id="testTypeFilter" onchange="filterProjects()" class="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500">
+                            <option value="All">All Test Types</option>
+                            <option value="Aggregation Comparison">Aggregation Comparison</option>
+                            <option value="Drift Test">Drift Test</option>
+                            <option value="Availability Test">Availability Test</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="flex flex-wrap gap-3 pt-4 border-t border-slate-100 mt-4">
+                <button type="button" onclick="openTestTypeModal()"
+                    class="btn-primary inline-flex items-center px-4 py-2 text-sm">
+                    <i class="fas fa-plus-circle mr-2"></i> Add New Test Case
+                </button>
+                <a href="{% url 'create_test_group' project_id=project.project_id %}"
+                    class="btn-primary bg-blue-500 hover:bg-blue-600 inline-flex items-center px-4 py-2 text-sm">
+                    <i class="fas fa-layer-group mr-2"></i> Create Test Group
+                </a>
+                <button type="button" onclick="runProjectAsync('{{ project.project_id }}', '{{ project.project_name }}')"
+                    class="btn-primary bg-green-500 hover:bg-green-600 inline-flex items-center px-4 py-2 text-sm">
+                    <i class="fas fa-play-circle mr-2"></i> Run Project
+                </button>
+            </div>
+        </header>
+
+        <main class="w-full mx-auto pb-8">
+
+            {% if messages %}
+            <div class="mb-6 px-6">
+                {% for message in messages %}
+                <div class="p-4 mb-4 rounded-xl text-sm font-medium border backdrop-filter backdrop-blur-sm
+                    {% if 'success' in message.tags %}
+                    bg-gradient-to-r from-green-50 to-emerald-50 text-green-800 border-green-200
+                    {% elif 'error' in message.tags %}
+                    bg-gradient-to-r from-red-50 to-rose-50 text-red-800 border-red-200
+                    {% else %}
+                    bg-gradient-to-r from-blue-50 to-sky-50 text-blue-800 border-blue-200
+                    {% endif %}">
+                    <div class="flex items-center">
+                        {% if 'success' in message.tags %}<i class="fas fa-check-circle mr-2"></i>
+                        {% elif 'error' in message.tags %}<i class="fas fa-exclamation-circle mr-2"></i>
+                        {% else %}<i class="fas fa-info-circle mr-2"></i>
+                        {% endif %}
+                        {{ message }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="bg-white rounded-xl shadow-lg border border-slate-100 mx-6">
+                <div class="flex border-b border-slate-200 p-2" id="tab-bar">
+                    <button type="button" class="tab-btn active" onclick="showTab(event, 'testCasesTab')"
+                        id="tab-btn-testCases">
+                        <i class="fas fa-clipboard-list mr-1"></i> Test Cases
+                    </button>
+                    <button type="button" class="tab-btn" onclick="showTab(event, 'testGroupsTab')"
+                        id="tab-btn-testGroups">
+                        <i class="fas fa-cubes mr-1"></i> Test Groups
+                    </button>
+                </div>
+
+                <div class="p-6">
+                    <div id="testCasesTab" class="tab-content">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-slate-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                                            Test Case ID</th>
+                                        <th scope="col"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                                            Category</th>
+                                        <th scope="col"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                                            Name</th>
+                                        <th scope="col"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                                            Type</th>
+                                        <th scope="col"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                                            Source Table / SQL</th>
+                                        <th scope="col"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                                            Source Aggregation</th>
+                                        <th scope="col"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                                            Destination Table / SQL</th>
+                                        <th scope="col"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                                            Destination Aggregation</th>
+                                        <th scope="col"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                                            Threshold</th>
+                                        <th scope="col"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                                            Threshold Type</th>
+                                        <th scope="col"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                                            Status</th>
+                                        <th scope="col"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                                            Created At</th>
+                                        <th scope="col"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                                            Updated At</th>
+                                        <th scope="col"
+                                            class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-slate-100">
+                                    {% for test_case in test_cases %}
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                            {{ test_case.test_case_id }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ test_case.category }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ test_case.test_name }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ test_case.test_type }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {% if test_case.custom_source_sql %}
+                                            <span
+                                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+                                                title="{{ test_case.custom_source_sql }}">Custom SQL</span>
+                                            {% else %}
+                                            {{ test_case.source_table }}
+                                            {% endif %}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {% if test_case.source_agg_type and test_case.source_agg_type != 'COUNT(*)' %}
+                                            <span class="agg-info">{{ test_case.source_agg_type }}({{ test_case.source_agg_column }})</span>
+                                            {% elif test_case.source_agg_type == 'COUNT(*)' %}
+                                            <span class="agg-info">COUNT(*)</span>
+                                            {% else %}
+                                            N/A
+                                            {% endif %}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {% if test_case.custom_destination_sql %}
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+                                                title="{{ test_case.custom_destination_sql }}">Custom SQL</span>
+                                            {% else %}
+                                            {{ test_case.destination_table }}
+                                            {% endif %}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {% if test_case.destination_agg_type and test_case.destination_agg_type != 'COUNT(*)' %}
+                                            <span class="agg-info">{{ test_case.destination_agg_type }}({{ test_case.destination_agg_column }})</span>
+                                            {% elif test_case.destination_agg_type == 'COUNT(*)' %}
+                                            <span class="agg-info">COUNT(*)</span>
+                                            {% else %}
+                                            N/A
+                                            {% endif %}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ test_case.threshold|default:"N/A" }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ test_case.threshold_type|default:"N/A" }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                                                {% if test_case.status == 'PASS' %}
+                                                status-pass
+                                                {% elif test_case.status == 'FAIL' %}
+                                                status-fail
+                                                {% elif test_case.status == 'ERROR' %}
+                                                status-warn
+                                                {% else %}
+                                                status-default
+                                                {% endif %}">
+                                                {{ test_case.status|default:"N/A" }}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ test_case.created_at|date:"Y-m-d H:i:s"|default:"N/A" }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ test_case.updated_at|date:"Y-m-d H:i:s"|default:"N/A" }}
+                                        </td>
+                                        <td
+                                            class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex items-center justify-end space-x-2">
+                                            <a href="{% url 'edit_test_case_dispatcher' test_case_id=test_case.test_case_id %}"
+                                                class="text-amber-600 hover:text-amber-900 inline-block btn-action-small"
+                                                title="Edit Test Case">
+                                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg"
+                                                    viewBox="0 0 20 20" fill="currentColor">
+                                                    <path
+                                                        d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.38-2.828-2.829z" />
+                                                </svg>
+                                            </a>
+                                            <button type="button"
+                                                onclick="runAdhocTest('{{ test_case.test_case_id }}', '{{ test_case.test_name }}')"
+                                                class="text-green-600 hover:text-green-900 btn-action-small"
+                                                title="Run Ad-hoc">
+                                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg"
+                                                    viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd"
+                                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+                                                        clip-rule="evenodd" />
+                                                </svg>
+                                            </button>
+                                            <form
+                                                action="{% url 'delete_test_case' test_case_id=test_case.test_case_id %}"
+                                                method="POST"
+                                                onsubmit="return confirm('Are you sure you want to delete the test case \'{{ test_case.test_name }}\'?');"
+                                                class="inline-block">
+                                                {% csrf_token %}
+                                                <button type="submit"
+                                                    class="text-red-600 hover:text-red-900 btn-action-small"
+                                                    title="Delete Test Case">
+                                                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg"
+                                                        viewBox="0 0 20 20" fill="currentColor">
+                                                        <path fill-rule="evenodd"
+                                                            d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                                                            clip-rule="evenodd" />
+                                                    </svg>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="14" class="px-6 py-4 text-center text-sm text-slate-500">No test
+                                            cases found.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div id="testGroupsTab" class="tab-content hidden">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-slate-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                                            Group Name</th>
+                                        <th scope="col"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                                            Description</th>
+                                        <th scope="col"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                                            Execution Order</th>
+                                        <th scope="col"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                                            Schedule</th>
+                                        <th scope="col"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                                            Status</th>
+                                        <th scope="col"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                                            Last Run</th>
+                                        <th scope="col"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                                            Failed / Total Tests</th>
+                                        <th scope="col"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                                            Created By</th>
+                                        <th scope="col"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                                            Created At</th>
+                                        <th scope="col"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                                            Updated At</th>
+                                        <th scope="col"
+                                            class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-slate-100">
+                                    {% if test_groups %}
+                                    {% for group in test_groups %}
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                            {{ group.group_name|default:"N/A" }}</td>
+                                        <td class="px-6 py-4 text-sm text-gray-500 max-w-xs overflow-hidden text-ellipsis"
+                                            title="{{ group.group_description|default:" N/A" }}">
+                                            {{ group.group_description|default:"N/A" }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ group.execution_order|default:"N/A" }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ group.schedule_cron|default:"Not Scheduled" }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                                                {% if group.status == 'PASS' %}status-pass
+                                                {% elif group.status == 'FAIL' %}status-fail
+                                                {% elif group.status == 'ERROR' %}status-warn
+                                                {% else %}status-default{% endif %}">
+                                                {{ group.status|default:"PENDING" }}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ group.last_run|default:"Never" }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ group.failed_tests|default:"0" }} / {{ group.total_tests|default:"0" }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ group.created_by|default:"N/A" }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ group.created_at|default:"N/A" }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ group.updated_at|default:"N/A" }}</td>
+                                        <td
+                                            class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex items-center justify-end space-x-2">
+                                            <a href="{% url 'edit_test_group' group_id=group.test_group_id %}"
+                                                class="text-amber-600 hover:text-amber-900 inline-block btn-action-small"
+                                                title="Edit Test Group">
+                                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg"
+                                                    viewBox="0 0 20 20" fill="currentColor">
+                                                    <path
+                                                        d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.38-2.828-2.829z" />
+                                                </svg>
+                                            </a>
+                                            <button type="button"
+                                                onclick="runGroupAsync('{{ group.test_group_id }}', '{{ group.group_name }}')"
+                                                class="text-yellow-600 hover:text-yellow-900 btn-action-small"
+                                                title="Run Group Now">
+                                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg"
+                                                    viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd"
+                                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+                                                        clip-rule="evenodd" />
+                                                </svg>
+                                            </button>
+                                            <form action="{% url 'delete_test_group' group_id=group.test_group_id %}"
+                                                method="POST"
+                                                onsubmit="return confirm('Are you sure you want to delete the test group \'{{ group.group_name }}\'?');"
+                                                class="inline-block">
+                                                {% csrf_token %}
+                                                <button type="submit"
+                                                    class="text-red-600 hover:text-red-900 btn-action-small"
+                                                    title="Delete Test Group">
+                                                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg"
+                                                        viewBox="0 0 20 20" fill="currentColor">
+                                                        <path fill-rule="evenodd"
+                                                            d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                                                            clip-rule="evenodd" />
+                                                    </svg>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="10"
+                                            class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                                            No test groups found for this project.
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="testTypeModal"
+        class="hidden fixed inset-0 bg-gray-900 bg-opacity-70 flex justify-center items-center z-50 transition-opacity duration-300">
+        <div class="modal-content-box main-content-card p-6 sm:p-8 rounded-xl shadow-2xl max-w-lg w-11/12 relative">
+
+            <button onclick="closeTestTypeModal()"
+                class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+
+            <div class="text-center pt-2">
+                <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 sm:mb-6">Select a Test Type</h1>
+                <p class="mb-8 text-gray-600">Choose the type of data validation test you want to create.</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+
+                    <a href="{% url 'manage_aggregation_test_form' project_id=project.project_id %}"
+                        class="group block p-4 rounded-lg border border-gray-200 bg-white hover:border-blue-500 hover:shadow-lg transition duration-200 ease-in-out transform hover:-translate-y-0.5">
+                        <div class="text-blue-600 mb-2 font-semibold">
+                            Aggregation Comparison
+                        </div>
+                        <p class="text-xs text-gray-500">Compare aggregated values between two datasets.</p>
+                    </a>
+
+                    <a href="{% url 'manage_drift_test_form' project_id=project.project_id %}"
+                        class="group block p-4 rounded-lg border border-gray-200 bg-white hover:border-blue-500 hover:shadow-lg transition duration-200 ease-in-out transform hover:-translate-y-0.5">
+                        <div class="text-blue-600 mb-2 font-semibold">
+                            Drift Test
+                        </div>
+                        <p class="text-xs text-gray-500">Detect significant changes in data distributions.</p>
+                    </a>
+
+                    <a href="{% url 'manage_availability_test_form' project_id=project.project_id %}"
+                        class="group block p-4 rounded-lg border border-gray-200 bg-white hover:border-blue-500 hover:shadow-lg transition duration-200 ease-in-out transform hover:-translate-y-0.5">
+                        <div class="text-blue-600 mb-2 font-semibold">
+                            Availability Test
+                        </div>
+                        <p class="text-xs text-gray-500">Ensure data is present and accessible when expected.</p>
+                    </a>
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-4 border-t border-gray-200 mt-8">
+                <button onclick="closeTestTypeModal()"
+                    class="w-full sm:w-auto px-6 py-2 bg-slate-200 text-slate-800 font-semibold rounded-lg hover:bg-slate-300 transition duration-150">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="adhocResultsModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal" role="dialog"
+        aria-modal="true" aria-labelledby="adhocModalTitle">
+        <div class="fixed inset-0 bg-gray-900 bg-opacity-50 modal-overlay" onclick="closeAdhocModal()"></div>
+        <div
+            class="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-auto p-6 relative modal-content transform transition-all">
+            <div class="flex justify-between items-center pb-3 border-b border-gray-200">
+                <h3 class="text-xl font-semibold text-gray-800" id="adhocModalTitle">Ad-hoc Test Results</h3>
+                <button type="button" class="text-gray-400 hover:text-gray-500" onclick="closeAdhocModal()">
+                    <span class="sr-only">Close</span>
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div id="modalContent" class="py-4 text-gray-700">
+                <div id="loadingSpinner" class="flex justify-center items-center py-8">
+                    <div class="spinner"></div>
+                    <p class="ml-3 text-lg font-medium">Running test...</p>
+                </div>
+                <div id="resultsDisplay" class="hidden">
+                    <p class="mb-2"><strong>Test Name:</strong> <span id="resultTestName"></span></p>
+                    <p class="mb-2"><strong>Overall Status:</strong> <span id="resultStatus"
+                            class="px-2 py-1 rounded-full text-sm font-semibold"></span></p>
+                    <p class="mb-2"><strong>Message:</strong> <span id="resultMessage"></span></p>
+    
+                    <h4 class="font-semibold mt-4 mb-2 border-b pb-1 text-gray-800">Comparison Values:</h4>
+                    <p class="mb-1"><strong>Source Value:</strong> <span id="resultSourceValue"></span></p>
+                    <p class="mb-1"><strong>Destination Value:</strong> <span id="resultDestinationValue"></span></p>
+                    <p class="mb-1"><strong>Difference:</strong> <span id="resultDifference"></span></p>
+                    <p class="mb-1"><strong>Threshold Applied:</strong> <span id="resultThreshold"></span></p>
+    
+                    <h4 class="font-semibold mt-4 mb-2 border-b pb-1 text-gray-800">Queries Executed:</h4>
+                    <p class="mb-1"><strong>Source Query:</strong>
+                    <pre class="bg-gray-100 p-2 rounded text-xs overflow-x-auto" id="resultSourceQuery"></pre>
+                    </p>
+                    <p class="mb-1"><strong>Destination Query:</strong>
+                    <pre class="bg-gray-100 p-2 rounded text-xs overflow-x-auto" id="resultDestinationQuery"></pre>
+                    </p>
+                </div>
+            </div>
+            <div class="flex justify-end pt-4 border-t border-gray-200">
+                <button type="button" onclick="closeAdhocModal()"
+                    class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="groupRunModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal" role="dialog"
+        aria-modal="true" aria-labelledby="groupModalTitle">
+        <div class="fixed inset-0 bg-gray-900 bg-opacity-50 modal-overlay"></div>
+        <div
+            class="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-auto p-6 relative modal-content transform transition-all">
+            <div class="flex justify-between items-center pb-3 border-b border-gray-200">
+                <h3 class="text-xl font-semibold text-gray-800" id="groupModalTitle">Group Run Status</h3>
+                <button type="button" class="text-gray-400 hover:text-gray-500" onclick="closeGroupModal()">
+                    <span class="sr-only">Close</span>
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="py-4 text-gray-700">
+                <div id="groupRunLoading" class="flex flex-col items-center justify-center text-center py-8">
+                    <div class="spinner mb-4"></div>
+                    <h4 class="text-lg font-medium text-gray-800 mb-2" id="groupRunMessage">Starting test group...
+                    </h4>
+                    <p class="text-sm text-gray-500 mb-4">This might take a while depending on the number of tests.
+                    </p>
+
+                    <div class="w-full bg-gray-200 rounded-full h-2.5 mb-4">
+                        <div id="progressBar" class="bg-amber-600 h-2.5 rounded-full" style="width: 0%"></div>
+                    </div>
+
+                    <p id="groupRunProgress" class="text-sm text-gray-700 mb-2">Executing 0 of 0 test cases.</p>
+                    <p id="currentTestName" class="text-sm text-gray-500 italic">Current test: N/A</p>
+                </div>
+                <div id="groupRunResults" class="hidden text-left">
+                    <h4 class="font-semibold mt-4 mb-2 border-b pb-1 text-gray-800">Final Results</h4>
+                    <p class="mb-2"><strong>Overall Status:</strong> <span id="finalGroupStatus"
+                            class="px-2 py-1 rounded-full text-sm font-semibold"></span></p>
+                    <p class="mb-2"><strong>Total Tests:</strong> <span id="finalTotalTests"></span></p>
+                    <p class="mb-2"><strong>Failed Tests:</strong> <span id="finalFailedTests"></span></p>
+
+                    <div id="failedTestsList" class="mt-4 hidden">
+                        <h5 class="font-semibold text-red-700">Failed Test Cases:</h5>
+                        <ul id="failedTestsUl" class="list-disc pl-5 mt-2 text-sm text-gray-700"></ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-4 border-t border-gray-200">
+                <button type="button" onclick="closeGroupModal()"
+                    class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="projectRunModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal" role="dialog"
+        aria-modal="true" aria-labelledby="projectModalTitle">
+        <div class="fixed inset-0 bg-gray-900 bg-opacity-50 modal-overlay"></div>
+        <div
+            class="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-auto p-6 relative modal-content transform transition-all">
+            <div class="flex justify-between items-center pb-3 border-b border-gray-200">
+                <h3 class="text-xl font-semibold text-gray-800" id="projectModalTitle">Project Run Status</h3>
+                <button type="button" class="text-gray-400 hover:text-gray-500" onclick="closeProjectModal()">
+                    <span class="sr-only">Close</span>
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="py-4 text-gray-700">
+                <div id="projectRunLoading" class="flex flex-col items-center justify-center text-center py-8">
+                    <div class="spinner mb-4"></div>
+                    <h4 class="text-lg font-medium text-gray-800 mb-2" id="projectRunMessage">Starting project run...
+                    </h4>
+                    <p class="text-sm text-gray-500 mb-4">This might take a while depending on the number of test groups.
+                    </p>
+
+                    <div class="w-full bg-gray-200 rounded-full h-2.5 mb-4">
+                        <div id="projectProgressBar" class="bg-green-600 h-2.5 rounded-full" style="width: 0%"></div>
+                    </div>
+
+                    <p id="projectRunProgress" class="text-sm text-gray-700 mb-2">Executing 0 of 0 test groups.</p>
+                    <p id="currentGroupName" class="text-sm text-gray-500 italic">Current group: N/A</p>
+                </div>
+                <div id="projectRunResults" class="hidden text-left">
+                    <h4 class="font-semibold mt-4 mb-2 border-b pb-1 text-gray-800">Final Results</h4>
+                    <p class="mb-2"><strong>Overall Status:</strong> <span id="finalProjectStatus"
+                            class="px-2 py-1 rounded-full text-sm font-semibold"></span></p>
+                    <p class="mb-2"><strong>Total Groups:</strong> <span id="finalTotalGroups"></span></p>
+                    <p class="mb-2"><strong>Failed Groups:</strong> <span id="finalFailedGroups"></span></p>
+
+                    <div id="failedGroupsList" class="mt-4 hidden">
+                        <h5 class="font-semibold text-red-700">Failed Test Groups:</h5>
+                        <ul id="failedGroupsUl" class="list-disc pl-5 mt-2 text-sm text-gray-700"></ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-4 border-t border-gray-200">
+                <button type="button" onclick="closeProjectModal()"
+                    class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].classList.add("hidden");
+                tabcontent[i].setAttribute('aria-hidden', 'true');
+            }
+            tablinks = document.getElementsByClassName("tab-btn");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].classList.remove("active");
+                tablinks[i].setAttribute('aria-selected', 'false');
+                tablinks[i].classList.remove('border-amber-600', 'text-gray-900', 'font-semibold');
+                tablinks[i].classList.add('border-transparent', 'text-gray-700', 'hover:text-amber-700');
+            }
+            document.getElementById(tabName).classList.remove("hidden");
+            document.getElementById(tabName).setAttribute('aria-hidden', 'false');
+            evt.currentTarget.classList.add("active");
+            evt.currentTarget.setAttribute('aria-selected', 'true');
+            evt.currentTarget.classList.remove('border-transparent', 'text-gray-700', 'hover:text-amber-700');
+            evt.currentTarget.classList.add('border-amber-600', 'text-gray-900', 'font-semibold');
+
+            // Show/hide filters based on active tab
+            const testCasesFilters = document.getElementById('testCasesFilters');
+            if (tabName === 'testCasesTab') {
+                testCasesFilters.classList.remove('hidden');
+            } else {
+                testCasesFilters.classList.add('hidden');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const initialTabBtn = document.getElementById('tab-btn-testCases');
+            if (initialTabBtn) {
+                initialTabBtn.click();
+            }
+        });
+
+        function filterProjects() {
+            const searchInput = document.getElementById('projectSearch').value.toLowerCase();
+            const currentActiveTab = document.querySelector('.tab-btn.active').id.replace('tab-btn-', '');
+
+            if (currentActiveTab === 'testCases') {
+                const categoryFilter = document.getElementById('categoryFilter').value;
+                const testTypeFilter = document.getElementById('testTypeFilter').value;
+
+                document.querySelectorAll('#testCasesTab tbody tr').forEach(row => {
+                    const cells = row.querySelectorAll('td');
+                    if (cells.length < 4) return;
+
+                    const idText = cells[0].textContent.toLowerCase();
+                    const categoryText = cells[1].textContent.toLowerCase();
+                    const nameText = cells[2].textContent.toLowerCase();
+                    const testTypeText = cells[3].textContent.toLowerCase();
+
+                    // Check search filter
+                    const matchesSearch = searchInput === '' ||
+                        nameText.includes(searchInput) ||
+                        idText.includes(searchInput);
+
+                    // Check category filter
+                    const matchesCategory = categoryFilter === 'All' ||
+                        categoryText.includes(categoryFilter.toLowerCase());
+
+                    // Check test type filter
+                    const matchesTestType = testTypeFilter === 'All' ||
+                        testTypeText.includes(testTypeFilter.toLowerCase());
+
+                    // Show row only if all filters match
+                    row.style.display = (matchesSearch && matchesCategory && matchesTestType) ? '' : 'none';
+                });
+            } else if (currentActiveTab === 'testGroups') {
+                document.querySelectorAll('#testGroupsTab tbody tr').forEach(row => {
+                    const nameCell = row.querySelector('td:nth-child(1)');
+                    if (!nameCell) return;
+                    const nameText = nameCell.textContent.toLowerCase();
+                    row.style.display = nameText.includes(searchInput) ? '' : 'none';
+                });
+            }
+        }
+
+        const adhocModal = document.getElementById('adhocResultsModal');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const resultsDisplay = document.getElementById('resultsDisplay');
+        const resultTestName = document.getElementById('resultTestName');
+        const resultStatus = document.getElementById('resultStatus');
+        const resultMessage = document.getElementById('resultMessage');
+        const resultSourceValue = document.getElementById('resultSourceValue');
+        const resultDestinationValue = document.getElementById('resultDestinationValue');
+        const resultDifference = document.getElementById('resultDifference');
+        const resultThreshold = document.getElementById('resultThreshold');
+        const resultSourceQuery = document.getElementById('resultSourceQuery');
+        const resultDestinationQuery = document.getElementById('resultDestinationQuery');
+
+        function openAdhocModal() {
+            adhocModal.classList.remove('hidden');
+            adhocModal.classList.add('show');
+            loadingSpinner.classList.remove('hidden');
+            resultsDisplay.classList.add('hidden');
+        }
+
+        function closeAdhocModal() {
+            adhocModal.classList.remove('show');
+            adhocModal.classList.add('hidden');
+        }
+
+        async function runAdhocTest(testCaseId, testName) {
+            openAdhocModal();
+            resultTestName.textContent = testName;
+
+            const url = `{% url 'run_adhoc_test' test_case_id='temp_placeholder' %}`.replace('temp_placeholder', testCaseId);
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const result = data;
+
+                loadingSpinner.classList.add('hidden');
+                resultsDisplay.classList.remove('hidden');
+
+                resultStatus.textContent = result.status;
+                if (result.status === 'PASS') {
+                    resultStatus.className = 'px-2 py-1 rounded-full text-sm font-semibold status-pass';
+                } else if (result.status === 'FAIL') {
+                    resultStatus.className = 'px-2 py-1 rounded-full text-sm font-semibold status-fail';
+                } else {
+                    resultStatus.className = 'px-2 py-1 rounded-full text-sm font-semibold status-warn';
+                }
+
+                resultMessage.textContent = result.message || 'No specific message.';
+                resultSourceValue.textContent = result.source_value !== undefined ? result.source_value : 'N/A';
+                resultDestinationValue.textContent = result.destination_value !== undefined ? result.destination_value : 'N/A';
+                resultDifference.textContent = result.difference !== undefined ? result.difference : 'N/A';
+                resultThreshold.textContent = result.threshold !== undefined ? result.threshold : 'N/A';
+                resultSourceQuery.textContent = result.source_query || 'N/A';
+                resultDestinationQuery.textContent = result.destination_query || 'N/A';
+
+            } catch (error) {
+                console.error("Error running ad-hoc test:", error);
+                loadingSpinner.classList.add('hidden');
+                resultsDisplay.classList.remove('hidden');
+                resultStatus.textContent = 'ERROR';
+                resultStatus.className = 'px-2 py-1 rounded-full text-sm font-semibold status-warn';
+                resultTestName.textContent = testName;
+                resultMessage.textContent = `Failed to run test: ${error.message || error}. Check console for details.`;
+                resultSourceValue.textContent = 'N/A';
+                resultDestinationValue.textContent = 'N/A';
+                resultDifference.textContent = 'N/A';
+                resultThreshold.textContent = 'N/A';
+                resultSourceQuery.textContent = 'N/A';
+                resultDestinationQuery.textContent = 'N/A';
+            }
+        }
+
+        const groupRunModal = document.getElementById('groupRunModal');
+        const groupRunLoading = document.getElementById('groupRunLoading');
+        const groupRunResults = document.getElementById('groupRunResults');
+        const groupRunMessage = document.getElementById('groupRunMessage');
+        const progressBar = document.getElementById('progressBar');
+        const groupRunProgress = document.getElementById('groupRunProgress');
+        const currentTestName = document.getElementById('currentTestName');
+
+        const projectRunModal = document.getElementById('projectRunModal');
+        const projectRunLoading = document.getElementById('projectRunLoading');
+        const projectRunResults = document.getElementById('projectRunResults');
+        const projectRunMessage = document.getElementById('projectRunMessage');
+        const projectProgressBar = document.getElementById('projectProgressBar');
+        const projectRunProgress = document.getElementById('projectRunProgress');
+        const currentGroupName = document.getElementById('currentGroupName');
+
+        let pollingInterval = null;
+        let currentRunId = null;
+        let projectPollingInterval = null;
+        let currentProjectRunId = null;
+
+        function openGroupModal() {
+            groupRunModal.classList.remove('hidden');
+            groupRunModal.classList.add('show');
+        }
+
+        function closeGroupModal() {
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+            }
+            groupRunModal.classList.remove('show');
+            groupRunModal.classList.add('hidden');
+            window.location.reload();
+        }
+
+        async function runGroupAsync(groupId, groupName) {
+            if (!confirm(`Are you sure you want to run the test group '${groupName}' now?`)) {
+                return;
+            }
+
+            openGroupModal();
+            groupRunLoading.classList.remove('hidden');
+            groupRunResults.classList.add('hidden');
+            groupRunMessage.textContent = `Starting run for group '${groupName}'...`;
+
+            try {
+                const response = await fetch(`{% url 'run_test_group_async' group_id='GROUP_ID_PLACEHOLDER' %}`.replace('GROUP_ID_PLACEHOLDER', groupId), {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+                });
+                const data = await response.json();
+
+                if (response.ok && data.run_id) {
+                    currentRunId = data.run_id;
+                    pollingInterval = setInterval(() => checkGroupRunStatus(currentRunId), 2000);
+                } else {
+                    throw new Error(data.message || 'Failed to start group run.');
+                }
+            } catch (error) {
+                console.error("Error starting group run:", error);
+                groupRunLoading.classList.add('hidden');
+                groupRunResults.classList.remove('hidden');
+                groupRunMessage.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        async function checkGroupRunStatus(runId) {
+            try {
+                const response = await fetch(`{% url 'get_run_status' run_id='RUN_ID_PLACEHOLDER' %}`.replace('RUN_ID_PLACEHOLDER', runId));
+                const statusData = await response.json();
+
+                const executedCount = statusData.executed_count || 0;
+                const totalCount = statusData.total_test_cases || 0;
+
+                groupRunProgress.textContent = `Executing ${executedCount} of ${totalCount} test cases.`;
+                currentTestName.textContent = `Current test: ${statusData.current_test_name || 'N/A'}`;
+
+                let progressPercent = 0;
+                if (totalCount > 0) {
+                    progressPercent = (executedCount / totalCount) * 100;
+                }
+                progressBar.style.width = `${progressPercent}%`;
+
+                if (statusData.status === 'COMPLETED' || statusData.status === 'ERROR') {
+                    clearInterval(pollingInterval);
+                    groupRunLoading.classList.add('hidden');
+                    groupRunResults.classList.remove('hidden');
+
+                    document.getElementById('finalTotalTests').textContent = totalCount;
+                    document.getElementById('finalFailedTests').textContent = statusData.failed_tests || 0;
+
+                    const finalStatusElement = document.getElementById('finalGroupStatus');
+                    const finalStatus = statusData.final_status || statusData.status;
+
+                    finalStatusElement.textContent = finalStatus;
+                    if (finalStatus === 'PASS') {
+                        finalStatusElement.className = 'px-2 py-1 rounded-full text-sm font-semibold status-pass';
+                    } else if (finalStatus === 'FAIL') {
+                        finalStatusElement.className = 'px-2 py-1 rounded-full text-sm font-semibold status-fail';
+                    } else {
+                        finalStatusElement.className = 'px-2 py-1 rounded-full text-sm font-semibold status-warn';
+                    }
+
+                    const failedTestsList = document.getElementById('failedTestsList');
+                    const failedTestsUl = document.getElementById('failedTestsUl');
+                    failedTestsUl.innerHTML = '';
+
+                    if (statusData.failed_tests > 0) {
+                        failedTestsList.classList.remove('hidden');
+                        statusData.results.forEach(testResult => {
+                            if (testResult.status === 'FAIL' || testResult.status === 'ERROR') {
+                                const li = document.createElement('li');
+                                const failedMessage = testResult.message || 'No message provided.';
+                                li.textContent = `${testResult.test_name || 'Unnamed Test'}: ${failedMessage}`;
+                                failedTestsUl.appendChild(li);
+                            }
+                        });
+                    } else {
+                        failedTestsList.classList.add('hidden');
+                    }
+                }
+            } catch (error) {
+                console.error("Error polling for group run status:", error);
+                clearInterval(pollingInterval);
+                groupRunLoading.classList.add('hidden');
+                groupRunResults.classList.remove('hidden');
+                groupRunMessage.textContent = `Error during status check: ${error.message}`;
+                const finalStatusElement = document.getElementById('finalGroupStatus');
+                finalStatusElement.textContent = 'ERROR';
+                finalStatusElement.className = 'px-2 py-1 rounded-full text-sm font-semibold status-warn';
+            }
+        }
+
+        function openProjectModal() {
+            projectRunModal.classList.remove('hidden');
+            projectRunModal.classList.add('show');
+        }
+
+        function closeProjectModal() {
+            if (projectPollingInterval) {
+                clearInterval(projectPollingInterval);
+            }
+            projectRunModal.classList.remove('show');
+            projectRunModal.classList.add('hidden');
+            window.location.reload();
+        }
+
+        async function runProjectAsync(projectId, projectName) {
+            if (!confirm(`Are you sure you want to run the project '${projectName}' now?`)) {
+                return;
+            }
+
+            openProjectModal();
+            projectRunLoading.classList.remove('hidden');
+            projectRunResults.classList.add('hidden');
+            projectRunMessage.textContent = `Starting run for project '${projectName}'...`;
+
+            try {
+                const response = await fetch(`{% url 'run_project_async' project_id='PROJECT_ID_PLACEHOLDER' %}`.replace('PROJECT_ID_PLACEHOLDER', projectId), {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+                });
+                const data = await response.json();
+
+                if (response.ok && data.run_id) {
+                    currentProjectRunId = data.run_id;
+                    projectPollingInterval = setInterval(() => checkProjectRunStatus(currentProjectRunId), 2000);
+                } else {
+                    throw new Error(data.message || 'Failed to start project run.');
+                }
+            } catch (error) {
+                console.error("Error starting project run:", error);
+                projectRunLoading.classList.add('hidden');
+                projectRunResults.classList.remove('hidden');
+                projectRunMessage.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        async function checkProjectRunStatus(runId) {
+            try {
+                const response = await fetch(`{% url 'get_project_run_status' run_id='RUN_ID_PLACEHOLDER' %}`.replace('RUN_ID_PLACEHOLDER', runId));
+                const statusData = await response.json();
+
+                const executedCount = statusData.executed_count || 0;
+                const totalCount = statusData.total_test_groups || 0;
+
+                projectRunProgress.textContent = `Executing ${executedCount} of ${totalCount} test groups.`;
+                currentGroupName.textContent = `Current group: ${statusData.current_group_name || 'N/A'}`;
+
+                let progressPercent = 0;
+                if (totalCount > 0) {
+                    progressPercent = (executedCount / totalCount) * 100;
+                }
+                projectProgressBar.style.width = `${progressPercent}%`;
+
+                if (statusData.status === 'COMPLETED' || statusData.status === 'ERROR') {
+                    clearInterval(projectPollingInterval);
+                    projectRunLoading.classList.add('hidden');
+                    projectRunResults.classList.remove('hidden');
+
+                    document.getElementById('finalTotalGroups').textContent = totalCount;
+                    document.getElementById('finalFailedGroups').textContent = statusData.failed_groups || 0;
+
+                    const finalStatusElement = document.getElementById('finalProjectStatus');
+                    const finalStatus = statusData.final_status || statusData.status;
+
+                    finalStatusElement.textContent = finalStatus;
+                    if (finalStatus === 'PASS') {
+                        finalStatusElement.className = 'px-2 py-1 rounded-full text-sm font-semibold status-pass';
+                    } else if (finalStatus === 'FAIL') {
+                        finalStatusElement.className = 'px-2 py-1 rounded-full text-sm font-semibold status-fail';
+                    } else {
+                        finalStatusElement.className = 'px-2 py-1 rounded-full text-sm font-semibold status-warn';
+                    }
+
+                    const failedGroupsList = document.getElementById('failedGroupsList');
+                    const failedGroupsUl = document.getElementById('failedGroupsUl');
+                    failedGroupsUl.innerHTML = '';
+
+                    if (statusData.failed_groups > 0) {
+                        failedGroupsList.classList.remove('hidden');
+                        statusData.results.forEach(groupResult => {
+                            if (groupResult.status === 'FAIL' || groupResult.status === 'ERROR') {
+                                const li = document.createElement('li');
+                                const failedMessage = groupResult.message || 'No message provided.';
+                                li.textContent = `${groupResult.group_name || 'Unnamed Group'}: ${failedMessage}`;
+                                failedGroupsUl.appendChild(li);
+                            }
+                        });
+                    } else {
+                        failedGroupsList.classList.add('hidden');
+                    }
+                }
+            } catch (error) {
+                console.error("Error polling for project run status:", error);
+                clearInterval(projectPollingInterval);
+                projectRunLoading.classList.add('hidden');
+                projectRunResults.classList.remove('hidden');
+                projectRunMessage.textContent = `Error during status check: ${error.message}`;
+                const finalStatusElement = document.getElementById('finalProjectStatus');
+                finalStatusElement.textContent = 'ERROR';
+                finalStatusElement.className = 'px-2 py-1 rounded-full text-sm font-semibold status-warn';
+            }
+        }
+
+        // Sidebar toggle logic
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        const toggleBtn = document.getElementById('sidebarToggleBtn');
+        const toggleIcon = document.getElementById('sidebarToggleIcon');
+        let sidebarVisible = true;
+
+        function hideSidebar() {
+            sidebar.style.marginLeft = '-280px';
+            mainContent.style.marginLeft = '0';
+            toggleIcon.innerHTML = '<i class="fas fa-chevron-right"></i>';
+            sidebarVisible = false;
+        }
+
+        function showSidebar() {
+            sidebar.style.marginLeft = '0';
+            mainContent.style.marginLeft = '280px';
+            toggleIcon.innerHTML = '<i class="fas fa-chevron-left"></i>';
+            sidebarVisible = true;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            showSidebar();
+            const initialTabBtn = document.getElementById('tab-btn-testCases');
+            if (initialTabBtn) {
+                initialTabBtn.click();
+            }
+        });
+
+        toggleBtn.onclick = function () {
+            if (sidebarVisible) {
+                hideSidebar();
+            } else {
+                showSidebar();
+            }
+        };
+
+        /* --- MODAL CONTROL FUNCTIONS (Updated) --- */
+            const testTypeModal = document.getElementById('testTypeModal');
+            // Use the custom class for the animating content box
+            const modalContentBox = document.querySelector('#testTypeModal .modal-content-box');
+
+            // Ensure the modal-content-box has a default transition set
+            modalContentBox.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
+
+
+            function openTestTypeModal() {
+                // 1. Make the container visible immediately but fully transparent
+                testTypeModal.classList.remove('hidden');
+                testTypeModal.style.opacity = '0';
+
+                // 2. Set the initial state of the content for the animation (off-screen/small)
+                modalContentBox.style.transform = 'scale(0.9)';
+                modalContentBox.style.opacity = '0';
+
+                // 3. Force a reflow (browser repaint) for the transition to work
+                void testTypeModal.offsetWidth;
+
+                // 4. Start the transition to the final visible state
+                setTimeout(() => {
+                    testTypeModal.style.opacity = '1';
+                    modalContentBox.style.transform = 'scale(1)';
+                    modalContentBox.style.opacity = '1';
+                }, 10); // Very short delay
+            }
+
+            function closeTestTypeModal() {
+                // 1. Start the visual fade/shrink animation out
+                testTypeModal.style.opacity = '0';
+                modalContentBox.style.transform = 'scale(0.9)';
+                modalContentBox.style.opacity = '0';
+
+                // 2. Hide the modal container completely after the animation finishes
+                setTimeout(() => {
+                    testTypeModal.classList.add('hidden');
+                    // IMPORTANT: Reset modal content for the next open
+                    modalContentBox.style.transform = 'scale(1)';
+                    modalContentBox.style.opacity = '1'; // Reset inner content opacity
+                }, 300); // 300ms matches the transition duration
+            }
+
+            // Attach a listener to close when clicking outside the modal content
+            document.addEventListener('DOMContentLoaded', () => {
+                // ... existing DOMContentLoaded code ...
+
+                if (testTypeModal) {
+                    testTypeModal.addEventListener('click', (e) => {
+                        if (e.target === testTypeModal) {
+                            closeTestTypeModal();
+                        }
+                    });
+                }
+            });
+    </script>
+</body>
+
+</html>

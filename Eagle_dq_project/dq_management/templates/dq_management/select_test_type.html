@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Test Type Modal</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Set font for the entire body */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            /* Ensures the underlying body color is visible if the modal is hidden */
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Custom styles for the centered modal, ensuring transition smoothness */
+        .modal-content-box {
+            animation: fadeInScale 0.3s ease-out forwards;
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- MODAL BACKDROP AND CONTAINER -->
+    <!-- The 'hidden' class can be removed or added dynamically via JS to control visibility -->
+    <div id="testTypeModal"
+        class="fixed inset-0 bg-gray-900 bg-opacity-70 flex justify-center items-center z-50 transition-opacity duration-300">
+        <div class="modal-content-box bg-white p-6 sm:p-8 rounded-xl shadow-2xl max-w-lg w-11/12 relative">
+
+            <!-- Close Button (Top Right) -->
+            <button onclick="closeModal()"
+                class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+
+            <div class="text-center pt-2">
+                <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 sm:mb-6">Select a Test Type</h1>
+                <p class="mb-8 text-gray-600">Choose the type of data validation test you want to create.</p>
+
+                <!-- Test Type Buttons -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+                    <a href="{% url 'manage_aggregation_test_form' project_id %}"
+                        class="group block p-4 rounded-lg border border-gray-200 bg-white hover:border-blue-500 hover:shadow-lg transition duration-200 ease-in-out transform hover:-translate-y-0.5">
+                        <div class="text-blue-600 mb-2 font-semibold">
+                            Aggregation Comparison
+                        </div>
+                        <p class="text-xs text-gray-500">Compare aggregated values between two datasets.</p>
+                    </a>
+
+                    <a href="{% url 'manage_drift_test_form' project_id %}"
+                        class="group block p-4 rounded-lg border border-gray-200 bg-white hover:border-blue-500 hover:shadow-lg transition duration-200 ease-in-out transform hover:-translate-y-0.5">
+                        <div class="text-blue-600 mb-2 font-semibold">
+                            Drift Test
+                        </div>
+                        <p class="text-xs text-gray-500">Detect significant changes in data distributions.</p>
+                    </a>
+
+                    <a href="{% url 'manage_availability_test_form' project_id %}"
+                        class="group block p-4 rounded-lg border border-gray-200 bg-white hover:border-blue-500 hover:shadow-lg transition duration-200 ease-in-out transform hover:-translate-y-0.5">
+                        <div class="text-blue-600 mb-2 font-semibold">
+                            Availability Test
+                        </div>
+                        <p class="text-xs text-gray-500">Ensure data is present and accessible when expected.</p>
+                    </a>
+                </div>
+
+                <!-- Optional: Action button below the options -->
+                <div class="mt-8">
+                    <button onclick="closeModal()"
+                        class="w-full sm:w-auto px-6 py-2 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition duration-150">
+                        Continue Setup
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Function to hide the modal
+        function closeModal() {
+            const modal = document.getElementById('testTypeModal');
+            // Add a class to fade out before hiding completely
+            modal.classList.add('opacity-0');
+
+            // Set a timeout to hide the element completely after the transition finishes
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300); // Must match the transition duration in CSS
+
+            console.log("Modal closed.");
+        }
+
+        // Optional: Close modal when clicking outside the content area
+        document.getElementById('testTypeModal').addEventListener('click', (event) => {
+            // Check if the click occurred directly on the backdrop (not on the modal content itself)
+            if (event.target.id === 'testTypeModal') {
+                closeModal();
+            }
+        });
+
+        // Function to show the modal (if you hide it initially)
+        /*
+        function openModal() {
+            const modal = document.getElementById('testTypeModal');
+            modal.classList.remove('hidden');
+            modal.classList.remove('opacity-0');
+        }
+        */
+    </script>
+</body>
+
+</html>

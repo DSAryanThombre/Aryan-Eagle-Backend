@@ -1,0 +1,333 @@
+{% load static %}
+<style>
+    /* CSS Custom Properties for Theme System */
+    :root {
+        /* Light Mode Colors */
+        --bg-primary: linear-gradient(135deg, #fef7ed 0%, #fdf4ff 25%, #f0f9ff 50%, #f0fdfa 75%, #fefce8 100%);
+        --bg-secondary: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(254, 252, 232, 0.9) 50%, rgba(240, 249, 255, 0.9) 100%);
+        --bg-card: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(254, 252, 232, 0.8) 100%);
+        --bg-card-hover: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(240, 249, 255, 0.85) 100%);
+        --text-primary: #1e293b;
+        --text-secondary: #475569;
+        --text-muted: #64748b;
+        --border-primary: rgba(251, 191, 36, 0.1);
+        --border-secondary: rgba(251, 191, 36, 0.15);
+        --shadow-primary: rgba(251, 191, 36, 0.1);
+        --shadow-secondary: rgba(251, 191, 36, 0.12);
+        --accent-primary: #fbbf24;
+        --accent-secondary: #0ea5e9;
+        --nav-hover-bg: rgba(251, 191, 36, 0.12);
+        --nav-active-bg: linear-gradient(135deg, rgba(251, 191, 36, 0.12) 0%, rgba(14, 165, 233, 0.08) 100%);
+    }
+
+    [data-theme="dark"] {
+        /* Dark Mode Colors */
+        --bg-primary: linear-gradient(135deg, #0f172a 0%, #1e1b4b 25%, #164e63 50%, #134e4a 75%, #365314 100%);
+        --bg-secondary: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 27, 75, 0.9) 50%, rgba(22, 78, 99, 0.9) 100%);
+        --bg-card: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(51, 65, 85, 0.8) 100%);
+        --bg-card-hover: linear-gradient(135deg, rgba(51, 65, 85, 0.98) 0%, rgba(30, 58, 138, 0.85) 100%);
+        --text-primary: #f1f5f9;
+        --text-secondary: #cbd5e1;
+        --text-muted: #94a3b8;
+        --border-primary: rgba(251, 191, 36, 0.2);
+        --border-secondary: rgba(251, 191, 36, 0.25);
+        --shadow-primary: rgba(0, 0, 0, 0.3);
+        --shadow-secondary: rgba(0, 0, 0, 0.4);
+        --accent-primary: #fbbf24;
+        --accent-secondary: #0ea5e9;
+        --nav-hover-bg: rgba(251, 191, 36, 0.15);
+        --nav-active-bg: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(14, 165, 233, 0.12) 100%);
+    }
+
+    /* Sidebar-specific styles */
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 280px;
+        height: 100vh;
+        background: var(--bg-secondary);
+        backdrop-filter: blur(20px);
+        box-shadow: 2px 0 20px var(--shadow-primary);
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex-shrink: 0;
+        transition: transform 0.3s ease;
+        z-index: 40;
+        border-right: 1px solid var(--border-primary);
+        box-sizing: border-box;
+    }
+
+    /* Logo/Title Area */
+    .logo-container {
+        margin-bottom: 2rem;
+        padding: 0.25rem;
+    }
+
+    .logo-container img {
+        width: 80px;
+        height: 80px;
+        object-fit: contain;
+        border-radius: 6px;
+        display: block;
+        margin: 0 auto;
+    }
+
+    .logo-title {
+        color: var(--text-primary);
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-top: 0.5rem;
+        text-align: center;
+    }
+
+    /* Navigation Links */
+    .nav-link {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        padding: 1rem 1.25rem;
+        border-radius: 0.75rem;
+        color: var(--text-secondary);
+        font-weight: 500;
+        transition: color 0.2s ease;
+        margin-bottom: 0.75rem;
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+    }
+
+    .nav-link::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: var(--nav-hover-bg);
+        border-radius: inherit;
+        transform: scaleX(0);
+        transform-origin: left center;
+        transition: transform 180ms ease;
+        z-index: -1;
+    }
+
+    .nav-link:hover::before {
+        transform: scaleX(1);
+    }
+
+    .nav-link:hover {
+        color: var(--text-primary);
+    }
+
+    .nav-link i {
+        margin-right: 1.25rem;
+        width: 20px;
+        text-align: center;
+        transition: transform 0.2s ease;
+    }
+
+    .nav-link:hover i {
+        transform: scale(1.05);
+    }
+
+    .nav-link.active {
+        background: var(--nav-active-bg);
+        color: var(--text-primary);
+        font-weight: 700;
+        box-shadow: 0 4px 12px var(--shadow-secondary);
+        border: 1px solid var(--border-secondary);
+    }
+
+    /* Dropdown Styles */
+    .dropdown-wrapper {
+        width: 100%;
+        position: relative;
+    }
+
+    .submenu {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+        opacity: 0;
+        margin-left: 0.5rem;
+        padding-left: 0.5rem;
+    }
+
+    .submenu a {
+        display: block;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        color: var(--text-secondary);
+        transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease var(--delay, 0s);
+    }
+
+    .submenu a:hover {
+        background: rgba(14, 165, 233, 0.06);
+        color: var(--text-primary);
+        transform: translateX(2px);
+    }
+
+    .dropdown-wrapper:hover .submenu,
+    .dropdown-wrapper.active .submenu {
+        max-height: 200px;
+        opacity: 1;
+    }
+
+    .dropdown-wrapper:hover .nav-link .fa-chevron-down {
+        transform: rotate(180deg);
+    }
+
+    .dropdown-wrapper:hover .nav-link {
+        color: var(--text-primary);
+    }
+
+    /* Dark Mode Toggle */
+    .theme-toggle {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        padding: 1rem 1.25rem;
+        border-radius: 0.75rem;
+        color: var(--text-secondary);
+        font-weight: 500;
+        transition: all 0.2s ease;
+        margin-bottom: 0.75rem;
+        cursor: pointer;
+        border: 1px solid var(--border-primary);
+        background: var(--bg-card);
+    }
+
+    .theme-toggle:hover {
+        color: var(--text-primary);
+        background: var(--bg-card-hover);
+        border-color: var(--border-secondary);
+        transform: translateX(2px);
+    }
+
+    .theme-toggle i {
+        margin-right: 1.25rem;
+        width: 20px;
+        text-align: center;
+        transition: transform 0.3s ease;
+    }
+
+    .theme-toggle:hover i {
+        transform: rotate(180deg);
+    }
+
+    /* Footer */
+    .sidebar .meta {
+        margin-top: auto;
+        width: 100%;
+        text-align: center;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border-primary);
+        color: var(--text-muted);
+        font-size: 12px;
+    }
+
+    /* Utility Classes */
+    .hidden {
+        display: none !important;
+    }
+</style>
+
+<div id="sidebar" class="sidebar">
+    <div class="logo-container text-center">
+        <div style="display:flex;align-items:center;justify-content:center;margin-bottom:0.25rem;">
+            <img src="{% static 'images/eagle_logo_bg.png' %}" alt="Eagle DQ logo" />
+        </div>
+        <div class="logo-title">Eagle DQ</div>
+    </div>
+
+    <nav style="width:100%;">
+        <ul style="list-style:none;padding:0;margin:0;">
+
+            <li>
+                <a href="{% url 'dashboard' %}" class="nav-link">
+                    <i class="fas fa-chart-line"></i>
+                    Dashboard
+                </a>
+            </li>
+
+            <li class="dropdown-wrapper">
+                <a href="{% url 'projects_dashboard' %}" id="projects-dashboard-link" class="nav-link">
+                    <i class="fas fa-th-large"></i>
+                    Projects
+                </a>
+
+                <div id="projectsSubmenu" class="submenu" aria-hidden="true">
+                </div>
+            </li>
+
+            <li class="dropdown-wrapper">
+                <a href="{% url 'logs' %}?tab=case" id="logs-main-link" class="nav-link">
+                    <i class="fas fa-clipboard-list"></i>
+                    Logs
+                    <i class="fas fa-chevron-down"
+                        style="margin-left:auto; opacity:0.6; transition: transform 0.2s ease;"></i>
+                </a>
+
+                <div id="logsSubmenu" class="submenu" aria-hidden="true">
+                    <a href="{% url 'logs' %}?tab=case" style="--delay: 0.05s">Test Case Logs</a>
+                    <a href="{% url 'logs' %}?tab=group" style="--delay: 0.1s">Test Group Logs</a>
+                    <a href="{% url 'logs' %}?tab=project" style="--delay: 0.15s">Project Logs</a>
+                </div>
+            </li>
+
+            <!-- Dark Mode Toggle -->
+            <li>
+                <button id="themeToggle" class="theme-toggle">
+                    <i id="themeIcon" class="fas fa-moon"></i>
+                    <span id="themeText">Dark Mode</span>
+                </button>
+            </li>
+
+        </ul>
+    </nav>
+
+    <div class="meta">
+        <p style="margin:0;">Eagle DQ v2.1</p>
+        <p style="margin:0;">Soaring with Data</p>
+    </div>
+</div>
+
+<script>
+// Theme Management System
+(function() {
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    const themeText = document.getElementById('themeText');
+    
+    // Get saved theme or default to light
+    const savedTheme = localStorage.getItem('eagle-dq-theme') || 'light';
+    
+    // Apply theme on page load
+    function applyTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        
+        if (theme === 'dark') {
+            themeIcon.className = 'fas fa-sun';
+            themeText.textContent = 'Light Mode';
+        } else {
+            themeIcon.className = 'fas fa-moon';
+            themeText.textContent = 'Dark Mode';
+        }
+    }
+    
+    // Initialize theme
+    applyTheme(savedTheme);
+    
+    // Theme toggle handler
+    themeToggle.addEventListener('click', function() {
+        const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        
+        applyTheme(newTheme);
+        localStorage.setItem('eagle-dq-theme', newTheme);
+        
+        // Dispatch custom event for other components
+        window.dispatchEvent(new CustomEvent('themeChanged', { detail: { theme: newTheme } }));
+    });
+})();
+</script>

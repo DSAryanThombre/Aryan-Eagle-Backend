@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Eagle DQ - Define Data Validation Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Base Background and Font */
+        body {
+            background: linear-gradient(135deg, #fef7ed 0%, #fdf4ff 25%, #f0f9ff 50%, #f0fdfa 75%, #fefce8 100%);
+            font-family: 'Inter', sans-serif;
+            color: #1e293b;
+        }
+
+        /* Colorful eagle-inspired background pattern */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                radial-gradient(circle at 20% 80%, rgba(251, 191, 36, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.06) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(139, 92, 246, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 60% 60%, rgba(236, 72, 153, 0.04) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Main Content Card Style */
+        .main-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(254, 252, 232, 0.3) 25%, rgba(240, 249, 255, 0.3) 75%, rgba(255, 255, 255, 0.9) 100%);
+            backdrop-filter: blur(20px);
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 32px rgba(251, 191, 36, 0.08);
+            border: 1px solid rgba(251, 191, 36, 0.1);
+        }
+
+        /* Sub-section Card Style */
+        .sub-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(254, 252, 232, 0.2) 25%, rgba(240, 249, 255, 0.2) 75%, rgba(255, 255, 255, 0.95) 100%);
+            backdrop-filter: blur(10px);
+            border-radius: 1rem;
+            border: 1px solid rgba(251, 191, 36, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .sub-card:hover {
+            box-shadow: 0 4px 16px rgba(14, 165, 233, 0.08);
+        }
+
+        /* Header Title Gradient */
+        .header-title {
+            background: linear-gradient(135deg, #1e293b 0%, #475569 50%, #0369a1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Form Input Styling */
+        .form-input {
+            transition: all 0.3s ease;
+            border-radius: 0.5rem;
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid #e2e8f0;
+            color: #334155;
+        }
+
+        .form-input:focus {
+            border-color: #f59e0b;
+            box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.3);
+            background: #fff;
+        }
+        
+        /* Preformatted Code Blocks */
+        pre {
+            background-color: #f7f9fb;
+            border: 1px solid #e2e8f0;
+            color: #334155;
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            overflow-x: auto;
+            font-size: 0.875rem;
+        }
+
+        /* Button Styling - Primary (Run Test) */
+        .btn-primary {
+            background: linear-gradient(45deg, #0ea5e9 0%, #1e40af 100%);
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(14, 165, 233, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(45deg, #38bdf8 0%, #1e3a8a 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(14, 165, 233, 0.4);
+        }
+
+        /* Button Styling - Secondary (Preview, Save, Cancel) */
+        .btn-secondary {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(254, 252, 232, 0.8) 100%);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(251, 191, 36, 0.2);
+            color: #475569;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(251, 191, 36, 0.1);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 1);
+            color: #1e293b;
+            box-shadow: 0 4px 8px rgba(251, 191, 36, 0.2);
+            transform: translateY(-1px);
+        }
+
+        /* Message Boxes - Theme Compliant */
+        .message-success {
+            background: linear-gradient(90deg, #dcfce7 0%, #f0fff4 100%);
+            color: #166534;
+            border: 1px solid #34d399;
+        }
+
+        .message-error {
+            background: linear-gradient(90deg, #fef2f2 0%, #fff7f7 100%);
+            color: #991b1b;
+            border: 1px solid #f87171;
+        }
+
+        .message-info {
+            background: linear-gradient(90deg, #eff6ff 0%, #f7fbff 100%);
+            color: #1e40af;
+            border: 1px solid #60a5fa;
+        }
+
+        .hidden-group {
+            display: none;
+        }
+    </style>
+</head>
+
+<body class="p-6">
+    <div class="max-w-8xl mx-auto main-card p-8">
+        <div class="flex items-center justify-center mb-6">
+            <i class="fas fa-feather-alt text-3xl bg-gradient-to-r from-amber-500 to-blue-500 bg-clip-text text-transparent mr-3"></i>
+            <h1 class="text-3xl font-bold header-title text-center">Define Data Validation Test</h1>
+        </div>
+        
+        <p class="mb-6">
+            <a href="{% url 'project_details' project_id %}" class="text-blue-600 hover:text-amber-500 transition-colors font-medium flex items-center"
+                aria-label="Back to Project">
+                <i class="fas fa-arrow-left mr-2"></i>
+                Back to Project
+            </a>
+        </p>
+
+        {% if messages %}
+        <ul class="mb-6">
+            {% for message in messages %}
+            <li>
+                <div class="p-4 mb-3 rounded-xl text-sm font-medium
+                    {% if 'success' in message.tags %}
+                        message-success
+                    {% elif 'error' in message.tags %}
+                        message-error
+                    {% else %}
+                        message-info
+                    {% endif %}">
+                    <div class="flex items-center">
+                        {% if 'success' in message.tags %}
+                        <i class="fas fa-check-circle mr-2"></i>
+                        {% elif 'error' in message.tags %}
+                        <i class="fas fa-exclamation-circle mr-2"></i>
+                        {% else %}
+                        <i class="fas fa-info-circle mr-2"></i>
+                        {% endif %}
+                        {{ message }}
+                    </div>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        {% if validation_errors %}
+        <div class="message-error px-4 py-3 rounded-xl relative mb-6 border-red-400" role="alert">
+            <div class="flex items-center">
+                <i class="fas fa-exclamation-triangle mr-3 text-xl"></i>
+                <strong class="font-bold">Validation Error!</strong>
+            </div>
+            <span class="block ml-7">Please correct the following issues:</span>
+            <ul class="list-disc list-inside ml-7 text-sm mt-1">
+                {% for error in validation_errors %}
+                <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <form id="testForm" action="{% url 'handle_test_execution_or_save' %}" method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="project_id" value="{{ project_id }}">
+            <input type="hidden" name="test_case_id" value="{{ test_case_id|default:'' }}">
+            <input type="hidden" name="test_type" value="Aggregation Comparison">
+
+            <div class="sub-card p-6 mb-8">
+                <h2 class="text-xl font-semibold text-slate-700 mb-4 border-b border-gray-100 pb-2">Test Information</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="test_name" class="block text-sm font-medium text-slate-700 mb-1">Test Name:</label>
+                        <input type="text" id="test_name" name="test_name" required
+                            class="form-input mt-1 block w-full px-3 py-2 sm:text-sm"
+                            value="{% if request.POST.test_name %}{{ request.POST.test_name }}{% elif test_case and test_case.test_name %}{{ test_case.test_name }}{% else %}{% endif %}">
+                    </div>
+                    <div>
+                        <label for="category" class="block text-sm font-medium text-slate-700 mb-1">Category:</label>
+                        <select id="category" name="category"
+                            class="form-input mt-1 block w-full px-3 py-2 sm:text-sm">
+                            <option value="">Select Category</option>
+                            <option value="POWER BI" {% if request.POST.category == 'POWER BI' %}selected{% elif test_case and test_case.category == 'POWER BI' %}selected{% endif %}>POWER BI</option>
+                            <option value="SQL" {% if request.POST.category == 'SQL' %}selected{% elif test_case and test_case.category == 'SQL' %}selected{% endif %}>SQL</option>
+                            <option value="SAP" {% if request.POST.category == 'SAP' %}selected{% elif test_case and test_case.category == 'SAP' %}selected{% endif %}>SAP</option>
+                            <option value="TBH" {% if request.POST.category == 'TBH' %}selected{% elif test_case and test_case.category == 'TBH' %}selected{% endif %}>TBH</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="sub-card p-6">
+                    <h2 class="text-xl font-semibold text-slate-700 mb-4 border-b border-amber-100 pb-2">
+                        <i class="fas fa-cloud-download-alt text-amber-500 mr-2"></i>Source Data
+                    </h2>
+                    <div class="space-y-5">
+                        <div>
+                            <label for="source_connection_source"
+                                class="block text-sm font-medium text-slate-700 mb-1">Connection Source:</label>
+                            <select id="source_connection_source" name="source_connection_source" required
+                                class="form-input mt-1 block w-full px-3 py-2 sm:text-sm"
+                                onchange="showHidePowerBIFields('source')">
+                                {% for conn_name in available_connection_sources %}
+                                    <option value="{{ conn_name }}"
+                                        {% if request.POST.source_connection_source %}
+                                            {% if request.POST.source_connection_source == conn_name %}selected{% endif %}
+                                        {% elif test_case and test_case.source_connection_source %}
+                                            {% if test_case.source_connection_source == conn_name %}selected{% endif %}
+                                        {% endif %}
+                                    >{{ conn_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div id="source_sql_fields" class="space-y-5"> 
+                            <div>
+                                <label for="source_custom_sql" class="block text-sm font-medium text-slate-700 mb-1">
+                                    Custom SQL Query (Optional - overrides other fields):</label>
+                                <textarea id="source_custom_sql" name="source_custom_sql" rows="5"
+                                    class="form-input mt-1 block w-full px-3 py-2 sm:text-sm resize-none"
+                                    oninput="toggleRequiredFields('source')">{% if request.POST.source_custom_sql %}{{ request.POST.source_custom_sql }}{% elif test_case and test_case.source_custom_sql %}{{ test_case.source_custom_sql }}{% endif %}</textarea>
+                            </div>
+                            <div>
+                                <label for="source_table" class="block text-sm font-medium text-slate-700 mb-1">Table Name:</label>
+                                <input type="text" id="source_table" name="source_table"
+                                    class="form-input mt-1 block w-full px-3 py-2 sm:text-sm"
+                                    value="{% if request.POST.source_table %}{{ request.POST.source_table }}{% elif test_case and test_case.source_table %}{{ test_case.source_table }}{% endif %}">
+                            </div>
+                            <div>
+                                <label for="source_date_column" class="block text-sm font-medium text-slate-700 mb-1">Primary Date Column:</label>
+                                <input type="text" id="source_date_column" name="source_date_column"
+                                    class="form-input mt-1 block w-full px-3 py-2 sm:text-sm"
+                                    value="{% if request.POST.source_date_column %}{{ request.POST.source_date_column }}{% elif test_case and test_case.source_date_column %}{{ test_case.source_date_column }}{% endif %}">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Primary Date Value:</label>
+                                <div class="mt-1 flex flex-col sm:flex-row sm:items-center form-input p-2 space-y-2 sm:space-y-0 sm:space-x-2">
+                                    <div class="flex items-center">
+                                        <input type="radio" name="source_date_type" value="static" id="source_date_type_static"
+                                            class="focus:ring-amber-500 h-4 w-4 text-amber-600 border-gray-300"
+                                            onclick="setDateValueInput('source', 'static')" 
+                                            {% if request.POST.source_date_type == 'static' %}checked{% elif test_case and test_case.source_date_value != 'CURRENT_DATE()' %}checked{% else %}checked{% endif %}>
+                                        <label for="source_date_type_static" class="ml-2 mr-4 text-slate-700 text-sm">Specific Date</label>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <input type="radio" name="source_date_type" value="dynamic" id="source_date_type_dynamic"
+                                            class="focus:ring-amber-500 h-4 w-4 text-amber-600 border-gray-300"
+                                            onclick="setDateValueInput('source', 'dynamic')"
+                                            {% if request.POST.source_date_type == 'dynamic' %}checked{% elif test_case and test_case.source_date_value == 'CURRENT_DATE()' %}checked{% endif %}>
+                                        <label for="source_date_type_dynamic" class="ml-2 text-slate-700 text-sm">CURRENT_DATE()</label>
+                                    </div>
+                                    <input type="text" id="source_date_value" name="source_date_value"
+                                        class="flex-1 block w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                        value="{% if request.POST.source_date_value %}{{ request.POST.source_date_value }}{% elif test_case and test_case.source_date_value %}{{ test_case.source_date_value }}{% else %}{{ now }}{% endif %}"
+                                        placeholder="YYYY-MM-DD or CURRENT_DATE()"
+                                        onchange="checkDateValueInput('source')">
+                                </div>
+                            </div>
+                            <div>
+                                <label for="source_aggregation_type" class="block text-sm font-medium text-slate-700 mb-1">Aggregation Type (e.g., COUNT, SUM, AVG, COUNT(*)):</label>
+                                <input type="text" id="source_aggregation_type" name="source_aggregation_type"
+                                    class="form-input mt-1 block w-full px-3 py-2 sm:text-sm"
+                                    value="{% if request.POST.source_aggregation_type %}{{ request.POST.source_aggregation_type }}{% elif test_case and test_case.source_agg_type %}{{ test_case.source_agg_type }}{% endif %}"
+                                    placeholder="e.g., COUNT, SUM, AVG, COUNT(*)">
+                            </div>
+                            <div id="source_aggregation_column_group">
+                                <label for="source_aggregation_column" class="block text-sm font-medium text-slate-700 mb-1">Column for Aggregation (Optional for COUNT(*)):</label>
+                                <input type="text" id="source_aggregation_column" name="source_aggregation_column"
+                                    class="form-input mt-1 block w-full px-3 py-2 sm:text-sm"
+                                    value="{% if request.POST.source_aggregation_column %}{{ request.POST.source_aggregation_column }}{% elif test_case and test_case.source_agg_column %}{{ test_case.source_agg_column }}{% endif %}"
+                                    placeholder="e.g., AMOUNT">
+                            </div>
+                            <div>
+                                <label for="source_group_by_column" class="block text-sm font-medium text-slate-700 mb-1">Group By Column (Optional):</label>
+                                <input type="text" id="source_group_by_column" name="source_group_by_column"
+                                    class="form-input mt-1 block w-full px-3 py-2 sm:text-sm"
+                                    value="{% if request.POST.source_group_by_column %}{{ request.POST.source_group_by_column }}{% elif test_case and test_case.source_group_by_column %}{{ test_case.source_group_by_column }}{% endif %}">
+                            </div>
+                            <div>
+                                <label for="source_additional_filters" class="block text-sm font-medium text-slate-700 mb-1">Additional Filters (SQL WHERE clause snippet):</label>
+                                <textarea id="source_additional_filters" name="source_additional_filters" rows="3"
+                                    class="form-input mt-1 block w-full px-3 py-2 sm:text-sm resize-none">{% if request.POST.source_additional_filters %}{{ request.POST.source_additional_filters }}{% elif test_case and test_case.source_additional_filters %}{{ test_case.source_additional_filters }}{% else %}{% endif %}</textarea>
+                            </div>
+                        </div>
+                        
+                        <div id="source_powerbi_fields" style="display:none;" class="space-y-5 pt-4 border-t border-gray-100">
+                            <div>
+                                <label for="source_workspace_id" class="block text-sm font-medium text-slate-700 mb-1">Power BI Workspace ID:</label>
+                                <input type="text" id="source_workspace_id" name="source_workspace_id"
+                                    class="form-input mt-1 block w-full px-3 py-2 sm:text-sm"
+                                    value="{% if request.POST.source_workspace_id %}{{ request.POST.source_workspace_id }}{% elif test_case and test_case.source_workspace_id %}{{ test_case.source_workspace_id }}{% endif %}">
+                            </div>
+                            <div>
+                                <label for="source_dataset_id" class="block text-sm font-medium text-slate-700 mb-1">Power BI Dataset ID:</label>
+                                <input type="text" id="source_dataset_id" name="source_dataset_id"
+                                    class="form-input mt-1 block w-full px-3 py-2 sm:text-sm"
+                                    value="{% if request.POST.source_dataset_id %}{{ request.POST.source_dataset_id }}{% elif test_case and test_case.source_dataset_id %}{{ test_case.source_dataset_id }}{% endif %}">
+                            </div>
+                            <div>
+                                <label for="source_dax_query" class="block text-sm font-medium text-slate-700 mb-1">Custom DAX Query (Optional):</label>
+                                <textarea id="source_dax_query" name="source_dax_query" rows="5"
+                                    class="form-input mt-1 block w-full px-3 py-2 sm:text-sm resize-none"
+                                >{% if request.POST.source_dax_query %}{{ request.POST.source_dax_query }}{% elif test_case and test_case.source_dax_query %}{{ test_case.source_dax_query }}{% endif %}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="sub-card p-6">
+                    <h2 class="text-xl font-semibold text-slate-700 mb-4 border-b border-blue-100 pb-2">
+                        <i class="fas fa-chart-line text-blue-500 mr-2"></i>Destination Data
+                    </h2>
+                    <div class="space-y-5">
+                        <div>
+                            <label for="destination_connection_source"
+                                class="block text-sm font-medium text-slate-700 mb-1">Connection Source:</label>
+                            <select id="destination_connection_source" name="destination_connection_source" required
+                                class="form-input mt-1 block w-full px-3 py-2 sm:text-sm"
+                                onchange="showHidePowerBIFields('destination')">
+                                {% for conn_name in available_connection_sources %}
+                                    <option value="{{ conn_name }}"
+                                        {% if request.POST.destination_connection_source %}
+                                            {% if request.POST.destination_connection_source == conn_name %}selected{% endif %}
+                                        {% elif test_case and test_case.destination_connection_source %}
+                                            {% if test_case.destination_connection_source == conn_name %}selected{% endif %}
+                                        {% endif %}
+                                    >{{ conn_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div id="destination_sql_fields" class="space-y-5">
+                            <div>
+                                <label for="destination_custom_sql" class="block text-sm font-medium text-slate-700 mb-1">
+                                    Custom SQL Query (Optional - overrides other fields):</label>
+                                <textarea id="destination_custom_sql" name="destination_custom_sql" rows="5"
+                                    class="form-input mt-1 block w-full px-3 py-2 sm:text-sm resize-none"
+                                    oninput="toggleRequiredFields('destination')">{% if request.POST.destination_custom_sql %}{{ request.POST.destination_custom_sql }}{% elif test_case and test_case.destination_custom_sql %}{{ test_case.destination_custom_sql }}{% endif %}</textarea>
+                            </div>
+                            <div>
+                                <label for="destination_table" class="block text-sm font-medium text-slate-700 mb-1">Table Name:</label>
+                                <input type="text" id="destination_table" name="destination_table"
+                                    class="form-input mt-1 block w-full px-3 py-2 sm:text-sm"
+                                    value="{% if request.POST.destination_table %}{{ request.POST.destination_table }}{% elif test_case and test_case.destination_table %}{{ test_case.destination_table }}{% endif %}">
+                            </div>
+                            <div>
+                                <label for="destination_date_column" class="block text-sm font-medium text-slate-700 mb-1">Primary Date Column:</label>
+                                <input type="text" id="destination_date_column" name="destination_date_column"
+                                    class="form-input mt-1 block w-full px-3 py-2 sm:text-sm"
+                                    value="{% if request.POST.destination_date_column %}{{ request.POST.destination_date_column }}{% elif test_case and test_case.destination_date_column %}{{ test_case.destination_date_column }}{% endif %}">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Primary Date Value:</label>
+                                <div class="mt-1 flex flex-col sm:flex-row sm:items-center form-input p-2 space-y-2 sm:space-y-0 sm:space-x-2">
+                                    <div class="flex items-center">
+                                        <input type="radio" name="destination_date_type" value="static" id="destination_date_type_static"
+                                            class="focus:ring-amber-500 h-4 w-4 text-amber-600 border-gray-300"
+                                            onclick="setDateValueInput('destination', 'static')"
+                                            {% if request.POST.destination_date_type == 'static' %}checked{% elif test_case and test_case.destination_date_value != 'CURRENT_DATE()' %}checked{% else %}checked{% endif %}>
+                                        <label for="destination_date_type_static" class="ml-2 mr-4 text-slate-700 text-sm">Specific Date</label>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <input type="radio" name="destination_date_type" value="dynamic" id="destination_date_type_dynamic"
+                                            class="focus:ring-amber-500 h-4 w-4 text-amber-600 border-gray-300"
+                                            onclick="setDateValueInput('destination', 'dynamic')"
+                                            {% if request.POST.destination_date_type == 'dynamic' %}checked{% elif test_case and test_case.destination_date_value == 'CURRENT_DATE()' %}checked{% endif %}>
+                                        <label for="destination_date_type_dynamic" class="ml-2 text-slate-700 text-sm">CURRENT_DATE()</label>
+                                    </div>
+                                    <input type="text" id="destination_date_value" name="destination_date_value"
+                                        class="flex-1 block w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                        value="{% if request.POST.destination_date_value %}{{ request.POST.destination_date_value }}{% elif test_case and test_case.destination_date_value %}{{ test_case.destination_date_value }}{% else %}{{ now }}{% endif %}"
+                                        placeholder="YYYY-MM-DD or CURRENT_DATE()"
+                                        onchange="checkDateValueInput('destination')">
+                                </div>
+                            </div>
+                            <div>
+                                <label for="destination_aggregation_type" class="block text-sm font-medium text-slate-700 mb-1">Aggregation Type (e.g., COUNT, SUM, AVG, COUNT(*)):</label>
+                                <input type="text" id="destination_aggregation_type" name="destination_aggregation_type"
+                                    class="form-input mt-1 block w-full px-3 py-2 sm:text-sm"
+                                    value="{% if request.POST.destination_aggregation_type %}{{ request.POST.destination_aggregation_type }}{% elif test_case and test_case.destination_agg_type %}{{ test_case.destination_agg_type }}{% endif %}"
+                                    placeholder="e.g., COUNT, SUM, AVG, COUNT(*)">
+                            </div>
+                            <div id="destination_aggregation_column_group">
+                                <label for="destination_aggregation_column" class="block text-sm font-medium text-slate-700 mb-1">Column for Aggregation (Optional for COUNT(*)):</label>
+                                <input type="text" id="destination_aggregation_column" name="destination_aggregation_column"
+                                    class="form-input mt-1 block w-full px-3 py-2 sm:text-sm"
+                                    value="{% if request.POST.destination_aggregation_column %}{{ request.POST.destination_aggregation_column }}{% elif test_case and test_case.destination_agg_column %}{{ test_case.destination_agg_column }}{% endif %}"
+                                    placeholder="e.g., AMOUNT">
+                            </div>
+                            <div>
+                                <label for="destination_group_by_column" class="block text-sm font-medium text-slate-700 mb-1">Group By Column (Optional):</label>
+                                <input type="text" id="destination_group_by_column" name="destination_group_by_column"
+                                    class="form-input mt-1 block w-full px-3 py-2 sm:text-sm"
+                                    value="{% if request.POST.destination_group_by_column %}{{ request.POST.destination_group_by_column }}{% elif test_case and test_case.destination_group_by_column %}{{ test_case.destination_group_by_column }}{% endif %}">
+                            </div>
+                            <div>
+                                <label for="destination_additional_filters" class="block text-sm font-medium text-slate-700 mb-1">Additional Filters (SQL WHERE clause snippet):</label>
+                                <textarea id="destination_additional_filters" name="destination_additional_filters" rows="3"
+                                    class="form-input mt-1 block w-full px-3 py-2 sm:text-sm resize-none">{% if request.POST.destination_additional_filters %}{{ request.POST.destination_additional_filters }}{% elif test_case and test_case.destination_additional_filters %}{{ test_case.destination_additional_filters }}{% else %}{% endif %}</textarea>
+                            </div>
+                        </div>
+                        
+                        <div id="destination_powerbi_fields" style="display:none;" class="space-y-5 pt-4 border-t border-gray-100">
+                            <div>
+                                <label for="destination_workspace_id" class="block text-sm font-medium text-slate-700 mb-1">Power BI Workspace ID:</label>
+                                <input type="text" id="destination_workspace_id" name="destination_workspace_id"
+                                    class="form-input mt-1 block w-full px-3 py-2 sm:text-sm"
+                                    value="{% if request.POST.destination_workspace_id %}{{ request.POST.destination_workspace_id }}{% elif test_case and test_case.destination_workspace_id %}{{ test_case.destination_workspace_id }}{% endif %}">
+                            </div>
+                            <div>
+                                <label for="destination_dataset_id" class="block text-sm font-medium text-slate-700 mb-1">Power BI Dataset ID:</label>
+                                <input type="text" id="destination_dataset_id" name="destination_dataset_id"
+                                    class="form-input mt-1 block w-full px-3 py-2 sm:text-sm"
+                                    value="{% if request.POST.destination_dataset_id %}{{ request.POST.destination_dataset_id }}{% elif test_case and test_case.destination_dataset_id %}{{ test_case.destination_dataset_id }}{% endif %}">
+                            </div>
+                            <div>
+                                <label for="destination_dax_query" class="block text-sm font-medium text-slate-700 mb-1">Custom DAX Query (Optional):</label>
+                                <textarea id="destination_dax_query" name="destination_dax_query" rows="5"
+                                    class="form-input mt-1 block w-full px-3 py-2 sm:text-sm resize-none"
+                                >{% if request.POST.destination_dax_query %}{{ request.POST.destination_dax_query }}{% elif test_case and test_case.destination_dax_query %}{{ test_case.destination_dax_query }}{% endif %}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sub-card p-6 mt-8">
+                <h2 class="text-xl font-semibold text-slate-700 mb-4 border-b border-gray-100 pb-2">Comparison Logic</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="threshold" class="block text-sm font-medium text-slate-700 mb-1">Acceptable Difference (Threshold Value):</label>
+                        <input type="number" id="threshold" name="threshold"
+                            class="form-input mt-1 block w-full px-3 py-2 sm:text-sm"
+                            value="{% if request.POST.threshold %}{{ request.POST.threshold }}{% elif test_case and test_case.threshold %}{{ test_case.threshold }}{% else %}0{% endif %}" step="any">
+                    </div>
+                    <div>
+                        <label for="threshold_type" class="block text-sm font-medium text-slate-700 mb-1">Threshold Type:</label>
+                        <select id="threshold_type" name="threshold_type" required
+                            class="form-input mt-1 block w-full px-3 py-2 sm:text-sm">
+                            <option value="ABSOLUTE"
+                                {% if request.POST.threshold_type == 'ABSOLUTE' %}
+                                    selected
+                                {% elif test_case and test_case.threshold_type == 'ABSOLUTE' %}
+                                    selected
+                                {% endif %}
+                            >Absolute Difference</option>
+                            <option value="PERCENTAGE"
+                                {% if request.POST.threshold_type == 'PERCENTAGE' %}
+                                    selected
+                                {% elif test_case and test_case.threshold_type == 'PERCENTAGE' %}
+                                    selected
+                                {% endif %}
+                            >Percentage Difference (%)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <label for="possible_resolution" class="block text-sm font-medium text-slate-700 mb-1">Possible Resolution (Optional):</label>
+                    <textarea id="possible_resolution" name="possible_resolution" rows="3"
+                        class="form-input mt-1 block w-full px-3 py-2 sm:text-sm resize-none"
+                        placeholder="Describe possible steps to resolve issues if the test fails">{% if request.POST.possible_resolution %}{{ request.POST.possible_resolution }}{% elif test_case and test_case.possible_resolution %}{{ test_case.possible_resolution }}{% endif %}</textarea>
+                </div>
+            </div>
+
+            <div class="text-center mt-10 space-x-6">
+                <button type="submit" name="action" value="preview"
+                    class="btn-secondary inline-flex justify-center py-2.5 px-6 text-sm font-semibold rounded-lg">
+                    <i class="fas fa-eye mr-2"></i>Preview Data
+                </button>
+                <button type="submit" name="action" value="run"
+                    class="btn-primary inline-flex justify-center py-2.5 px-6 text-sm font-semibold rounded-lg">
+                    <i class="fas fa-rocket mr-2"></i>Run Data Validation Test
+                </button>
+                <button type="submit" name="action" value="save"
+                    class="btn-secondary inline-flex justify-center py-2.5 px-6 text-sm font-semibold rounded-lg">
+                    <i class="fas fa-save mr-2"></i>Save Test Definition
+                </button>
+                <a href="{% url 'project_details' project_id %}"
+                    class="btn-secondary inline-flex justify-center py-2.5 px-6 text-sm font-semibold rounded-lg">
+                    <i class="fas fa-times-circle mr-2"></i>Cancel
+                </a>
+            </div>
+        </form>
+
+        {% if preview_results %}
+        <div class="sub-card p-6 mt-10">
+            <h2 class="text-xl font-semibold text-slate-700 mb-4 border-b border-gray-100 pb-2">
+                <i class="fas fa-chart-bar text-green-500 mr-2"></i>Preview Results
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <p class="text-lg font-semibold text-slate-800 mb-2">Source Preview Value:</p>
+                    <pre>{{ preview_results.source_value }}</pre>
+                    <p class="text-slate-700 font-medium mt-4">Source Query:</p>
+                    <pre>{{ preview_results.source_query }}</pre>
+                    <p class="text-slate-700 font-medium mt-2 text-sm">Connection: <span class="font-normal text-slate-600">{{ preview_results.source_connection_used }}</span></p>
+                </div>
+                <div>
+                    <p class="text-lg font-semibold text-slate-800 mb-2">Destination Preview Value:</p>
+                    <pre>{{ preview_results.destination_value }}</pre>
+                    <p class="text-slate-700 font-medium mt-4">Destination Query:</p>
+                    <pre>{{ preview_results.destination_query }}</pre>
+                    <p class="text-slate-700 font-medium mt-2 text-sm">Connection: <span class="font-normal text-slate-600">{{ preview_results.destination_connection_used }}</span></p>
+                </div>
+            </div>
+            {% if preview_results.message %}
+            <p class="message-error p-3 rounded-md text-red-700 mt-4">{{ preview_results.message }}</p>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% if test_results %}
+        <div class="sub-card p-6 mt-10">
+            <h2 class="text-xl font-semibold text-slate-700 mb-4 border-b border-gray-100 pb-2">
+                <i class="fas fa-clipboard-check text-indigo-500 mr-2"></i>Full Test Results
+            </h2>
+            <div class="p-4 rounded-xl mb-4 
+                {% if test_results.status == 'PASS' %}message-success
+                {% elif test_results.status == 'ERROR' %}message-error
+                {% else %}message-info{% endif %}">
+                <p class="text-lg font-semibold flex items-center">
+                    <span class="mr-3">Overall Status:</span>
+                    <span class="px-4 py-1 rounded-full text-sm font-bold bg-white shadow-sm">
+                        {{ test_results.status }}
+                    </span>
+                </p>
+                <p class="text-sm mt-2 font-medium">{{ test_results.message }}</p>
+            </div>
+            <div class="border-t border-gray-200 pt-4 mt-4 grid grid-cols-2 gap-4">
+                <div>
+                    <h3 class="text-lg font-semibold text-slate-700 mb-3">Comparison Details:</h3>
+                    <p class="text-slate-800 text-sm"><strong>Source Value:</strong> <code class="font-mono bg-gray-100 px-1 rounded">{{ test_results.source_value }}</code></p>
+                    <p class="text-slate-800 text-sm"><strong>Destination Value:</strong> <code class="font-mono bg-gray-100 px-1 rounded">{{ test_results.destination_value }}</code></p>
+                    <p class="text-slate-800 text-sm flex items-center mt-2">
+                        <strong>Test Outcome:</strong>
+                        <span class="ml-2 px-3 py-0.5 rounded-full text-xs font-semibold
+                            {% if test_results.test_outcome == 'PASS' %}message-success
+                            {% else %}message-error{% endif %}">
+                            {{ test_results.test_outcome }}
+                        </span>
+                    </p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-slate-700 mb-3">Connections Used:</h3>
+                    <p class="text-slate-800 text-sm"><strong>Source:</strong> {{ test_results.source_connection_used }}</p>
+                    <p class="text-slate-800 text-sm"><strong>Destination:</strong> {{ test_results.destination_connection_used }}</p>
+                </div>
+            </div>
+            <div class="border-t border-gray-200 pt-4 mt-4">
+                <h3 class="text-lg font-semibold text-slate-700 mb-3">Generated/Custom Queries:</h3>
+                <p class="text-slate-700 font-medium mt-2">Source Query:</p>
+                <pre>{{ test_results.source_query }}</pre>
+                <p class="text-slate-700 font-medium mt-2">Destination Query:</p>
+                <pre>{{ test_results.destination_query }}</pre>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        function toggleAggColumn(prefix) {
+            const aggTypeInput = document.getElementById(prefix + '_aggregation_type');
+            const aggColumnInput = document.getElementById(prefix + '_aggregation_column');
+            const customSqlInput = document.getElementById(prefix + '_custom_sql');
+            if (!aggTypeInput || !aggColumnInput) return;
+            const aggType = aggTypeInput.value.trim().toUpperCase();
+            const isCustomSqlProvided = customSqlInput && customSqlInput.value.trim() !== '';
+
+            if (!isCustomSqlProvided && aggType !== '' && aggType !== 'COUNT(*)') {
+                aggColumnInput.setAttribute('required', 'required');
+            } else {
+                aggColumnInput.removeAttribute('required');
+            }
+        }
+
+        function toggleRequiredFields(prefix) {
+            const connSelect = document.getElementById(prefix + '_connection_source');
+            const customSqlInput = document.getElementById(prefix + '_custom_sql');
+            const sqlFieldsDiv = document.getElementById(prefix + '_sql_fields');
+            const powerbiFieldsDiv = document.getElementById(prefix + '_powerbi_fields');
+
+            if (!connSelect || !sqlFieldsDiv || !powerbiFieldsDiv) return;
+            const isPowerBI = connSelect.value === 'Power BI';
+
+            // 1. Remove required attribute from ALL fields initially
+            sqlFieldsDiv.querySelectorAll('input, textarea, select').forEach(input => input.removeAttribute('required'));
+            powerbiFieldsDiv.querySelectorAll('input, textarea').forEach(input => input.removeAttribute('required'));
+            if (customSqlInput) customSqlInput.removeAttribute('required');
+
+            const isCustomSqlProvided = customSqlInput && customSqlInput.value.trim() !== '';
+            const isDaxQueryProvided = isPowerBI && document.getElementById(prefix + '_dax_query')?.value.trim() !== '';
+
+            if (isPowerBI) {
+                // If Power BI is selected, require Workspace and Dataset IDs
+                document.getElementById(prefix + '_workspace_id')?.setAttribute('required', 'required');
+                document.getElementById(prefix + '_dataset_id')?.setAttribute('required', 'required');
+
+                // If neither Custom SQL nor Custom DAX is provided, the SQL fields (which now act as structured DAX inputs) are required
+                if (!isCustomSqlProvided && !isDaxQueryProvided) {
+                    document.getElementById(prefix + '_table')?.setAttribute('required', 'required');
+                    document.getElementById(prefix + '_date_column')?.setAttribute('required', 'required');
+                    document.getElementById(prefix + '_date_value')?.setAttribute('required', 'required');
+                    document.getElementById(prefix + '_aggregation_type')?.setAttribute('required', 'required');
+                }
+
+            } else {
+                // If a standard SQL source is selected and no Custom SQL is provided
+                if (!isCustomSqlProvided) {
+                    // Require standard SQL fields
+                    document.getElementById(prefix + '_table')?.setAttribute('required', 'required');
+                    document.getElementById(prefix + '_date_column')?.setAttribute('required', 'required');
+                    document.getElementById(prefix + '_date_value')?.setAttribute('required', 'required');
+                    document.getElementById(prefix + '_aggregation_type')?.setAttribute('required', 'required');
+                }
+            }
+            // Check aggregation column requirement (common logic)
+            toggleAggColumn(prefix);
+        }
+
+        function getFormattedToday() {
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        }
+
+        function setDateValueInput(prefix, type) {
+            const dateValueInput = document.getElementById(prefix + '_date_value');
+            if (!dateValueInput) return;
+
+            const initialStatic = dateValueInput.dataset.initialStatic;
+
+            if (type === 'static') {
+                dateValueInput.value = initialStatic && initialStatic !== 'CURRENT_DATE()' ? initialStatic : getFormattedToday();
+            } else if (type === 'dynamic') {
+                dateValueInput.value = 'CURRENT_DATE()';
+            }
+            const event = new Event('change');
+            dateValueInput.dispatchEvent(event);
+        }
+
+        function checkDateValueInput(prefix) {
+            const dateValueInput = document.getElementById(prefix + '_date_value');
+            const staticRadio = document.getElementById(prefix + '_date_type_static');
+            const dynamicRadio = document.getElementById(prefix + '_date_type_dynamic');
+            if (!dateValueInput || !staticRadio || !dynamicRadio) return;
+            const value = dateValueInput.value.trim().toUpperCase();
+
+            if (value !== 'CURRENT_DATE()') {
+                dateValueInput.dataset.initialStatic = dateValueInput.value.trim();
+            }
+
+            if (value === 'CURRENT_DATE()') {
+                dynamicRadio.checked = true;
+            } else if (value) {
+                staticRadio.checked = true;
+            } else {
+                // Default case if input is empty
+                staticRadio.checked = true;
+                dateValueInput.value = dateValueInput.dataset.initialStatic || getFormattedToday();
+            }
+            toggleRequiredFields(prefix);
+        }
+
+        /**
+         * MODIFIED CORE FUNCTION: Keeps SQL fields visible for Power BI and controls visibility of Power BI specific fields.
+         */
+        function showHidePowerBIFields(prefix) {
+            const connSelect = document.getElementById(prefix + '_connection_source');
+            const powerbiFields = document.getElementById(prefix + '_powerbi_fields');
+            const sqlFields = document.getElementById(prefix + '_sql_fields');
+
+            if (!connSelect || !powerbiFields || !sqlFields) return;
+
+            if (connSelect.value === 'Power BI') {
+                // Show both Power BI and SQL-like fields
+                powerbiFields.style.display = 'block';
+                sqlFields.style.display = 'block';
+
+            } else {
+                // For other (SQL-type) connections, hide Power BI fields and show SQL fields
+                powerbiFields.style.display = 'none';
+                sqlFields.style.display = 'block';
+            }
+
+            // Re-evaluate required fields based on the currently visible state
+            toggleRequiredFields(prefix);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize all data source sections
+            ['source', 'destination'].forEach(prefix => {
+                // 1. Ensure date value is set and radio button reflects initial state
+                checkDateValueInput(prefix);
+
+                // 2. Show/hide fields based on initial connection selection
+                showHidePowerBIFields(prefix);
+
+                // 3. Add event listeners
+                document.getElementById(prefix + '_connection_source').addEventListener('change', () => {
+                    showHidePowerBIFields(prefix);
+                });
+                document.getElementById(prefix + '_aggregation_type').addEventListener('input', () => toggleAggColumn(prefix));
+                document.getElementById(prefix + '_custom_sql').addEventListener('input', () => toggleRequiredFields(prefix));
+                document.getElementById(prefix + '_dax_query').addEventListener('input', () => toggleRequiredFields(prefix));
+            });
+        });
+    </script>
+</body>
+</html>
