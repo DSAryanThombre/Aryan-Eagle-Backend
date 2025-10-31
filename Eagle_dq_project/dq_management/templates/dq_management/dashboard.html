@@ -10,50 +10,337 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="icon" href="{% static 'dq_management/images/eagle_logo_bg.png' %}" type="image/png" />
-    <style>
-        .spinner {
-            border: 4px solid rgba(0, 0, 0, 0.1);
-            border-left-color: #f59e0b;
-            border-radius: 50%;
-            width: 32px;
-            height: 32px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-        .thin-scroll::-webkit-scrollbar {
-            width: 6px;
-        }
-        .thin-scroll::-webkit-scrollbar-thumb {
-            background-color: rgba(148, 163, 184, 0.5);
-            border-radius: 9999px;
-        }
-        .thin-scroll::-webkit-scrollbar-track {
-            background: transparent;
+
+<style>
+    @keyframes gradient-shift {
+
+        0%,
+        100% {
+            background-position: 0% 50%;
         }
 
-        .toggle-btn {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(254, 252, 232, 0.8) 100%);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(251, 191, 36, 0.15);
-            color: #475569;
-            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.12);
+        50% {
+            background-position: 100% 50%;
+        }
+    }
+
+    body {
+        background: linear-gradient(135deg, #fef7ed 0%, #fdf4ff 25%, #f0f9ff 50%, #f0fdfa 75%, #fefce8 100%);
+        background-size: 200% 200%;
+        animation: gradient-shift 15s ease infinite;
+        min-height: 100vh;
+    }
+
+    .card-enhanced {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(254, 247, 237, 0.8) 100%);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(251, 191, 36, 0.2);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .card-enhanced::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #0ea5e9 0%, #fbbf24 50%, #0ea5e9 100%);
+        background-size: 200% 100%;
+        animation: shimmer 3s ease-in-out infinite;
+    }
+
+    @keyframes shimmer {
+
+        0%,
+        100% {
+            background-position: 0% 0%;
         }
 
-        .toggle-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 16px rgba(251, 191, 36, 0.18);
+        50% {
+            background-position: 100% 0%;
+        }
+    }
+
+    .card-enhanced:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 24px rgba(14, 165, 233, 0.15), 0 0 0 1px rgba(251, 191, 36, 0.3);
+        border-color: rgba(251, 191, 36, 0.4);
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(240, 249, 255, 0.85) 100%);
+    }
+
+    .card-chart {
+        background: linear-gradient(135deg, rgba(254, 247, 237, 0.9) 0%, rgba(240, 249, 255, 0.85) 50%, rgba(255, 253, 245, 0.9) 100%);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(251, 191, 36, 0.25);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .card-chart::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #0ea5e9, #14b8a6, #fbbf24);
+    }
+
+    .card-chart:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 32px rgba(14, 165, 233, 0.2), 0 0 0 1px rgba(251, 191, 36, 0.4);
+        border-color: rgba(14, 165, 233, 0.4);
+    }
+
+    .card-projects {
+        background: linear-gradient(135deg, rgba(253, 244, 255, 0.9) 0%, rgba(240, 253, 250, 0.85) 50%, rgba(255, 251, 235, 0.9) 100%);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(167, 139, 250, 0.25);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .card-projects::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #a78bfa, #fbbf24, #a78bfa);
+        background-size: 200% 100%;
+        animation: shimmer 3s ease-in-out infinite;
+    }
+
+    .card-projects:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 32px rgba(167, 139, 250, 0.2), 0 0 0 1px rgba(251, 191, 36, 0.4);
+        border-color: rgba(167, 139, 250, 0.4);
+    }
+
+    .card-logs {
+        background: linear-gradient(135deg, rgba(255, 247, 237, 0.9) 0%, rgba(254, 252, 232, 0.85) 100%);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(251, 191, 36, 0.3);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .card-logs::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #fbbf24, #f59e0b);
+    }
+
+    .card-logs:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 32px rgba(251, 191, 36, 0.25), 0 0 0 1px rgba(251, 191, 36, 0.5);
+        border-color: rgba(251, 191, 36, 0.5);
+    }
+
+    .gradient-text {
+        background: linear-gradient(135deg, #475569 0%, #0ea5e9 50%, #fbbf24 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .status-pass {
+        background: #ecfdf5;
+        color: #047857;
+    }
+
+    .status-fail {
+        background: #fef2f2;
+        color: #b91c1c;
+    }
+
+    .status-warn {
+        background: #fffbeb;
+        color: #b45309;
+    }
+
+    .status-norun {
+        background: #f1f5f9;
+        color: #475569;
+    }
+
+    .priority-critical {
+        background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+        color: #b91c1c;
+        border: 1px solid #fecaca;
+        box-shadow: 0 2px 4px rgba(185, 28, 28, 0.1);
+    }
+
+    .priority-high {
+        background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+        color: #ea580c;
+        border: 1px solid #fed7aa;
+        box-shadow: 0 2px 4px rgba(234, 88, 12, 0.1);
+    }
+
+    .priority-medium {
+        background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+        color: #b45309;
+        border: 1px solid #fde68a;
+        box-shadow: 0 2px 4px rgba(180, 83, 9, 0.1);
+    }
+
+    .priority-low {
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        color: #0369a1;
+        border: 1px solid #bae6fd;
+        box-shadow: 0 2px 4px rgba(3, 105, 161, 0.1);
+    }
+
+    .priority-occasional {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        color: #475569;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 2px 4px rgba(71, 85, 105, 0.1);
+    }
+
+    .project-item {
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(251, 191, 36, 0.15);
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .project-item:hover {
+        background: rgba(255, 255, 255, 0.8);
+        border-color: rgba(251, 191, 36, 0.3);
+        transform: translateX(4px);
+        box-shadow: 0 4px 12px rgba(14, 165, 233, 0.1);
+    }
+
+    .project-item.selected {
+        background: linear-gradient(135deg, rgba(14, 165, 233, 0.15) 0%, rgba(251, 191, 36, 0.1) 100%);
+        border: 2px solid #0ea5e9;
+        transform: translateX(4px);
+        box-shadow: 0 4px 16px rgba(14, 165, 233, 0.25);
+    }
+
+    .project-item.selected::after {
+        content: '✓';
+        position: absolute;
+        right: 12px;
+        top: 12px;
+        background: linear-gradient(135deg, #0ea5e9, #fbbf24);
+        color: white;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 14px;
+    }
+
+    .project-item.bg-red-50 {
+        background: linear-gradient(135deg, rgba(254, 242, 242, 0.8) 0%, rgba(255, 255, 255, 0.6) 100%);
+        border-left: 3px solid #b91c1c;
+        position: relative;
+    }
+
+    .project-item.bg-green-50 {
+        background: linear-gradient(135deg, rgba(236, 253, 245, 0.8) 0%, rgba(255, 255, 255, 0.6) 100%);
+        border-left: 3px solid #047857;
+        position: relative;
+    }
+
+    .project-item.bg-white {
+        background: linear-gradient(135deg, rgba(248, 250, 252, 0.8) 0%, rgba(255, 255, 255, 0.6) 100%);
+        border-left: 3px solid #94a3b8;
+        position: relative;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+        color: white;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+        box-shadow: 0 4px 12px rgba(14, 165, 233, 0.4);
+        transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        color: white;
+        transition: all 0.3s ease;
+    }
+
+    .btn-secondary:hover {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);
+        transform: translateY(-1px);
+    }
+
+    .toggle-btn {
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        color: white;
+        box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+    }
+
+    .toggle-btn:hover {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        box-shadow: 0 6px 16px rgba(251, 191, 36, 0.4);
+        transform: scale(1.05);
+    }
+
+    .spinner {
+        border: 3px solid rgba(14, 165, 233, 0.1);
+        border-top: 3px solid #0ea5e9;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
         }
 
-        /* Firefox */
-        .thin-scroll {
-            scrollbar-width: thin;
-            scrollbar-color: rgba(148,163,184,0.5) transparent;
+        100% {
+            transform: rotate(360deg);
         }
-    </style>
+    }
+
+    .thin-scroll::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    .thin-scroll::-webkit-scrollbar-track {
+        background: rgba(241, 245, 249, 0.5);
+        border-radius: 10px;
+    }
+
+    .thin-scroll::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #0ea5e9, #fbbf24);
+        border-radius: 10px;
+    }
+
+    .thin-scroll::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(135deg, #0284c7, #f59e0b);
+    }
+</style>
 </head>
 
 <body class="bg-gray-50 text-gray-900">
@@ -187,6 +474,11 @@
                     <i class="fas fa-exclamation-triangle text-yellow-600 mr-2"></i>
                     Recent Alerts & Logs
                 </h3>
+                <!-- Filter Badge -->
+                <div id="filterBadge" class="mb-4 hidden flex items-center bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <span class="text-blue-800 font-medium">Filtered by: <span id="filterProjectName"></span></span>
+                    <button id="clearFilterBtn" class="ml-auto text-blue-600 hover:text-blue-800 font-bold text-lg">&times;</button>
+                </div>
                 <div class="thin-scroll" style="max-height: 420px; overflow-y: auto;">
                     <table class="w-full table-auto">
                         <thead class="bg-gray-50">
@@ -228,7 +520,7 @@
                 <!-- Pagination -->
                 <div class="flex items-center justify-between mt-4">
                     <div class="text-sm text-gray-700">
-                        Showing <span id="startIndex">1</span> to <span id="endIndex">{{ test_group_logs|length }}</span> of {{ test_group_logs|length }} entries
+                        Showing <span id="startIndex">1</span> to <span id="endIndex">{{ test_group_logs|length }}</span> of <span id="totalEntries">{{ test_group_logs|length }}</span> entries
                     </div>
                     <div class="flex space-x-1">
                         <button id="prevPage" class="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 rounded disabled:opacity-50" disabled>Previous</button>
@@ -483,23 +775,82 @@
         // Pagination for logs table
         const logsPerPage = 10;
         let currentPage = 1;
-        const logs = Array.from(document.querySelectorAll('#logsTableBody tr'));
-        const totalPages = Math.ceil(logs.length / logsPerPage);
+        const allLogs = Array.from(document.querySelectorAll('#logsTableBody tr'));
+        let filteredLogs = allLogs;
+        let selectedProject = null;
 
         function showPage(page) {
+            const logs = filteredLogs;
+            const totalPages = Math.ceil(logs.length / logsPerPage);
             const start = (page - 1) * logsPerPage;
             const end = start + logsPerPage;
 
+            // Hide all logs first
+            allLogs.forEach(log => log.style.display = 'none');
+
+            // Show only filtered logs for current page
             logs.forEach((log, index) => {
-                log.style.display = (index >= start && index < end) ? '' : 'none';
+                if (index >= start && index < end) {
+                    log.style.display = '';
+                }
             });
 
-            document.getElementById('startIndex').textContent = start + 1;
+            document.getElementById('startIndex').textContent = logs.length > 0 ? start + 1 : 0;
             document.getElementById('endIndex').textContent = Math.min(end, logs.length);
+            document.getElementById('totalEntries').textContent = logs.length;
 
-            document.getElementById('prevPage').disabled = page === 1;
-            document.getElementById('nextPage').disabled = page === totalPages;
+            document.getElementById('prevPage').disabled = page === 1 || logs.length === 0;
+            document.getElementById('nextPage').disabled = page === totalPages || logs.length === 0;
         }
+
+        function filterLogsByProject(projectName) {
+            if (selectedProject === projectName) {
+                // Deselect if same project clicked
+                selectedProject = null;
+                filteredLogs = allLogs;
+                document.getElementById('filterBadge').classList.add('hidden');
+                document.querySelectorAll('.project-item').forEach(item => item.classList.remove('selected'));
+            } else {
+                selectedProject = projectName;
+                filteredLogs = allLogs.filter(log => {
+                    const projectCell = log.querySelector('td:nth-child(2)');
+                    return projectCell && projectCell.textContent.trim().toLowerCase() === projectName.toLowerCase();
+                });
+                document.getElementById('filterProjectName').textContent = projectName;
+                document.getElementById('filterBadge').classList.remove('hidden');
+                document.querySelectorAll('.project-item').forEach(item => {
+                    if (item.dataset.name && item.dataset.name.toLowerCase() === projectName.toLowerCase()) {
+                        item.classList.add('selected');
+                    } else {
+                        item.classList.remove('selected');
+                    }
+                });
+            }
+            currentPage = 1; // Reset to first page
+            showPage(currentPage);
+        }
+
+        function clearFilter() {
+            selectedProject = null;
+            filteredLogs = allLogs;
+            document.getElementById('filterBadge').classList.add('hidden');
+            document.querySelectorAll('.project-item').forEach(item => item.classList.remove('selected'));
+            currentPage = 1;
+            showPage(currentPage);
+        }
+
+        // Add click event to project items
+        document.addEventListener('click', function(e) {
+            const projectItem = e.target.closest('.project-item');
+            if (projectItem && !e.target.closest('a')) { // Prevent trigger on "View Flow" link
+                e.preventDefault();
+                const projectName = projectItem.querySelector('h4').textContent.trim();
+                filterLogsByProject(projectName);
+            }
+        });
+
+        // Clear filter button
+        document.getElementById('clearFilterBtn').addEventListener('click', clearFilter);
 
         document.getElementById('prevPage').addEventListener('click', () => {
             if (currentPage > 1) {
