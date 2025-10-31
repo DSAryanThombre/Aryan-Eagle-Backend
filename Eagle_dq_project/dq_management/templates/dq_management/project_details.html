@@ -649,16 +649,16 @@
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {{ group.last_run|date:"Y-m-d H:i:s"|default:"Never" }}</td>
+                                            {{ group.last_run|default:"Never" }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {{ group.failed_tests|default:"0" }} / {{ group.total_tests|default:"0" }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {{ group.created_by|default:"N/A" }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {{ group.created_at|date:"Y-m-d H:i:s"|default:"N/A" }}</td>
+                                            {{ group.created_at|default:"N/A" }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {{ group.updated_at|date:"Y-m-d H:i:s"|default:"N/A" }}</td>
+                                            {{ group.updated_at|default:"N/A" }}</td>
                                         <td
                                             class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex items-center justify-end space-x-2">
                                             <a href="{% url 'edit_test_group' group_id=group.test_group_id %}"

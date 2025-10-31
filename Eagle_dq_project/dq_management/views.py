@@ -36,6 +36,7 @@ from .services import (
     delete_project_from_db,
     get_test_case_logs_from_db,
     get_test_group_logs_from_db,
+    get_project_logs_from_db,
     schedule_test_group_logic,
     get_available_connection_sources,
     _to_json_safe,  # Import the helper function
@@ -687,10 +688,13 @@ def test_group_logs(request):
 def logs(request):
     test_case_logs = get_test_case_logs_from_db()
     test_group_logs = get_test_group_logs_from_db()
+    project_logs = get_project_logs_from_db()  # <-- ADDED THIS
+
     context = {
         'test_case_logs': test_case_logs,
         'test_group_logs': test_group_logs,
-    }
+        'project_logs': project_logs,  # <-- ADDED THIS
+        }
     return render(request, 'dq_management/logs.html', context)
 
 def dashboard(request):
