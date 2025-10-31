@@ -1004,24 +1004,3 @@ def log_project_status_orm(run_id, project_id, project_name, status, message, re
     except Exception as e:
         logger.exception(f"Error creating/updating ProjectLogs for run {run_id}: {e}")
 
-def get_project_logs_from_db():
-    """
-    Fetches all ProjectLogs, ordered by start time.
-    """
-    logs_qs = ProjectLogs.objects.using('snowflake_dev').all().order_by('-start_timestamp')
-    logs_list = []
-    for log_entry in logs_qs:
-        log_data = log_entry.__dict__.copy()
-        log_data.pop('_state', None)
-        
-        # project_name is already a field in the log table
-        
-        # Attempt to parse results_details if it's a string
-        if isinstance(log_data.get('results_details'), str):
-            try:
-                log_data['results_details'] = json.loads(log_data['results_details'])
-            except json.JSONDecodeError:
-                pass  # Keep it as a string if it's not valid JSON
-                
-        logs_list.append(log_data)
-    return logs_list

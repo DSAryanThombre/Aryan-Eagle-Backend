@@ -34,20 +34,6 @@
         .thin-scroll::-webkit-scrollbar-track {
             background: transparent;
         }
-
-        .toggle-btn {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(254, 252, 232, 0.8) 100%);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(251, 191, 36, 0.15);
-            color: #475569;
-            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.12);
-        }
-
-        .toggle-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 16px rgba(251, 191, 36, 0.18);
-        }
-
         /* Firefox */
         .thin-scroll {
             scrollbar-width: thin;
@@ -62,14 +48,13 @@
     {% include 'dq_management/includes/sidebar.html' %}
 
     <button id="sidebarToggleBtn"
-        class="toggle-btn fixed bottom-6 left-6 z-50 rounded-full p-3 shadow-lg focus:outline-none transition-all duration-300 flex items-center justify-center"
+        class="fixed bottom-6 left-6 z-50 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-3 shadow-lg focus:outline-none transition-all duration-300 flex items-center justify-center"
         style="width: 48px; height: 48px;">
         <span id="sidebarToggleIcon" style="font-size: 1.25rem;">
             <i class="fas fa-chevron-left"></i>
         </span>
     </button>
 
-    
     <div id="mainContent" class="transition-all duration-300 ml-72 p-8">
         <main class="max-w-7xl mx-auto">
             <!-- Key Metrics Cards -->
