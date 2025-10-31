@@ -968,6 +968,7 @@
         }
 
         function hideSidebar() {
+            if (!sidebar) return;
             const w = getSidebarWidth();
             sidebar.style.marginLeft = `-${w}px`;
             mainContent.style.marginLeft = '0';
@@ -976,6 +977,7 @@
         }
 
         function showSidebar() {
+            if (!sidebar) return;
             const w = getSidebarWidth();
             sidebar.style.marginLeft = '0';
             mainContent.style.marginLeft = `${w}px`;

@@ -292,16 +292,18 @@
     }
 
     .toggle-btn {
-        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-        color: white;
-        box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(254, 252, 232, 0.8) 100%);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(251, 191, 36, 0.15);
+        color: #475569;
+        box-shadow: 0 4px 12px rgba(251, 191, 36, 0.12);
     }
 
     .toggle-btn:hover {
-        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-        box-shadow: 0 6px 16px rgba(251, 191, 36, 0.4);
         transform: scale(1.05);
+        box-shadow: 0 6px 16px rgba(251, 191, 36, 0.18);
     }
+
 
     .spinner {
         border: 3px solid rgba(14, 165, 233, 0.1);
@@ -340,6 +342,14 @@
     .thin-scroll::-webkit-scrollbar-thumb:hover {
         background: linear-gradient(135deg, #0284c7, #f59e0b);
     }
+
+    .sidebar-hidden {
+        transform: translateX(-280px) !important;
+    }
+
+    #mainContent.sidebar-hidden {
+        margin-left: 0 !important;
+    }
 </style>
 </head>
 
@@ -347,7 +357,7 @@
     {% csrf_token %}
 
     {% include 'dq_management/includes/sidebar.html' %}
-
+    
     <button id="sidebarToggleBtn"
         class="toggle-btn fixed bottom-6 left-6 z-50 rounded-full p-3 shadow-lg focus:outline-none transition-all duration-300 flex items-center justify-center"
         style="width: 48px; height: 48px;">
@@ -618,470 +628,491 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Dynamic fetch for real-time charts
-        const ctx = document.getElementById('testResultsChart').getContext('2d');
-        const barCtx = document.getElementById('criticalityBarChart').getContext('2d');
-        const summaryTotals = document.getElementById('summaryTotals');
-        const labels = ['Critical', 'High', 'Medium', 'Low'];
+        // THIS IS THE MAIN FIX:
+        // We wrap EVERYTHING in a DOMContentLoaded listener
+        // to ensure the HTML is loaded before we try to find elements.
+        document.addEventListener('DOMContentLoaded', function () {
 
-        let resultChart = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Failed', 'Passed'],
-                datasets: [{ data: [0,0], backgroundColor: ['#dc2626', '#10b981'], borderWidth: 0 }]
-            },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
-        });
+            // Dynamic fetch for real-time charts
+            const ctx = document.getElementById('testResultsChart').getContext('2d');
+            const barCtx = document.getElementById('criticalityBarChart').getContext('2d');
+            const summaryTotals = document.getElementById('summaryTotals');
+            const labels = ['Critical', 'High', 'Medium', 'Low'];
 
-        let barChart = new Chart(barCtx, {
-            type: 'bar',
-            data: { labels, datasets: [{ label: 'Failed', data: [0,0,0,0], backgroundColor: '#dc2626', borderRadius: 6 }] },
-            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }, plugins: { legend: { display: false } } }
-        });
-
-        let currentMode = 'failed';
-        let failedValuesCached = [];
-        let passedValuesCached = [];
-
-        function setBarMode(mode, failedValues, passedValues) {
-            if (currentMode === mode) return; // Prevent unnecessary updates
-            currentMode = mode;
-            const failedBtn = document.getElementById('showFailedBtn');
-            const passedBtn = document.getElementById('showPassedBtn');
-
-            if (mode === 'failed') {
-                barChart.data.datasets[0].label = 'Failed';
-                barChart.data.datasets[0].data = failedValues;
-                barChart.data.datasets[0].backgroundColor = '#dc2626';
-                failedBtn.classList.add('bg-red-600', 'text-white');
-                failedBtn.classList.remove('bg-red-100', 'text-red-700');
-                passedBtn.classList.remove('bg-green-600', 'text-white');
-                passedBtn.classList.add('bg-green-100', 'text-green-700');
-            } else {
-                barChart.data.datasets[0].label = 'Passed';
-                barChart.data.datasets[0].data = passedValues;
-                barChart.data.datasets[0].backgroundColor = '#10b981';
-                passedBtn.classList.add('bg-green-600', 'text-white');
-                passedBtn.classList.remove('bg-green-100', 'text-green-700');
-                failedBtn.classList.remove('bg-red-600', 'text-white');
-                failedBtn.classList.add('bg-red-100', 'text-red-700');
-            }
-            barChart.update();
-        }
-
-        async function refreshCharts() {
-            try {
-                const res = await fetch('/api/dashboard/summary/');
-                const data = await res.json();
-                const failedValues = labels.map(l => data.failed[l] || 0);
-                const passedValues = labels.map(l => data.passed[l] || 0);
-                const totalFailed = data.totals.failed || 0;
-                const totalPassed = data.totals.passed || 0;
-
-                // Update doughnut
-                resultChart.data.datasets[0].data = [totalFailed, totalPassed];
-                resultChart.update();
-
-                // Update summary
-                summaryTotals.textContent = `Total Groups: ${totalFailed + totalPassed} • Failed: ${totalFailed} • Passed: ${totalPassed}`;
-
-                // Cache the values and update bar based on current mode
-                failedValuesCached = failedValues;
-                passedValuesCached = passedValues;
-                setBarMode(currentMode, failedValuesCached, passedValuesCached);
-            } catch (e) {
-                console.error('Failed to load dashboard summary', e);
-                // Reset to zeros
-                resultChart.data.datasets[0].data = [0,0];
-                resultChart.update();
-                summaryTotals.textContent = `Total Groups: 0 • Failed: 0 • Passed: 0`;
-                failedValuesCached = [0,0,0,0];
-                passedValuesCached = [0,0,0,0];
-                setBarMode(currentMode, failedValuesCached, passedValuesCached);
-            }
-        }
-
-        document.getElementById('showFailedBtn').addEventListener('click', () => setBarMode('failed', failedValuesCached, passedValuesCached));
-        document.getElementById('showPassedBtn').addEventListener('click', () => setBarMode('passed', failedValuesCached, passedValuesCached));
-        document.getElementById('refreshChartsBtn').addEventListener('click', refreshCharts);
-
-        // Initial load and periodic refresh
-        refreshCharts();
-        setInterval(refreshCharts, 30000);
-
-        // Filter + search + collapse for projects list
-        const projectsList = document.getElementById('projectsList');
-        const priorityFilter = document.getElementById('priorityFilter');
-        const statusFilter = document.getElementById('statusFilter');
-        const projectSearch = document.getElementById('projectSearch');
-        const projectsCount = document.getElementById('projectsCount');
-        const toggleProjects = document.getElementById('toggleProjects');
-        const clearFiltersBtn = document.getElementById('clearFiltersBtn');
-
-        function updateProjectsView() {
-            const selectedPriority = priorityFilter.value;
-            const selectedStatus = statusFilter.value;
-            const searchText = (projectSearch.value || '').trim().toLowerCase();
-            const items = projectsList.querySelectorAll('.project-item');
-            let visible = 0;
-            items.forEach(item => {
-                const matchesPriority = selectedPriority === 'all' || item.dataset.priority === selectedPriority;
-                const matchesStatus = selectedStatus === 'all' || item.dataset.status === selectedStatus;
-                const matchesSearch = !searchText || (item.dataset.name || '').includes(searchText);
-                if (matchesPriority && matchesStatus && matchesSearch) {
-                    item.style.display = 'flex';
-                    visible++;
-                } else {
-                    item.style.display = 'none';
-                }
+            let resultChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Failed', 'Passed'],
+                    datasets: [{ data: [0, 0], backgroundColor: ['#dc2626', '#10b981'], borderWidth: 0 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
             });
-            projectsCount.textContent = `${visible} project(s) visible`;
-        }
 
-        function clearFilters() {
-            priorityFilter.value = 'all';
-            statusFilter.value = 'all';
-            projectSearch.value = '';
-            updateProjectsView();
-        }
-
-        priorityFilter.addEventListener('change', updateProjectsView);
-        statusFilter.addEventListener('change', updateProjectsView);
-        projectSearch.addEventListener('input', updateProjectsView);
-        clearFiltersBtn.addEventListener('click', clearFilters);
-        if (toggleProjects) {
-            toggleProjects.addEventListener('click', () => {
-                if (projectsList.style.display === 'none') {
-                    projectsList.style.display = '';
-                    toggleProjects.textContent = 'Collapse';
-                } else {
-                    projectsList.style.display = 'none';
-                    toggleProjects.textContent = 'Expand';
-                }
+            let barChart = new Chart(barCtx, {
+                type: 'bar',
+                data: { labels, datasets: [{ label: 'Failed', data: [0, 0, 0, 0], backgroundColor: '#dc2626', borderRadius: 6 }] },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }, plugins: { legend: { display: false } } }
             });
-        }
 
-        // Show skeleton initially, then content after DOM load
-        document.addEventListener('DOMContentLoaded', function() {
+            let currentMode = 'failed';
+            let failedValuesCached = [];
+            let passedValuesCached = [];
+
+            function setBarMode(mode, failedValues, passedValues) {
+                if (currentMode === mode) return; // Prevent unnecessary updates
+                currentMode = mode;
+                const failedBtn = document.getElementById('showFailedBtn');
+                const passedBtn = document.getElementById('showPassedBtn');
+
+                if (mode === 'failed') {
+                    barChart.data.datasets[0].label = 'Failed';
+                    barChart.data.datasets[0].data = failedValues;
+                    barChart.data.datasets[0].backgroundColor = '#dc2626';
+                    failedBtn.classList.add('bg-red-600', 'text-white');
+                    failedBtn.classList.remove('bg-red-100', 'text-red-700');
+                    passedBtn.classList.remove('bg-green-600', 'text-white');
+                    passedBtn.classList.add('bg-green-100', 'text-green-700');
+                } else {
+                    barChart.data.datasets[0].label = 'Passed';
+                    barChart.data.datasets[0].data = passedValues;
+                    barChart.data.datasets[0].backgroundColor = '#10b981';
+                    passedBtn.classList.add('bg-green-600', 'text-white');
+                    passedBtn.classList.remove('bg-green-100', 'text-green-700');
+                    failedBtn.classList.remove('bg-red-600', 'text-white');
+                    failedBtn.classList.add('bg-red-100', 'text-red-700');
+                }
+                barChart.update();
+            }
+
+            async function refreshCharts() {
+                try {
+                    const res = await fetch('/api/dashboard/summary/');
+                    const data = await res.json();
+                    const failedValues = labels.map(l => data.failed[l] || 0);
+                    const passedValues = labels.map(l => data.passed[l] || 0);
+                    const totalFailed = data.totals.failed || 0;
+                    const totalPassed = data.totals.passed || 0;
+
+                    // Update doughnut
+                    resultChart.data.datasets[0].data = [totalFailed, totalPassed];
+                    resultChart.update();
+
+                    // Update summary
+                    summaryTotals.textContent = `Total Groups: ${totalFailed + totalPassed} • Failed: ${totalFailed} • Passed: ${totalPassed}`;
+
+                    // Cache the values and update bar based on current mode
+                    failedValuesCached = failedValues;
+                    passedValuesCached = passedValues;
+                    setBarMode(currentMode, failedValuesCached, passedValuesCached);
+                } catch (e) {
+                    console.error('Failed to load dashboard summary', e);
+                    // Reset to zeros
+                    resultChart.data.datasets[0].data = [0, 0];
+                    resultChart.update();
+                    summaryTotals.textContent = `Total Groups: 0 • Failed: 0 • Passed: 0`;
+                    failedValuesCached = [0, 0, 0, 0];
+                    passedValuesCached = [0, 0, 0, 0];
+                    setBarMode(currentMode, failedValuesCached, passedValuesCached);
+                }
+            }
+
+            document.getElementById('showFailedBtn').addEventListener('click', () => setBarMode('failed', failedValuesCached, passedValuesCached));
+            document.getElementById('showPassedBtn').addEventListener('click', () => setBarMode('passed', failedValuesCached, passedValuesCached));
+            document.getElementById('refreshChartsBtn').addEventListener('click', refreshCharts);
+
+            // Initial load and periodic refresh
+            refreshCharts();
+            setInterval(refreshCharts, 30000);
+
+            // Filter + search + collapse for projects list
+            const projectsList = document.getElementById('projectsList');
+            const priorityFilter = document.getElementById('priorityFilter');
+            const statusFilter = document.getElementById('statusFilter');
+            const projectSearch = document.getElementById('projectSearch');
+            const projectsCount = document.getElementById('projectsCount');
+            const toggleProjects = document.getElementById('toggleProjects');
+            const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+
+            function updateProjectsView() {
+                const selectedPriority = priorityFilter.value;
+                const selectedStatus = statusFilter.value;
+                const searchText = (projectSearch.value || '').trim().toLowerCase();
+                const items = projectsList.querySelectorAll('.project-item');
+                let visible = 0;
+                items.forEach(item => {
+                    const matchesPriority = selectedPriority === 'all' || item.dataset.priority === selectedPriority;
+                    const matchesStatus = selectedStatus === 'all' || item.dataset.status === selectedStatus;
+                    const matchesSearch = !searchText || (item.dataset.name || '').includes(searchText);
+                    if (matchesPriority && matchesStatus && matchesSearch) {
+                        item.style.display = 'flex';
+                        visible++;
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+                projectsCount.textContent = `${visible} project(s) visible`;
+            }
+
+            function clearFilters() {
+                priorityFilter.value = 'all';
+                statusFilter.value = 'all';
+                projectSearch.value = '';
+                updateProjectsView();
+            }
+
+            priorityFilter.addEventListener('change', updateProjectsView);
+            statusFilter.addEventListener('change', updateProjectsView);
+            projectSearch.addEventListener('input', updateProjectsView);
+            clearFiltersBtn.addEventListener('click', clearFilters);
+            if (toggleProjects) {
+                toggleProjects.addEventListener('click', () => {
+                    if (projectsList.style.display === 'none') {
+                        projectsList.style.display = '';
+                        toggleProjects.textContent = 'Collapse';
+                    } else {
+                        projectsList.style.display = 'none';
+                        toggleProjects.textContent = 'Expand';
+                    }
+                });
+            }
+
+            // Show skeleton initially, then content after DOM load
             setTimeout(() => {
                 document.getElementById('projectsSkeleton').style.display = 'none';
                 document.getElementById('projectsContent').style.display = 'block';
             }, 500); // Small delay to show skeleton briefly
-        });
 
-        // Initial compute
-        updateProjectsView();
+            // Initial compute
+            updateProjectsView();
 
-        // Pagination for logs table
-        const logsPerPage = 10;
-        let currentPage = 1;
-        const allLogs = Array.from(document.querySelectorAll('#logsTableBody tr'));
-        let filteredLogs = allLogs;
-        let selectedProject = null;
+            // Pagination for logs table
+            const logsPerPage = 10;
+            let currentPage = 1;
+            const allLogs = Array.from(document.querySelectorAll('#logsTableBody tr'));
+            let filteredLogs = allLogs;
+            let selectedProject = null;
 
-        function showPage(page) {
-            const logs = filteredLogs;
-            const totalPages = Math.ceil(logs.length / logsPerPage);
-            const start = (page - 1) * logsPerPage;
-            const end = start + logsPerPage;
+            function showPage(page) {
+                const logs = filteredLogs;
+                const totalPages = Math.ceil(logs.length / logsPerPage);
+                const start = (page - 1) * logsPerPage;
+                const end = start + logsPerPage;
 
-            // Hide all logs first
-            allLogs.forEach(log => log.style.display = 'none');
+                // Hide all logs first
+                allLogs.forEach(log => log.style.display = 'none');
 
-            // Show only filtered logs for current page
-            logs.forEach((log, index) => {
-                if (index >= start && index < end) {
-                    log.style.display = '';
+                // Show only filtered logs for current page
+                logs.forEach((log, index) => {
+                    if (index >= start && index < end) {
+                        log.style.display = '';
+                    }
+                });
+
+                document.getElementById('startIndex').textContent = logs.length > 0 ? start + 1 : 0;
+                document.getElementById('endIndex').textContent = Math.min(end, logs.length);
+                document.getElementById('totalEntries').textContent = logs.length;
+
+                document.getElementById('prevPage').disabled = page === 1 || logs.length === 0;
+                document.getElementById('nextPage').disabled = page === totalPages || logs.length === 0;
+            }
+
+            function filterLogsByProject(projectName) {
+                if (selectedProject === projectName) {
+                    // Deselect if same project clicked
+                    selectedProject = null;
+                    filteredLogs = allLogs;
+                    document.getElementById('filterBadge').classList.add('hidden');
+                    document.querySelectorAll('.project-item').forEach(item => item.classList.remove('selected'));
+                } else {
+                    selectedProject = projectName;
+                    filteredLogs = allLogs.filter(log => {
+                        const projectCell = log.querySelector('td:nth-child(2)');
+                        return projectCell && projectCell.textContent.trim().toLowerCase() === projectName.toLowerCase();
+                    });
+                    document.getElementById('filterProjectName').textContent = projectName;
+                    document.getElementById('filterBadge').classList.remove('hidden');
+                    document.querySelectorAll('.project-item').forEach(item => {
+                        if (item.dataset.name && item.dataset.name.toLowerCase() === projectName.toLowerCase()) {
+                            item.classList.add('selected');
+                        } else {
+                            item.classList.remove('selected');
+                        }
+                    });
                 }
-            });
+                currentPage = 1; // Reset to first page
+                showPage(currentPage);
+            }
 
-            document.getElementById('startIndex').textContent = logs.length > 0 ? start + 1 : 0;
-            document.getElementById('endIndex').textContent = Math.min(end, logs.length);
-            document.getElementById('totalEntries').textContent = logs.length;
-
-            document.getElementById('prevPage').disabled = page === 1 || logs.length === 0;
-            document.getElementById('nextPage').disabled = page === totalPages || logs.length === 0;
-        }
-
-        function filterLogsByProject(projectName) {
-            if (selectedProject === projectName) {
-                // Deselect if same project clicked
+            function clearFilter() {
                 selectedProject = null;
                 filteredLogs = allLogs;
                 document.getElementById('filterBadge').classList.add('hidden');
                 document.querySelectorAll('.project-item').forEach(item => item.classList.remove('selected'));
-            } else {
-                selectedProject = projectName;
-                filteredLogs = allLogs.filter(log => {
-                    const projectCell = log.querySelector('td:nth-child(2)');
-                    return projectCell && projectCell.textContent.trim().toLowerCase() === projectName.toLowerCase();
+                currentPage = 1;
+                showPage(currentPage);
+            }
+
+            // Add click event to project items
+            document.addEventListener('click', function (e) {
+                const projectItem = e.target.closest('.project-item');
+                if (projectItem && !e.target.closest('a')) { // Prevent trigger on "View Flow" link
+                    e.preventDefault();
+                    const projectName = projectItem.querySelector('h4').textContent.trim();
+                    filterLogsByProject(projectName);
+                }
+            });
+
+            // Clear filter button
+            document.getElementById('clearFilterBtn').addEventListener('click', clearFilter);
+
+            document.getElementById('prevPage').addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    showPage(currentPage);
+                }
+            });
+
+            document.getElementById('nextPage').addEventListener('click', () => {
+                const totalPages = Math.ceil(filteredLogs.length / logsPerPage); // Recalculate totalPages
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    showPage(currentPage);
+                }
+            });
+
+            // Initialize pagination
+            showPage(currentPage); // Call showPage once to set up initial state
+
+            // Modal functionality
+            const modal = document.getElementById('detailsModal');
+            const modalContent = document.getElementById('modalContent');
+            const closeBtn = document.getElementById('closeModal');
+
+            document.querySelectorAll('.view-details-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const runId = this.dataset.runId;
+                    const details = this.dataset.details;
+                    const groupName = this.dataset.groupName;
+                    const projectName = this.dataset.projectName;
+
+                    modalContent.innerHTML = `<h4 class="font-semibold mb-2">Run ID: ${runId}</h4><p><strong>Group Name:</strong> ${groupName}</p><p><strong>Project Name:</strong> ${projectName}</p><pre class="bg-gray-100 p-4 rounded text-xs overflow-auto max-h-96">${details}</pre>`;
+                    modal.classList.remove('hidden');
                 });
-                document.getElementById('filterProjectName').textContent = projectName;
-                document.getElementById('filterBadge').classList.remove('hidden');
-                document.querySelectorAll('.project-item').forEach(item => {
-                    if (item.dataset.name && item.dataset.name.toLowerCase() === projectName.toLowerCase()) {
-                        item.classList.add('selected');
+            });
+
+            if (closeBtn) {
+                closeBtn.addEventListener('click', function () {
+                    modal.classList.add('hidden');
+                });
+            }
+
+            window.addEventListener('click', function (event) {
+                if (event.target === modal) {
+                    modal.classList.add('hidden');
+                }
+            });
+
+            // Sidebar toggle
+            // ALL THIS CODE WILL NOW WORK:
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            const toggleBtn = document.getElementById('sidebarToggleBtn');
+            const toggleIcon = document.getElementById('sidebarToggleIcon');
+            let sidebarVisible = true;
+
+            function getSidebarWidth() {
+                return (sidebar && sidebar.offsetWidth) ? sidebar.offsetWidth : 280;
+            }
+
+            function hideSidebar() {
+                const w = getSidebarWidth();
+                if (sidebar) { // Still good to keep this check
+                    sidebar.style.transform = `translateX(-${w}px)`;
+                }
+                if (mainContent) {
+                    mainContent.style.marginLeft = '0';
+                }
+                if (toggleIcon) {
+                    toggleIcon.innerHTML = '<i class="fas fa-chevron-right"></i>';
+                }
+                sidebarVisible = false;
+            }
+
+            function showSidebar() {
+                const w = getSidebarWidth();
+                if (sidebar) {
+                    sidebar.style.transform = 'translateX(0)';
+                }
+                if (mainContent) {
+                    mainContent.style.marginLeft = `${w}px`;
+                }
+                if (toggleIcon) {
+                    toggleIcon.innerHTML = '<i class="fas fa-chevron-left"></i>';
+                }
+                sidebarVisible = true;
+            }
+
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', function () {
+                    if (sidebarVisible) {
+                        hideSidebar();
                     } else {
-                        item.classList.remove('selected');
+                        showSidebar();
                     }
                 });
             }
-            currentPage = 1; // Reset to first page
-            showPage(currentPage);
-        }
 
-        function clearFilter() {
-            selectedProject = null;
-            filteredLogs = allLogs;
-            document.getElementById('filterBadge').classList.add('hidden');
-            document.querySelectorAll('.project-item').forEach(item => item.classList.remove('selected'));
-            currentPage = 1;
-            showPage(currentPage);
-        }
+            function setActiveNavLink() {
+                const currentPath = window.location.pathname;
+                const navLinks = document.querySelectorAll('.nav-link');
 
-        // Add click event to project items
-        document.addEventListener('click', function(e) {
-            const projectItem = e.target.closest('.project-item');
-            if (projectItem && !e.target.closest('a')) { // Prevent trigger on "View Flow" link
-                e.preventDefault();
-                const projectName = projectItem.querySelector('h4').textContent.trim();
-                filterLogsByProject(projectName);
-            }
-        });
-
-        // Clear filter button
-        document.getElementById('clearFilterBtn').addEventListener('click', clearFilter);
-
-        document.getElementById('prevPage').addEventListener('click', () => {
-            if (currentPage > 1) {
-                currentPage--;
-                showPage(currentPage);
-            }
-        });
-
-        document.getElementById('nextPage').addEventListener('click', () => {
-            if (currentPage < totalPages) {
-                currentPage++;
-                showPage(currentPage);
-            }
-        });
-
-        // Initialize pagination
-        if (logs.length > logsPerPage) {
-            showPage(1);
-        }
-
-        // Modal functionality
-        const modal = document.getElementById('detailsModal');
-        const modalContent = document.getElementById('modalContent');
-        const closeBtn = document.getElementById('closeModal');
-
-        document.querySelectorAll('.view-details-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const runId = this.dataset.runId;
-                const details = this.dataset.details;
-                const groupName = this.dataset.groupName;
-                const projectName = this.dataset.projectName;
-
-                modalContent.innerHTML = `<h4 class="font-semibold mb-2">Run ID: ${runId}</h4><p><strong>Group Name:</strong> ${groupName}</p><p><strong>Project Name:</strong> ${projectName}</p><pre class="bg-gray-100 p-4 rounded text-xs overflow-auto max-h-96">${details}</pre>`;
-                modal.classList.remove('hidden');
-            });
-        });
-
-        closeBtn.addEventListener('click', function() {
-            modal.classList.add('hidden');
-        });
-
-        window.addEventListener('click', function(event) {
-            if (event.target === modal) {
-                modal.classList.add('hidden');
-            }
-        });
-
-        // Sidebar toggle
-        const sidebar = document.getElementById('sidebar');
-        const mainContent = document.getElementById('mainContent');
-        const toggleBtn = document.getElementById('sidebarToggleBtn');
-        const toggleIcon = document.getElementById('sidebarToggleIcon');
-        let sidebarVisible = true;
-
-        function getSidebarWidth() {
-            return (sidebar && sidebar.offsetWidth) ? sidebar.offsetWidth : 280;
-        }
-
-        function hideSidebar() {
-            const w = getSidebarWidth();
-            sidebar.style.marginLeft = `-${w}px`;
-            mainContent.classList.remove('ml-72');
-            toggleIcon.innerHTML = '<i class="fas fa-chevron-right"></i>';
-            sidebarVisible = false;
-        }
-
-        function showSidebar() {
-            const w = getSidebarWidth();
-            sidebar.style.marginLeft = '0';
-            mainContent.classList.add('ml-72');
-            toggleIcon.innerHTML = '<i class="fas fa-chevron-left"></i>';
-            sidebarVisible = true;
-        }
-
-        toggleBtn.addEventListener('click', function () {
-            if (sidebarVisible) {
-                hideSidebar();
-            } else {
-                showSidebar();
-            }
-        });
-
-        function setActiveNavLink() {
-            const currentPath = window.location.pathname;
-            const navLinks = document.querySelectorAll('.nav-link');
-
-            navLinks.forEach(link => {
-                link.classList.remove('active');
-                const href = link.getAttribute('href');
-                if (href && href === currentPath) {
-                    link.classList.add('active');
-                }
-            });
-        }
-
-        const groupRunModal = document.getElementById('groupRunModal');
-        const groupRunLoading = document.getElementById('groupRunLoading');
-        const groupRunResults = document.getElementById('groupRunResults');
-        const groupRunMessage = document.getElementById('groupRunMessage');
-        const progressBar = document.getElementById('progressBar');
-        const groupRunProgress = document.getElementById('groupRunProgress');
-        const currentTestName = document.getElementById('currentTestName');
-
-        let pollingInterval = null;
-        let currentRunId = null;
-
-        function openGroupModal() {
-            groupRunModal.classList.remove('hidden');
-            groupRunModal.classList.add('show');
-        }
-
-        function closeGroupModal() {
-            if (pollingInterval) {
-                clearInterval(pollingInterval);
-            }
-            groupRunModal.classList.remove('show');
-            groupRunModal.classList.add('hidden');
-            window.location.reload();
-        }
-
-        async function runGroupAsync(groupId, groupName) {
-            if (!confirm(`Are you sure you want to run the test group '${groupName}' now?`)) {
-                return;
-            }
-
-            openGroupModal();
-            groupRunLoading.classList.remove('hidden');
-            groupRunResults.classList.add('hidden');
-            groupRunMessage.textContent = `Starting run for group '${groupName}'...`;
-
-            try {
-                const response = await fetch(`/test_groups/${groupId}/run_async/`, {
-                    method: 'POST',
-                    headers: { 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value }
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    const href = link.getAttribute('href');
+                    if (href && href === currentPath) {
+                        link.classList.add('active');
+                    }
                 });
-                if (!response.ok) {
-                    const text = await response.text();
-                    throw new Error(`HTTP ${response.status}: ${text}`);
-                }
-                const data = await response.json();
-
-                if (data.run_id) {
-                    currentRunId = data.run_id;
-                    pollingInterval = setInterval(() => checkGroupRunStatus(currentRunId), 2000);
-                } else {
-                    throw new Error(data.message || 'Failed to start group run.');
-                }
-            } catch (error) {
-                console.error("Error starting group run:", error);
-                groupRunLoading.classList.add('hidden');
-                groupRunResults.classList.remove('hidden');
-                groupRunMessage.textContent = `Error: ${error.message}`;
             }
-        }
 
-        async function checkGroupRunStatus(runId) {
-            try {
-                const response = await fetch(`/test_groups/run_status/${runId}/`);
-                const statusData = await response.json();
+            const groupRunModal = document.getElementById('groupRunModal');
+            const groupRunLoading = document.getElementById('groupRunLoading');
+            const groupRunResults = document.getElementById('groupRunResults');
+            const groupRunMessage = document.getElementById('groupRunMessage');
+            const progressBar = document.getElementById('progressBar');
+            const groupRunProgress = document.getElementById('groupRunProgress');
+            const currentTestName = document.getElementById('currentTestName');
 
-                const executedCount = statusData.executed_count || 0;
-                const totalCount = statusData.total_test_cases || 0;
+            let pollingInterval = null;
+            let currentRunId = null;
 
-                groupRunProgress.textContent = `Executing ${executedCount} of ${totalCount} test cases.`;
-                currentTestName.textContent = `Current test: ${statusData.current_test_name || 'N/A'}`;
+            function openGroupModal() {
+                groupRunModal.classList.remove('hidden');
+                groupRunModal.classList.add('show');
+            }
 
-                let progressPercent = 0;
-                if (totalCount > 0) {
-                    progressPercent = (executedCount / totalCount) * 100;
+            // Make closeGroupModal available globally for onclick=""
+            // A bit of a hack, but necessary for inline HTML attributes.
+            // A better way would be to add an event listener.
+            window.closeGroupModal = function () {
+                if (pollingInterval) {
+                    clearInterval(pollingInterval);
                 }
-                progressBar.style.width = `${progressPercent}%`;
+                groupRunModal.classList.remove('show');
+                groupRunModal.classList.add('hidden');
+                window.location.reload();
+            }
 
-                if (statusData.status === 'COMPLETED' || statusData.status === 'ERROR') {
+            async function runGroupAsync(groupId, groupName) {
+                if (!confirm(`Are you sure you want to run the test group '${groupName}' now?`)) {
+                    return;
+                }
+
+                openGroupModal();
+                groupRunLoading.classList.remove('hidden');
+                groupRunResults.classList.add('hidden');
+                groupRunMessage.textContent = `Starting run for group '${groupName}'...`;
+
+                try {
+                    const response = await fetch(`/test_groups/${groupId}/run_async/`, {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value }
+                    });
+                    if (!response.ok) {
+                        const text = await response.text();
+                        throw new Error(`HTTP ${response.status}: ${text}`);
+                    }
+                    const data = await response.json();
+
+                    if (data.run_id) {
+                        currentRunId = data.run_id;
+                        pollingInterval = setInterval(() => checkGroupRunStatus(currentRunId), 2000);
+                    } else {
+                        throw new Error(data.message || 'Failed to start group run.');
+                    }
+                } catch (error) {
+                    console.error("Error starting group run:", error);
+                    groupRunLoading.classList.add('hidden');
+                    groupRunResults.classList.remove('hidden');
+                    groupRunMessage.textContent = `Error: ${error.message}`;
+                }
+            }
+
+            async function checkGroupRunStatus(runId) {
+                try {
+                    const response = await fetch(`/test_groups/run_status/${runId}/`);
+                    const statusData = await response.json();
+
+                    const executedCount = statusData.executed_count || 0;
+                    const totalCount = statusData.total_test_cases || 0;
+
+                    groupRunProgress.textContent = `Executing ${executedCount} of ${totalCount} test cases.`;
+                    currentTestName.textContent = `Current test: ${statusData.current_test_name || 'N/A'}`;
+
+                    let progressPercent = 0;
+                    if (totalCount > 0) {
+                        progressPercent = (executedCount / totalCount) * 100;
+                    }
+                    progressBar.style.width = `${progressPercent}%`;
+
+                    if (statusData.status === 'COMPLETED' || statusData.status === 'ERROR') {
+                        clearInterval(pollingInterval);
+                        groupRunLoading.classList.add('hidden');
+                        groupRunResults.classList.remove('hidden');
+
+                        document.getElementById('finalTotalTests').textContent = totalCount;
+                        document.getElementById('finalFailedTests').textContent = statusData.failed_tests || 0;
+
+                        const finalStatusElement = document.getElementById('finalGroupStatus');
+                        const finalStatus = statusData.final_status || statusData.status;
+
+                        finalStatusElement.textContent = finalStatus;
+                        if (finalStatus === 'PASS') {
+                            finalStatusElement.className = 'px-2 py-1 rounded-full text-sm font-semibold status-pass';
+                        } else if (finalStatus === 'FAIL') {
+                            finalStatusElement.className = 'px-2 py-1 rounded-full text-sm font-semibold status-fail';
+                        } else {
+                            finalStatusElement.className = 'px-2 py-1 rounded-full text-sm font-semibold status-warn';
+                        }
+
+                        const failedTestsList = document.getElementById('failedTestsList');
+                        const failedTestsUl = document.getElementById('failedTestsUl');
+                        failedTestsUl.innerHTML = '';
+
+                        if (statusData.failed_tests > 0) {
+                            failedTestsList.classList.remove('hidden');
+                            statusData.results.forEach(testResult => {
+                                if (testResult.status === 'FAIL' || testResult.status === 'ERROR') {
+                                    const li = document.createElement('li');
+                                    const failedMessage = testResult.message || 'No message provided.';
+                                    li.textContent = `${testResult.test_name || 'Unnamed Test'}: ${failedMessage}`;
+                                    failedTestsUl.appendChild(li);
+                                }
+                            });
+                        } else {
+                            failedTestsList.classList.add('hidden');
+                        }
+                    }
+                } catch (error) {
+                    console.error("Error polling for group run status:", error);
                     clearInterval(pollingInterval);
                     groupRunLoading.classList.add('hidden');
                     groupRunResults.classList.remove('hidden');
-
-                    document.getElementById('finalTotalTests').textContent = totalCount;
-                    document.getElementById('finalFailedTests').textContent = statusData.failed_tests || 0;
-
+                    groupRunMessage.textContent = `Error during status check: ${error.message}`;
                     const finalStatusElement = document.getElementById('finalGroupStatus');
-                    const finalStatus = statusData.final_status || statusData.status;
-
-                    finalStatusElement.textContent = finalStatus;
-                    if (finalStatus === 'PASS') {
-                        finalStatusElement.className = 'px-2 py-1 rounded-full text-sm font-semibold status-pass';
-                    } else if (finalStatus === 'FAIL') {
-                        finalStatusElement.className = 'px-2 py-1 rounded-full text-sm font-semibold status-fail';
-                    } else {
-                        finalStatusElement.className = 'px-2 py-1 rounded-full text-sm font-semibold status-warn';
-                    }
-
-                    const failedTestsList = document.getElementById('failedTestsList');
-                    const failedTestsUl = document.getElementById('failedTestsUl');
-                    failedTestsUl.innerHTML = '';
-
-                    if (statusData.failed_tests > 0) {
-                        failedTestsList.classList.remove('hidden');
-                        statusData.results.forEach(testResult => {
-                            if (testResult.status === 'FAIL' || testResult.status === 'ERROR') {
-                                const li = document.createElement('li');
-                                const failedMessage = testResult.message || 'No message provided.';
-                                li.textContent = `${testResult.test_name || 'Unnamed Test'}: ${failedMessage}`;
-                                failedTestsUl.appendChild(li);
-                            }
-                        });
-                    } else {
-                        failedTestsList.classList.add('hidden');
-                    }
+                    finalStatusElement.textContent = 'ERROR';
+                    finalStatusElement.className = 'px-2 py-1 rounded-full text-sm font-semibold status-warn';
                 }
-            } catch (error) {
-                console.error("Error polling for group run status:", error);
-                clearInterval(pollingInterval);
-                groupRunLoading.classList.add('hidden');
-                groupRunResults.classList.remove('hidden');
-                groupRunMessage.textContent = `Error during status check: ${error.message}`;
-                const finalStatusElement = document.getElementById('finalGroupStatus');
-                finalStatusElement.textContent = 'ERROR';
-                finalStatusElement.className = 'px-2 py-1 rounded-full text-sm font-semibold status-warn';
             }
-        }
 
-        // Rerun functionality with event delegation (handles dynamic rows too)
-        document.addEventListener('DOMContentLoaded', function () {
+            // Rerun functionality with event delegation
             // Ensure CSRF token exists
             const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
             if (!csrfInput) {
                 console.error('CSRF token input not found on dashboard page. POST requests may fail.');
             }
 
-            document.addEventListener('click', function(e) {
+            document.addEventListener('click', function (e) {
                 const btn = e.target.closest('.rerun-btn');
                 if (!btn) return;
                 const groupId = btn.dataset.groupId;
@@ -1090,7 +1121,7 @@
             });
 
             // View Flow modal functionality
-            document.addEventListener('click', function(e) {
+            document.addEventListener('click', function (e) {
                 const btn = e.target.closest('.view-flow-btn');
                 if (!btn) return;
                 const groupId = btn.dataset.groupId;
@@ -1098,93 +1129,95 @@
             });
 
             setActiveNavLink();
-        });
 
-        // Function to open the flow modal
-        async function openFlowModal(groupId) {
-            const modal = document.getElementById('groupFlowModal');
-            const modalTitle = document.getElementById('flowModalTitle');
-            const modalContent = document.getElementById('flowModalContent');
 
-            modalTitle.textContent = 'Loading Group Flow...';
-            modalContent.innerHTML = '<div class="flex justify-center"><div class="spinner"></div></div>';
-            modal.classList.remove('hidden');
+            // Function to open the flow modal
+            async function openFlowModal(groupId) {
+                const modal = document.getElementById('groupFlowModal');
+                const modalTitle = document.getElementById('flowModalTitle');
+                const modalContent = document.getElementById('flowModalContent');
 
-            try {
-                const response = await fetch(`/api/test_groups/${groupId}/flow_data/`);
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                const data = await response.json();
+                modalTitle.textContent = 'Loading Group Flow...';
+                modalContent.innerHTML = '<div class="flex justify-center"><div class="spinner"></div></div>';
+                modal.classList.remove('hidden');
 
-                modalTitle.textContent = `Flow for ${data.group.name}`;
-
-                // Build HTML flow
-                let html = '<div class="flow-container space-y-4">';
-
-                // Group box
-                const groupStatusClass = getStatusClass(data.group.status);
-                html += `<div class="flow-item p-4 rounded-lg border ${groupStatusClass} text-center font-semibold">`;
-                html += `${data.group.name} (Group)<br><small>Status: ${data.group.status}</small>`;
-                html += '</div>';
-
-                // Arrow
-                if (data.tests.length > 0) {
-                    html += '<div class="text-center text-gray-500"><i class="fas fa-arrow-down"></i></div>';
-                }
-
-                // Test cases
-                data.tests.forEach((test, index) => {
-                    const testStatusClass = getStatusClass(test.status);
-                    html += `<div class="flow-item p-4 rounded-lg border ${testStatusClass}">`;
-                    html += `<strong>${test.name}</strong><br>`;
-                    html += `<small>Type: ${test.type} | Order: ${test.order} | Status: ${test.status || 'Not Run'}</small>`;
-                    if (test.run_message) {
-                        html += `<br><small class="text-gray-600">Message: ${test.run_message}</small>`;
+                try {
+                    const response = await fetch(`/api/test_groups/${groupId}/flow_data/`);
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                     }
-                    if (test.possible_resolution) {
-                        html += `<br><small class="text-blue-600">Resolution: ${test.possible_resolution}</small>`;
-                    }
+                    const data = await response.json();
+
+                    modalTitle.textContent = `Flow for ${data.group.name}`;
+
+                    // Build HTML flow
+                    let html = '<div class="flow-container space-y-4">';
+
+                    // Group box
+                    const groupStatusClass = getStatusClass(data.group.status);
+                    html += `<div class="flow-item p-4 rounded-lg border ${groupStatusClass} text-center font-semibold">`;
+                    html += `${data.group.name} (Group)<br><small>Status: ${data.group.status}</small>`;
                     html += '</div>';
 
-                    // Arrow between tests
-                    if (index < data.tests.length - 1) {
+                    // Arrow
+                    if (data.tests.length > 0) {
                         html += '<div class="text-center text-gray-500"><i class="fas fa-arrow-down"></i></div>';
                     }
-                });
 
-                html += '</div>';
-                modalContent.innerHTML = html;
+                    // Test cases
+                    data.tests.forEach((test, index) => {
+                        const testStatusClass = getStatusClass(test.status);
+                        html += `<div class="flow-item p-4 rounded-lg border ${testStatusClass}">`;
+                        html += `<strong>${test.name}</strong><br>`;
+                        html += `<small>Type: ${test.type} | Order: ${test.order} | Status: ${test.status || 'Not Run'}</small>`;
+                        if (test.run_message) {
+                            html += `<br><small class="text-gray-600">Message: ${test.run_message}</small>`;
+                        }
+                        if (test.possible_resolution) {
+                            html += `<br><small class="text-blue-600">Resolution: ${test.possible_resolution}</small>`;
+                        }
+                        html += '</div>';
 
-            } catch (error) {
-                console.error('Error loading flow data:', error);
-                modalTitle.textContent = 'Error Loading Flow';
-                modalContent.innerHTML = `<p class="text-red-600">Failed to load flow data: ${error.message}</p>`;
+                        // Arrow between tests
+                        if (index < data.tests.length - 1) {
+                            html += '<div class="text-center text-gray-500"><i class="fas fa-arrow-down"></i></div>';
+                        }
+                    });
+
+                    html += '</div>';
+                    modalContent.innerHTML = html;
+
+                } catch (error) {
+                    console.error('Error loading flow data:', error);
+                    modalTitle.textContent = 'Error Loading Flow';
+                    modalContent.innerHTML = `<p class="text-red-600">Failed to load flow data: ${error.message}</p>`;
+                }
             }
-        }
 
-        // Function to get CSS class for status
-        function getStatusClass(status) {
-            switch (status.toUpperCase()) {
-                case 'PASS': return 'bg-green-100 border-green-300 text-green-800';
-                case 'FAIL': return 'bg-red-100 border-red-300 text-red-800';
-                case 'ERROR': return 'bg-orange-100 border-orange-300 text-orange-800';
-                case 'RUNNING': return 'bg-blue-100 border-blue-300 text-blue-800';
-                default: return 'bg-gray-100 border-gray-300 text-gray-800';
+            // Function to get CSS class for status
+            function getStatusClass(status) {
+                switch (status.toUpperCase()) {
+                    case 'PASS': return 'bg-green-100 border-green-300 text-green-800';
+                    case 'FAIL': return 'bg-red-100 border-red-300 text-red-800';
+                    case 'ERROR': return 'bg-orange-100 border-orange-300 text-orange-800';
+                    case 'RUNNING': return 'bg-blue-100 border-blue-300 text-blue-800';
+                    default: return 'bg-gray-100 border-gray-300 text-gray-800';
+                }
             }
-        }
 
-        // Close flow modal
-        document.getElementById('closeFlowModal').addEventListener('click', function() {
-            document.getElementById('groupFlowModal').classList.add('hidden');
-        });
+            // Close flow modal
+            document.getElementById('closeFlowModal').addEventListener('click', function () {
+                document.getElementById('groupFlowModal').classList.add('hidden');
+            });
 
-        // Close modal when clicking outside
-        document.getElementById('groupFlowModal').addEventListener('click', function(event) {
-            if (event.target === this) {
-                this.classList.add('hidden');
-            }
-        });
+            // Close modal when clicking outside
+            document.getElementById('groupFlowModal').addEventListener('click', function (event) {
+                if (event.target === this) {
+                    this.classList.add('hidden');
+                }
+            });
+
+        }); // <-- THIS IS THE CLOSING TAG FOR THE MAIN FIX
     </script>
 </body>
 
