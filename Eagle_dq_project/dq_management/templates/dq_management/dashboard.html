@@ -1169,7 +1169,7 @@
                         const testStatusClass = getStatusClass(test.status);
                         html += `<div class="flow-item p-4 rounded-lg border ${testStatusClass}">`;
                         html += `<strong>${test.name}</strong><br>`;
-                        html += `<small>Type: ${test.type} | Order: ${test.order} | Status: ${test.status || 'Not Run'}</small>`;
+                        html += `<small>Category: ${test.category} | Type: ${test.type} | Order: ${test.order} | Status: ${test.status || 'Not Run'}</small>`;
                         if (test.run_message) {
                             html += `<br><small class="text-gray-600">Message: ${test.run_message}</small>`;
                         }

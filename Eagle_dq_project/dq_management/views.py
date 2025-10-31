@@ -1103,7 +1103,8 @@ def test_group_flow_data_api(request, group_id):
         test_info = {
             'id': tc_id,
             'name': case['meta']['name'],
-            'type': case['detail']['category'],
+            'category': case['detail']['category'],
+            'type': case['meta']['type'],
             'order': case['execution_order'],
             'status': status,
         }
