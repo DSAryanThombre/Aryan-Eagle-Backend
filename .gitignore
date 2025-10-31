@@ -1,2 +1,11 @@
 env/
 eagle_project/settings.py
+airflow.cfg
+.DS_Store
+__pycache__/
+*.pyc
+.vscode/
+.idea/
+*.sqlite3
+*.db
+__pycache__/

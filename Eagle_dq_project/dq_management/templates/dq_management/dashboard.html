@@ -12,6 +12,186 @@
     <link rel="icon" href="{% static 'dq_management/images/eagle_logo_bg.png' %}" type="image/png" />
 
 <style>
+    :root {
+        /* Light Mode Colors */
+        --bg-primary: linear-gradient(135deg, #fef7ed 0%, #fdf4ff 25%, #f0f9ff 50%, #f0fdfa 75%, #fefce8 100%);
+        --text-primary: #1e293b;
+        --text-secondary: #475569;
+        --text-muted: #64748b;
+        --card-enhanced-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(254, 247, 237, 0.8) 100%);
+        --card-enhanced-border: rgba(251, 191, 36, 0.2);
+        --card-enhanced-hover-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(240, 249, 255, 0.85) 100%);
+        --card-enhanced-hover-border: rgba(251, 191, 36, 0.4);
+        --card-enhanced-hover-shadow: 0 12px 24px rgba(14, 165, 233, 0.15), 0 0 0 1px rgba(251, 191, 36, 0.3);
+        --card-enhanced-before-bg: linear-gradient(90deg, #0ea5e9 0%, #fbbf24 50%, #0ea5e9 100%);
+        --card-chart-bg: linear-gradient(135deg, rgba(254, 247, 237, 0.9) 0%, rgba(240, 249, 255, 0.85) 50%, rgba(255, 253, 245, 0.9) 100%);
+        --card-chart-border: rgba(251, 191, 36, 0.25);
+        --card-chart-hover-shadow: 0 16px 32px rgba(14, 165, 233, 0.2), 0 0 0 1px rgba(251, 191, 36, 0.4);
+        --card-chart-before-bg: linear-gradient(90deg, #0ea5e9, #14b8a6, #fbbf24);
+        --card-projects-bg: linear-gradient(135deg, rgba(253, 244, 255, 0.9) 0%, rgba(240, 253, 250, 0.85) 50%, rgba(255, 251, 235, 0.9) 100%);
+        --card-projects-border: rgba(167, 139, 250, 0.25);
+        --card-projects-hover-shadow: 0 16px 32px rgba(167, 139, 250, 0.2), 0 0 0 1px rgba(251, 191, 36, 0.4);
+        --card-projects-before-bg: linear-gradient(90deg, #a78bfa, #fbbf24, #a78bfa);
+        --card-logs-bg: linear-gradient(135deg, rgba(255, 247, 237, 0.9) 0%, rgba(254, 252, 232, 0.85) 100%);
+        --card-logs-border: rgba(251, 191, 36, 0.3);
+        --card-logs-hover-shadow: 0 16px 32px rgba(251, 191, 36, 0.25), 0 0 0 1px rgba(251, 191, 36, 0.5);
+        --card-logs-before-bg: linear-gradient(90deg, #fbbf24, #f59e0b);
+        --gradient-text: linear-gradient(135deg, #475569 0%, #0ea5e9 50%, #fbbf24 100%);
+        --status-pass-bg: #ecfdf5;
+        --status-pass-color: #047857;
+        --status-fail-bg: #fef2f2;
+        --status-fail-color: #b91c1c;
+        --status-warn-bg: #fffbeb;
+        --status-warn-color: #b45309;
+        --status-norun-bg: #f1f5f9;
+        --status-norun-color: #475569;
+        --priority-critical-bg: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+        --priority-critical-color: #b91c1c;
+        --priority-critical-border: #fecaca;
+        --priority-critical-shadow: 0 2px 4px rgba(185, 28, 28, 0.1);
+        --priority-high-bg: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+        --priority-high-color: #ea580c;
+        --priority-high-border: #fed7aa;
+        --priority-high-shadow: 0 2px 4px rgba(234, 88, 12, 0.1);
+        --priority-medium-bg: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+        --priority-medium-color: #b45309;
+        --priority-medium-border: #fde68a;
+        --priority-medium-shadow: 0 2px 4px rgba(180, 83, 9, 0.1);
+        --priority-low-bg: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        --priority-low-color: #0369a1;
+        --priority-low-border: #bae6fd;
+        --priority-low-shadow: 0 2px 4px rgba(3, 105, 161, 0.1);
+        --priority-occasional-bg: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        --priority-occasional-color: #475569;
+        --priority-occasional-border: #e2e8f0;
+        --priority-occasional-shadow: 0 2px 4px rgba(71, 85, 105, 0.1);
+        --project-item-bg: rgba(255, 255, 255, 0.6);
+        --project-item-border: rgba(251, 191, 36, 0.15);
+        --project-item-hover-bg: rgba(255, 255, 255, 0.8);
+        --project-item-hover-border: rgba(251, 191, 36, 0.3);
+        --project-item-selected-bg: linear-gradient(135deg, rgba(14, 165, 233, 0.15) 0%, rgba(251, 191, 36, 0.1) 100%);
+        --project-item-selected-border: #0ea5e9;
+        --project-item-selected-shadow: 0 4px 16px rgba(14, 165, 233, 0.25);
+        --project-item-bg-red: linear-gradient(135deg, rgba(254, 242, 242, 0.8) 0%, rgba(255, 255, 255, 0.6) 100%);
+        --project-item-bg-green: linear-gradient(135deg, rgba(236, 253, 245, 0.8) 0%, rgba(255, 255, 255, 0.6) 100%);
+        --project-item-bg-white: linear-gradient(135deg, rgba(248, 250, 252, 0.8) 0%, rgba(255, 255, 255, 0.6) 100%);
+        --btn-primary-bg: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+        --btn-primary-hover-bg: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+        --btn-primary-hover-shadow: 0 4px 12px rgba(14, 165, 233, 0.4);
+        --btn-secondary-bg: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        --btn-secondary-hover-bg: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        --btn-secondary-hover-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);
+        --toggle-btn-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(254, 252, 232, 0.8) 100%);
+        --toggle-btn-border: rgba(251, 191, 36, 0.15);
+        --toggle-btn-shadow: 0 4px 12px rgba(251, 191, 36, 0.12);
+        --toggle-btn-hover-shadow: 0 6px 16px rgba(251, 191, 36, 0.18);
+        --spinner-border: rgba(14, 165, 233, 0.1);
+        --spinner-border-top: #0ea5e9;
+        --scrollbar-track: rgba(241, 245, 249, 0.5);
+        --scrollbar-thumb: linear-gradient(135deg, #0ea5e9, #fbbf24);
+        --scrollbar-thumb-hover: linear-gradient(135deg, #0284c7, #f59e0b);
+        --table-header-bg: #f9fafb;
+        --table-header-color: #374151;
+        --table-row-hover: #f9fafb;
+        --modal-overlay: rgba(107, 114, 128, 0.5);
+        --modal-bg: #ffffff;
+        --modal-border: #d1d5db;
+        --form-input-bg: #ffffff;
+        --form-input-border: #d1d5db;
+        --form-input-focus-ring: rgba(14, 165, 233, 0.5);
+        --form-input-focus-border: #0ea5e9;
+    }
+
+    [data-theme="dark"] {
+        /* Dark Mode Colors */
+        --bg-primary: linear-gradient(135deg, #0f172a 0%, #1e1b4b 25%, #164e63 50%, #134e4a 75%, #365314 100%);
+        --text-primary: #f1f5f9;
+        --text-secondary: #cbd5e1;
+        --text-muted: #94a3b8;
+        --card-enhanced-bg: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(51, 65, 85, 0.8) 100%);
+        --card-enhanced-border: rgba(251, 191, 36, 0.3);
+        --card-enhanced-hover-bg: linear-gradient(135deg, rgba(51, 65, 85, 0.98) 0%, rgba(30, 58, 138, 0.85) 100%);
+        --card-enhanced-hover-border: rgba(251, 191, 36, 0.5);
+        --card-enhanced-hover-shadow: 0 12px 24px rgba(14, 165, 233, 0.2), 0 0 0 1px rgba(251, 191, 36, 0.4);
+        --card-enhanced-before-bg: linear-gradient(90deg, #0ea5e9 0%, #fbbf24 50%, #0ea5e9 100%);
+        --card-chart-bg: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(22, 78, 99, 0.85) 50%, rgba(54, 83, 20, 0.9) 100%);
+        --card-chart-border: rgba(251, 191, 36, 0.3);
+        --card-chart-hover-shadow: 0 16px 32px rgba(14, 165, 233, 0.25), 0 0 0 1px rgba(251, 191, 36, 0.5);
+        --card-chart-before-bg: linear-gradient(90deg, #0ea5e9, #14b8a6, #fbbf24);
+        --card-projects-bg: linear-gradient(135deg, rgba(30, 27, 75, 0.9) 0%, rgba(19, 78, 74, 0.85) 50%, rgba(54, 83, 20, 0.9) 100%);
+        --card-projects-border: rgba(167, 139, 250, 0.3);
+        --card-projects-hover-shadow: 0 16px 32px rgba(167, 139, 250, 0.25), 0 0 0 1px rgba(251, 191, 36, 0.5);
+        --card-projects-before-bg: linear-gradient(90deg, #a78bfa, #fbbf24, #a78bfa);
+        --card-logs-bg: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(54, 83, 20, 0.85) 100%);
+        --card-logs-border: rgba(251, 191, 36, 0.4);
+        --card-logs-hover-shadow: 0 16px 32px rgba(251, 191, 36, 0.3), 0 0 0 1px rgba(251, 191, 36, 0.6);
+        --card-logs-before-bg: linear-gradient(90deg, #fbbf24, #f59e0b);
+        --gradient-text: linear-gradient(135deg, #cbd5e1 0%, #0ea5e9 50%, #fbbf24 100%);
+        --status-pass-bg: #0f5132;
+        --status-pass-color: #a7f3d0;
+        --status-fail-bg: #7f1d1d;
+        --status-fail-color: #fca5a5;
+        --status-warn-bg: #78350f;
+        --status-warn-color: #fcd34d;
+        --status-norun-bg: #1e293b;
+        --status-norun-color: #cbd5e1;
+        --priority-critical-bg: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%);
+        --priority-critical-color: #fca5a5;
+        --priority-critical-border: #dc2626;
+        --priority-critical-shadow: 0 2px 4px rgba(185, 28, 28, 0.2);
+        --priority-high-bg: linear-gradient(135deg, #9a3412 0%, #c2410c 100%);
+        --priority-high-color: #fed7aa;
+        --priority-high-border: #ea580c;
+        --priority-high-shadow: 0 2px 4px rgba(234, 88, 12, 0.2);
+        --priority-medium-bg: linear-gradient(135deg, #78350f 0%, #92400e 100%);
+        --priority-medium-color: #fde68a;
+        --priority-medium-border: #d97706;
+        --priority-medium-shadow: 0 2px 4px rgba(180, 83, 9, 0.2);
+        --priority-low-bg: linear-gradient(135deg, #0c4a6e 0%, #0369a1 100%);
+        --priority-low-color: #bae6fd;
+        --priority-low-border: #0284c7;
+        --priority-low-shadow: 0 2px 4px rgba(3, 105, 161, 0.2);
+        --priority-occasional-bg: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        --priority-occasional-color: #cbd5e1;
+        --priority-occasional-border: #475569;
+        --priority-occasional-shadow: 0 2px 4px rgba(71, 85, 105, 0.2);
+        --project-item-bg: rgba(30, 41, 59, 0.6);
+        --project-item-border: rgba(251, 191, 36, 0.2);
+        --project-item-hover-bg: rgba(51, 65, 85, 0.8);
+        --project-item-hover-border: rgba(251, 191, 36, 0.4);
+        --project-item-selected-bg: linear-gradient(135deg, rgba(14, 165, 233, 0.2) 0%, rgba(251, 191, 36, 0.15) 100%);
+        --project-item-selected-border: #0ea5e9;
+        --project-item-selected-shadow: 0 4px 16px rgba(14, 165, 233, 0.3);
+        --project-item-bg-red: linear-gradient(135deg, rgba(127, 29, 29, 0.8) 0%, rgba(30, 41, 59, 0.6) 100%);
+        --project-item-bg-green: linear-gradient(135deg, rgba(15, 81, 50, 0.8) 0%, rgba(30, 41, 59, 0.6) 100%);
+        --project-item-bg-white: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(51, 65, 85, 0.6) 100%);
+        --btn-primary-bg: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+        --btn-primary-hover-bg: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+        --btn-primary-hover-shadow: 0 4px 12px rgba(14, 165, 233, 0.5);
+        --btn-secondary-bg: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        --btn-secondary-hover-bg: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        --btn-secondary-hover-shadow: 0 4px 12px rgba(251, 191, 36, 0.5);
+        --toggle-btn-bg: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(54, 83, 20, 0.8) 100%);
+        --toggle-btn-border: rgba(251, 191, 36, 0.2);
+        --toggle-btn-shadow: 0 4px 12px rgba(251, 191, 36, 0.15);
+        --toggle-btn-hover-shadow: 0 6px 16px rgba(251, 191, 36, 0.2);
+        --spinner-border: rgba(14, 165, 233, 0.2);
+        --spinner-border-top: #0ea5e9;
+        --scrollbar-track: rgba(30, 41, 59, 0.5);
+        --scrollbar-thumb: linear-gradient(135deg, #0ea5e9, #fbbf24);
+        --scrollbar-thumb-hover: linear-gradient(135deg, #0284c7, #f59e0b);
+        --table-header-bg: #1f2937;
+        --table-header-color: #f3f4f6;
+        --table-row-hover: #374151;
+        --modal-overlay: rgba(0, 0, 0, 0.6);
+        --modal-bg: #1f2937;
+        --modal-border: #374151;
+        --form-input-bg: #374151;
+        --form-input-border: #4b5563;
+        --form-input-focus-ring: rgba(14, 165, 233, 0.5);
+        --form-input-focus-border: #0ea5e9;
+    }
+
     @keyframes gradient-shift {
 
         0%,
@@ -365,7 +545,6 @@
             <i class="fas fa-chevron-left"></i>
         </span>
     </button>
-
     
     <div id="mainContent" class="transition-all duration-300 flex ml-72">
         <main class="flex-1 p-8">
@@ -1217,7 +1396,46 @@
                 }
             });
 
-        }); // <-- THIS IS THE CLOSING TAG FOR THE MAIN FIX
+            // Dashboard Theme Toggle
+            const themeToggleDashboard = document.getElementById('themeToggleDashboard');
+            const themeIconDashboard = document.getElementById('themeIconDashboard');
+
+            if (themeToggleDashboard && themeIconDashboard) {
+                // Get saved theme or default to light
+                const savedTheme = localStorage.getItem('eagle-dq-theme') || 'light';
+
+                // Apply theme on page load
+                function applyThemeDashboard(theme) {
+                    document.documentElement.setAttribute('data-theme', theme);
+                    if (theme === 'dark') {
+                        themeIconDashboard.innerHTML = '<i class="fas fa-sun"></i>';
+                    } else {
+                        themeIconDashboard.innerHTML = '<i class="fas fa-moon"></i>';
+                    }
+                }
+
+                // Apply saved theme
+                applyThemeDashboard(savedTheme);
+
+                // Listen for theme changes from sidebar
+                window.addEventListener('themeChanged', function(e) {
+                    const theme = e.detail.theme;
+                    applyThemeDashboard(theme);
+                });
+
+                // Toggle theme on click
+                themeToggleDashboard.addEventListener('click', function() {
+                    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+                    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+                    applyThemeDashboard(newTheme);
+                    localStorage.setItem('eagle-dq-theme', newTheme);
+                    // Dispatch event to sync with sidebar
+                    window.dispatchEvent(new CustomEvent('themeChanged', { detail: { theme: newTheme } }));
+                });
+            }
+
+        });
+
     </script>
 </body>
 
