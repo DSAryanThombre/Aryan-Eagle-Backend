@@ -1,12 +1,18 @@
 env/
-eagle_project/settings.py
-airflow.cfg
+Eagle_dq_project/eagle_project/settings.py
+Airflow/airflow.cfg
 .DS_Store
-__pycache__/
-*.pyc
+# Eagle_dq_project/dq_management/__pycache__/
+Eagle_dq_project/dq_management/*.pyc
+Eagle_dq_project/eagle_project/__pycache__/
 .vscode/
 .idea/
 *.sqlite3
 *.db
+*.pyc
 __pycache__/
 settings.py
+Eagle_dq_project/dq_management/migrations/__pycache__/
+Eagle_dq_project/dq_management/migrations/*.pyc 
+Eagle_dq_project/eagle_project/db.sqlite3
+Eagle_dq_project/db.sqlite3
