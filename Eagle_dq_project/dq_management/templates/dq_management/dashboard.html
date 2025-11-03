@@ -746,9 +746,9 @@
                                             {% if project.overall_status == 'FAILED' %}text-red-600{% elif project.overall_status == 'PASSED' %}text-green-600{% else %}text-gray-600{% endif %}">
                                             {{ project.overall_status }}
                                         </p>
-                                        <a href="{% url 'flow_view' project.project_id %}" class="text-blue-600 hover:text-blue-900 text-xs mt-1 inline-block">
+                                        <!-- <a href="{% url 'flow_view' project.project_id %}" class="text-blue-600 hover:text-blue-900 text-xs mt-1 inline-block">
                                             <i class="fas fa-eye"></i> View Flow
-                                        </a>
+                                        </a> -->
                                     </div>
                                 </div>
                             {% endfor %}
