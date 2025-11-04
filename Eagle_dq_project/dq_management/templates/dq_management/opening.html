@@ -11,14 +11,9 @@
             margin: 0;
             padding: 0;
             height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: white;
-            /* Use a cleaner, modern system font stack */
+            background: #fff;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             overflow: hidden;
-            /* Start the body as hidden to prevent "flash" */
             opacity: 0;
             animation: fadeInPage 0.5s ease-out forwards;
         }
@@ -29,23 +24,45 @@
             }
         }
 
-        .container {
-            text-align: center;
-            max-width: 600px;
-            padding: 20px;
+        .stars-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+            z-index: 2;
+        }
+
+        .content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 28px;
+            padding: 48px 32px;
+            min-width: 320px;
+            box-sizing: border-box;
         }
 
         .mascot-img {
             width: 100%;
-            /* Set a new size for the image */
-            max-width: 180px;
+            max-width: 280px;
             height: auto;
-            margin-bottom: 20px;
-            /* New animation for the image */
-            animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            margin-bottom: 8px;
+            animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        /* Animation for the image */
         @keyframes popIn {
             0% {
                 transform: scale(0.3);
@@ -59,59 +76,41 @@
         }
 
         .title {
-            color: #222;
-            /* Slightly softer than pure black */
-            font-size: 2.8em;
-            font-weight: 600;
-            margin: 10px 0;
+            color: #181818;
+            font-size: 2.5em;
+            font-weight: 700;
+            margin: 0;
             opacity: 0;
-            /* Start hidden */
-            /* Use a new sequenced animation */
             animation: fadeInText 1s ease-in-out 0.5s forwards;
-            /* Delay to start after image */
+            letter-spacing: 1px;
         }
 
         .subtitle {
-            color: #555;
+            color: #232323;
             font-size: 1.3em;
             margin: 0;
             opacity: 0;
-            animation: fadeInText 1s ease-in-out 0.8s forwards;
-            /* Delay a bit more */
+            animation: fadeInText 1s ease-in-out 0.7s forwards;
         }
 
-        .motivation {
-            color: #777;
-            font-size: 1.1em;
-            margin-top: 15px;
+        .quote {
+            color: #2c2c2c;
+            font-size: 1.05em;
             font-style: italic;
-            /* A nice touch for a motto */
+            text-align: center;
+            margin-top: 10px;
             opacity: 0;
-            animation: fadeInText 1s ease-in-out 1.1s forwards;
-            /* Delay even more */
+            animation: fadeInText 1s ease-in-out 0.95s forwards;
         }
 
-        /* A single animation for all text elements */
-        @keyframes fadeInText {
-            from {
-                opacity: 0;
-                transform: translateY(15px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* A cleaner "loading" animation */
         .loading {
-            margin-top: 30px;
-            color: #333;
+            margin-top: 10px;
+            color: #181818;
             font-size: 1em;
+            opacity: 0;
+            animation: fadeInText 1s ease-in-out 1.2s forwards;
         }
 
-        /* Create the three-dot animation */
         .loading span {
             opacity: 0;
             animation: loadingDots 1.4s infinite;
@@ -140,25 +139,150 @@
                 opacity: 1;
             }
         }
+
+        @keyframes fadeInText {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 750px) {
+            .content {
+                padding: 16px 4vw;
+                gap: 18px;
+            }
+
+            .title {
+                font-size: 1.3em;
+            }
+
+            .subtitle {
+                font-size: 1em;
+            }
+
+            .mascot-img {
+                max-width: 130px;
+            }
+        }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <img src="{% static 'images/indivisible-bird.gif' %}" alt="Eagle DQ Mascot" class="mascot-img">
-
-        <h1 class="title">Eagle DQ</h1>
-        <p class="subtitle">Data Quality Management System</p>
-        <p class="motivation">Soar to new heights with Eagle DQ: Vigilant data monitoring for exceptional quality.</p>
-
-        <p class="loading">Loading dashboard<span>.</span><span>.</span><span>.</span></p>
+    <canvas class="stars-bg"></canvas>
+    <div class="wrapper">
+        <div class="content">
+            <img src="{% static 'images/indivisible-bird-done.gif' %}" alt="Eagle DQ Mascot" class="mascot-img">
+            <h1 class="title">Eagle DQ</h1>
+            <p class="subtitle">Data Quality Management System</p>
+            <p class="quote">Soar to new heights with Eagle DQ: Vigilant data monitoring for exceptional quality.</p>
+            <p class="loading">Loading dashboard<span>.</span><span>.</span><span>.</span></p>
+        </div>
     </div>
-
     <script>
-        // Redirect to dashboard after 3.5 seconds (added a little time for animations)
+        // Redirect to dashboard after 4 seconds (added a little time for animations)
         setTimeout(function () {
             window.location.href = '/dashboard/';
-        }, 3500);
+        }, 4000);
+    </script>
+    <script>
+        // Fire-like falling stars effect
+        const canvas = document.querySelector('.stars-bg');
+        const ctx = canvas.getContext('2d');
+        let stars = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // 45 degrees diagonal movement (down and right)
+        const angle = Math.PI / 4;
+        const sin = Math.sin(angle);
+        const cos = Math.cos(angle);
+
+        // Returns a color somewhere between yellow-white, gold, orange, and red
+        function getFireColor(pos) {
+            // pos is 0 (head of tail) to 1 (end of tail)
+            if (pos < 0.15) return "#fffde5";
+            if (pos < 0.35) return "#ffe066";
+            if (pos < 0.5) return "#ffc400";
+            if (pos < 0.7) return "#ff9900";
+            if (pos < 0.88) return "#ff4800";
+            return "#e60a0a";
+        }
+
+        function createStar() {
+            const startPosition = Math.random();
+            const margin = 100;
+            return {
+                x: -margin + startPosition * (canvas.width + margin * 2),
+                y: -margin,
+                radius: Math.random() * 1.7 + 1.1,
+                speed: Math.random() * 2 + 3,
+                opacity: Math.random() * 0.8 + 0.5,
+                tail: Math.random() * 48 + 38 // longer tails
+            };
+        }
+
+        function drawStars() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let s of stars) {
+                ctx.save();
+                // Fire tail as multi-stop color streak
+                const steps = 20;
+                for (let i = 1; i <= steps; i++) {
+                    const t = i / steps;
+                    const prevT = (i - 1) / steps;
+                    const tailX1 = s.x - cos * s.tail * prevT;
+                    const tailY1 = s.y - sin * s.tail * prevT;
+                    const tailX2 = s.x - cos * s.tail * t;
+                    const tailY2 = s.y - sin * s.tail * t;
+                    ctx.strokeStyle = getFireColor(t);
+                    ctx.globalAlpha = s.opacity * (1 - t) * 0.8;
+                    ctx.beginPath();
+                    ctx.moveTo(tailX1, tailY1);
+                    ctx.lineTo(tailX2, tailY2);
+                    ctx.lineWidth = s.radius * (1 - t) + 0.5;
+                    ctx.stroke();
+                }
+                // Head: hot white/yellow circle with a strong orange/red glow
+                ctx.globalAlpha = s.opacity;
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, s.radius, 0, 2 * Math.PI, false);
+                ctx.fillStyle = "#fffbe2";
+                ctx.shadowColor = "#ff4d00";
+                ctx.shadowBlur = 28;
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        function updateStars() {
+            if (stars.length < 60 && Math.random() < 0.8) {
+                stars.push(createStar());
+            }
+            for (let s of stars) {
+                s.x += cos * s.speed;
+                s.y += sin * s.speed;
+            }
+            stars = stars.filter(s => (s.x < canvas.width + 100) && (s.y < canvas.height + 100));
+        }
+
+        function animate() {
+            updateStars();
+            drawStars();
+            requestAnimationFrame(animate);
+        }
+
+        animate();
     </script>
 </body>
 

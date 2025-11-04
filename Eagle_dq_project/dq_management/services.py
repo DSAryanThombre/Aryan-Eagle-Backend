@@ -319,7 +319,7 @@ def save_test_case_to_db(test_case_id, project_id, config):
                 'source_table': config.get('source_table', ''),
                 'destination_table': config.get('destination_table', ''),
                 'additional_source_filters': config.get('source_additional_filters', ''),
-                'additional_destination_filters': config.get('additional_destination_filters', ''),
+                'additional_destination_filters': config.get('destination_additional_filters', ''),
                 'custom_source_sql': config.get('source_custom_sql', ''),
                 'custom_destination_sql': config.get('destination_custom_sql', ''),
                 'threshold': config.get('threshold'),
@@ -675,7 +675,12 @@ def run_adhoc_test_logic(test_case_id, parent_run_id=None):
         processor = TestCaseProcessor()
         processor_result = processor.process_test_request(config, action='run', run_id=run_id)
         result.update(processor_result)
-        result["status_code"] = 200 if result.get("status") == "PASS" else 500
+        if result.get("status") == "PASS":
+            result["status_code"] = 200
+        elif result.get("status") == "FAIL":
+            result["status_code"] = 200
+        else:
+            result["status_code"] = 500
 
         # --- Update TestCase status in DB after adhoc run ---
         try:

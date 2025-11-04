@@ -149,9 +149,6 @@
 
         /* Main Content Card Style */
         .main-card {
-            max-width: 1600px;
-            /* NORMAL SIZE: Max width for laptop view */
-            margin: 40px auto;
             background: var(--card-bg);
             backdrop-filter: blur(20px);
             border-radius: 1.5rem;
@@ -274,6 +271,23 @@
             color: var(--test-type-badge-color);
             margin-left: 8px;
             flex-shrink: 0;
+        }
+
+        .category-badge {
+            padding: 3px 8px;
+            /* COMPACT: Reduced badge padding */
+            font-size: 0.7rem;
+            /* NORMAL SIZE: Reduced badge font size */
+            font-weight: 600;
+            background-color: #fef3c7;
+            color: #92400e;
+            margin-left: 8px;
+            flex-shrink: 0;
+        }
+
+        [data-theme="dark"] .category-badge {
+            background-color: #451a03;
+            color: #fbbf24;
         }
 
         /* --- Test Item Details Rework --- */
@@ -516,6 +530,21 @@
                     <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
                 </div>
 
+                <div class="mb-4 flex gap-4">
+                    <select id="category_filter" onchange="filterTestCases()" class="form-input">
+                        <option value="">All Categories</option>
+                    </select>
+                    <select id="test_type_filter" onchange="filterTestCases()" class="form-input">
+                        <option value="">All Test Types</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label flex items-center">
+                        <input type="checkbox" id="select_all" onchange="toggleSelectAll()" class="mr-2">
+                        Select All Visible Test Cases
+                    </label>
+                </div>
 
                 <div class="test-case-list-container">
                     {% for tc in available_test_cases %}
@@ -528,6 +557,9 @@
                                 <span>{{ tc.test_name }}</span>
                                 <span class="test-type-badge ml-3">
                                     {{ tc.test_type|default:"N/A" }}
+                                </span>
+                                <span class="category-badge ml-2">
+                                    {{ tc.category|default:"N/A" }}
                                 </span>
                             </div>
 
@@ -589,9 +621,54 @@
         // Map: {test_case_id: execution_order}
         const initialSelectedTestCasesMap = new Map(initialSelectedTestCasesData.map(item => [item.detail.test_case_id, item.execution_order]));
 
+        // Collect unique categories and test types
+        const categories = new Set();
+        const testTypes = new Set();
+        const items = document.querySelectorAll('.test-case-item');
+        items.forEach(item => {
+            const categoryBadge = item.querySelector('.category-badge');
+            const testTypeBadge = item.querySelector('.test-type-badge');
+            if (categoryBadge && categoryBadge.textContent.trim() !== 'N/A') {
+                categories.add(categoryBadge.textContent.trim());
+            }
+            if (testTypeBadge && testTypeBadge.textContent.trim() !== 'N/A') {
+                testTypes.add(testTypeBadge.textContent.trim());
+            }
+        });
+
+        // Populate filter options
+        const categoryFilter = document.getElementById('category_filter');
+        categories.forEach(category => {
+            const option = document.createElement('option');
+            option.value = category;
+            option.textContent = category;
+            categoryFilter.appendChild(option);
+        });
+
+        const testTypeFilter = document.getElementById('test_type_filter');
+        testTypes.forEach(testType => {
+            const option = document.createElement('option');
+            option.value = testType;
+            option.textContent = testType;
+            testTypeFilter.appendChild(option);
+        });
+
         function updateSelectedTests() {
             const selectedData = [];
             const checkboxes = document.querySelectorAll('.test-case-item input[type="checkbox"]');
+
+            // First, collect current selected orders to find the next available
+            let maxOrder = 0;
+            checkboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    const itemContainer = checkbox.closest('.test-case-item');
+                    const orderInput = itemContainer.querySelector('.execution-order-input');
+                    const orderValue = parseInt(orderInput.value);
+                    if (!isNaN(orderValue) && orderValue > 0) {
+                        maxOrder = Math.max(maxOrder, orderValue);
+                    }
+                }
+            });
 
             checkboxes.forEach(checkbox => {
                 const itemContainer = checkbox.closest('.test-case-item');
@@ -601,9 +678,10 @@
                 if (checkbox.checked) {
                     let orderValue = parseInt(orderInput.value);
 
-                    // If the checkbox is checked but order is empty/invalid, default to 1
+                    // If the checkbox is checked but order is empty/invalid, auto-assign next order
                     if (isNaN(orderValue) || orderValue < 1) {
-                        orderValue = 1;
+                        orderValue = maxOrder + 1;
+                        maxOrder = orderValue; // Update max for next
                         orderInput.value = orderValue; // Set the visible input
                     }
 
@@ -642,23 +720,73 @@
             updateSelectedTests(); // Call once to set the hidden field initially
         }
 
-        // Function to filter test cases based on search input
+        // Function to filter test cases based on search input, category, and test type
         function filterTestCases() {
-            const input = document.getElementById('test_case_search');
-            const filter = input.value.toUpperCase();
+            const searchInput = document.getElementById('test_case_search');
+            const searchFilter = searchInput.value.toUpperCase();
+            const categoryFilterValue = document.getElementById('category_filter').value;
+            const testTypeFilterValue = document.getElementById('test_type_filter').value;
             const items = document.querySelectorAll('.test-case-item');
 
             items.forEach(item => {
                 const titleElement = item.querySelector('.item-details-grid .title span:first-child');
-                if (titleElement) {
-                    const textValue = titleElement.textContent || titleElement.innerText;
-                    if (textValue.toUpperCase().indexOf(filter) > -1) {
-                        item.style.display = "flex";
-                    } else {
-                        item.style.display = "none";
-                    }
+                const categoryBadge = item.querySelector('.category-badge');
+                const testTypeBadge = item.querySelector('.test-type-badge');
+
+                const titleText = titleElement ? (titleElement.textContent || titleElement.innerText).toUpperCase() : '';
+                const categoryText = categoryBadge ? categoryBadge.textContent.trim() : '';
+                const testTypeText = testTypeBadge ? testTypeBadge.textContent.trim() : '';
+
+                const matchesSearch = titleText.indexOf(searchFilter) > -1;
+                const matchesCategory = !categoryFilterValue || categoryText === categoryFilterValue;
+                const matchesTestType = !testTypeFilterValue || testTypeText === testTypeFilterValue;
+
+                if (matchesSearch && matchesCategory && matchesTestType) {
+                    item.style.display = "flex";
+                } else {
+                    item.style.display = "none";
                 }
             });
+
+            // Update select all checkbox state after filtering
+            updateSelectAllState();
+        }
+
+        // Function to toggle select all visible test cases
+        function toggleSelectAll() {
+            const selectAllCheckbox = document.getElementById('select_all');
+            const isChecked = selectAllCheckbox.checked;
+            const visibleItems = document.querySelectorAll('.test-case-item[style*="display: flex"], .test-case-item:not([style*="display"])');
+
+            visibleItems.forEach(item => {
+                const checkbox = item.querySelector('input[type="checkbox"]');
+                if (checkbox) {
+                    checkbox.checked = isChecked;
+                }
+            });
+
+            updateSelectedTests();
+        }
+
+        // Function to update the select all checkbox state based on visible items
+        function updateSelectAllState() {
+            const selectAllCheckbox = document.getElementById('select_all');
+            const visibleItems = document.querySelectorAll('.test-case-item[style*="display: flex"], .test-case-item:not([style*="display"])');
+            const checkedVisibleItems = document.querySelectorAll('.test-case-item[style*="display: flex"] input[type="checkbox"]:checked, .test-case-item:not([style*="display"]) input[type="checkbox"]:checked');
+
+            if (visibleItems.length === 0) {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = false;
+            } else if (checkedVisibleItems.length === visibleItems.length) {
+                selectAllCheckbox.checked = true;
+                selectAllCheckbox.indeterminate = false;
+            } else if (checkedVisibleItems.length > 0) {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = true;
+            } else {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = false;
+            }
         }
 
         document.addEventListener('DOMContentLoaded', initializeForm);
