@@ -138,10 +138,152 @@
             color: #1e40af;
             border: 1px solid #60a5fa;
         }
+
+        /* Dark Mode Styles */
+        [data-theme="dark"] {
+            --bg-primary: linear-gradient(135deg, #0f172a 0%, #1e1b4b 25%, #164e63 50%, #134e4a 75%, #365314 100%);
+            --card-bg: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 27, 75, 0.3) 25%, rgba(22, 78, 99, 0.3) 75%, rgba(15, 23, 42, 0.9) 100%);
+            --sub-card-bg: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 27, 75, 0.2) 25%, rgba(22, 78, 99, 0.2) 75%, rgba(15, 23, 42, 0.95) 100%);
+            --input-bg: rgba(30, 41, 59, 0.85);
+            --input-placeholder: #64748b;
+            --search-focus-border: #f59e0b;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --border-color: rgba(251, 191, 36, 0.2);
+            --table-bg: rgba(15, 23, 42, 0.8);
+            --table-header-bg: rgba(30, 41, 59, 0.9);
+            --table-text-primary: #f1f5f9;
+            --table-text-secondary: #94a3b8;
+            --table-border: rgba(51, 65, 85, 0.5);
+            --table-hover-bg: rgba(51, 65, 85, 0.3);
+        }
+
+        [data-theme="dark"] body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .main-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+        }
+
+        [data-theme="dark"] .sub-card {
+            background: var(--sub-card-bg);
+            border: 1px solid var(--border-color);
+        }
+
+        [data-theme="dark"] .form-input {
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .form-input:focus {
+            border-color: var(--search-focus-border);
+            background: rgba(30, 41, 59, 1);
+        }
+
+        [data-theme="dark"] .form-input::placeholder {
+            color: var(--input-placeholder);
+        }
+
+        [data-theme="dark"] pre {
+            background-color: var(--table-header-bg);
+            border: 1px solid var(--table-border);
+            color: var(--table-text-primary);
+        }
+
+        [data-theme="dark"] .header-title {
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .text-slate-700 {
+            color: var(--text-secondary);
+        }
+
+        [data-theme="dark"] .text-slate-800 {
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .text-slate-600 {
+            color: var(--text-secondary);
+        }
+
+        [data-theme="dark"] .text-blue-600 {
+            color: #60a5fa;
+        }
+
+        [data-theme="dark"] .hover\:text-amber-500:hover {
+            color: #fbbf24;
+        }
+
+        [data-theme="dark"] .message-success {
+            background: linear-gradient(90deg, rgba(6, 78, 59, 0.3), rgba(4, 120, 87, 0.3));
+            color: #6ee7b7;
+            border: 1px solid rgba(6, 95, 70, 0.5);
+        }
+
+        [data-theme="dark"] .message-error {
+            background: linear-gradient(90deg, rgba(127, 29, 29, 0.3), rgba(153, 27, 27, 0.3));
+            color: #fca5a5;
+            border: 1px solid rgba(153, 27, 27, 0.5);
+        }
+
+        [data-theme="dark"] .message-info {
+            background: linear-gradient(90deg, rgba(30, 58, 138, 0.3), rgba(37, 99, 235, 0.3));
+            color: #93c5fd;
+            border: 1px solid rgba(37, 99, 235, 0.5);
+        }
+
+        /* Dark Mode Toggle Button */
+        .dark-mode-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .dark-mode-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .dark-mode-toggle i {
+            font-size: 1.2rem;
+            color: #fbbf24;
+            transition: transform 0.3s ease;
+        }
+
+        .dark-mode-toggle:hover i {
+            transform: rotate(180deg);
+        }
+
+        [data-theme="dark"] .dark-mode-toggle {
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
     </style>
 </head>
 
 <body class="p-6">
+    <!-- Dark Mode Toggle Button -->
+    <button class="dark-mode-toggle" id="themeToggle" title="Toggle Dark Mode">
+        <i class="fas fa-moon"></i>
+    </button>
+
     <div class="max-w-7xl mx-auto main-card p-8">
         <div class="flex items-center justify-center mb-6">
             <i
@@ -443,6 +585,26 @@
         {% endif %}
 
         <script>
+            function toggleDarkMode() {
+                const html = document.documentElement;
+                const currentTheme = html.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+                html.setAttribute('data-theme', newTheme);
+                localStorage.setItem('eagle-dq-theme', newTheme);
+
+                // Update icon
+                const icon = document.querySelector('.dark-mode-toggle i');
+                if (newTheme === 'dark') {
+                    icon.className = 'fas fa-sun';
+                } else {
+                    icon.className = 'fas fa-moon';
+                }
+
+                // Dispatch custom event for consistency
+                window.dispatchEvent(new CustomEvent('themeChange', { detail: { theme: newTheme } }));
+            }
+
             function toggleRequiredFields(prefix) {
                 const connSelect = document.getElementById(prefix + '_connection_source');
                 const isPowerBI = connSelect && connSelect.value === 'Power BI';
@@ -478,6 +640,21 @@
             }
 
             document.addEventListener('DOMContentLoaded', () => {
+                // Load saved theme
+                const savedTheme = localStorage.getItem('eagle-dq-theme') || 'light';
+                document.documentElement.setAttribute('data-theme', savedTheme);
+
+                // Update icon based on saved theme
+                const icon = document.querySelector('.dark-mode-toggle i');
+                if (savedTheme === 'dark') {
+                    icon.className = 'fas fa-sun';
+                } else {
+                    icon.className = 'fas fa-moon';
+                }
+
+                // Add click handler for dark mode toggle
+                document.querySelector('.dark-mode-toggle').addEventListener('click', toggleDarkMode);
+
                 // Apply form-input styling to all relevant elements on load
                 document.querySelectorAll('input:not([type="hidden"]), select, textarea').forEach(el => {
                     if (!el.classList.contains('form-input')) {

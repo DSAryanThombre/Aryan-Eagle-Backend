@@ -12,13 +12,114 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        :root {
+            /* Light Mode Colors */
+            --bg-primary: linear-gradient(135deg, #fef7ed 0%, #fdf4ff 25%, #f0f9ff 50%, #f0fdfa 75%, #fefce8 100%);
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --card-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(254, 252, 232, 0.3) 25%, rgba(240, 249, 255, 0.3) 75%, rgba(255, 255, 255, 0.9) 100%);
+            --card-border: rgba(251, 191, 36, 0.1);
+            --sub-card-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(254, 252, 232, 0.2) 25%, rgba(240, 249, 255, 0.2) 75%, rgba(255, 255, 255, 0.95) 100%);
+            --sub-card-border: rgba(251, 191, 36, 0.1);
+            --header-text: linear-gradient(135deg, #1e293b 0%, #475569 50%, #0369a1 100%);
+            --section-heading-color: #1e293b;
+            --section-heading-border: #e2e8f0;
+            --form-label-color: #475569;
+            --form-input-bg: rgba(255, 255, 255, 0.85);
+            --form-input-border: #e2e8f0;
+            --form-input-color: #334155;
+            --form-input-focus-border: #f59e0b;
+            --form-input-focus-bg: #fff;
+            --test-case-bg: #ffffff;
+            --test-case-border: rgba(14, 165, 233, 0.05);
+            --test-case-shadow: 0 2px 5px rgba(14, 165, 233, 0.1);
+            --test-type-badge-bg: #e0f2fe;
+            --test-type-badge-color: #0369a1;
+            --item-details-color: #475569;
+            --item-details-title-color: #1e293b;
+            --execution-order-bg: #f8fafc;
+            --btn-primary-bg: linear-gradient(45deg, #0ea5e9 0%, #1e40af 100%);
+            --btn-primary-hover-bg: linear-gradient(45deg, #38bdf8 0%, #1e3a8a 100%);
+            --btn-secondary-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(254, 252, 232, 0.8) 100%);
+            --btn-secondary-border: rgba(251, 191, 36, 0.2);
+            --btn-secondary-color: #475569;
+            --btn-secondary-hover-bg: rgba(255, 255, 255, 1);
+            --btn-secondary-hover-color: #1e293b;
+            --message-success-bg: #ecfdf5;
+            --message-success-color: #047857;
+            --message-error-bg: #fef2f2;
+            --message-error-color: #b91c1c;
+            --message-info-bg: #f0f9ff;
+            --message-info-color: #0369a1;
+            --message-info-border: rgba(14, 165, 233, 0.2);
+            --test-case-list-bg: rgba(240, 249, 255, 0.5);
+            --test-case-list-border: rgba(14, 165, 233, 0.2);
+        }
+
+        [data-theme="dark"] {
+            /* Dark Mode Colors */
+            --bg-primary: linear-gradient(135deg, #0f172a 0%, #1e1b4b 25%, #164e63 50%, #134e4a 75%, #365314 100%);
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --card-bg: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(51, 65, 85, 0.8) 100%);
+            --card-border: rgba(251, 191, 36, 0.2);
+            --sub-card-bg: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(51, 65, 85, 0.8) 100%);
+            --sub-card-border: rgba(251, 191, 36, 0.2);
+            --header-text: linear-gradient(135deg, #cbd5e1 0%, #0ea5e9 50%, #fbbf24 100%);
+            --section-heading-color: #f1f5f9;
+            --section-heading-border: #475569;
+            --form-label-color: #cbd5e1;
+            --form-input-bg: rgba(30, 41, 59, 0.85);
+            --form-input-border: #475569;
+            --form-input-color: #f1f5f9;
+            --form-input-focus-border: #f59e0b;
+            --form-input-focus-bg: #1e293b;
+            --test-case-bg: #1e293b;
+            --test-case-border: rgba(14, 165, 233, 0.1);
+            --test-case-shadow: 0 2px 5px rgba(14, 165, 233, 0.2);
+            --test-type-badge-bg: #1e3a8a;
+            --test-type-badge-color: #bae6fd;
+            --item-details-color: #cbd5e1;
+            --item-details-title-color: #f1f5f9;
+            --execution-order-bg: #334155;
+            --btn-primary-bg: linear-gradient(45deg, #0ea5e9 0%, #1e40af 100%);
+            --btn-primary-hover-bg: linear-gradient(45deg, #38bdf8 0%, #1e3a8a 100%);
+            --btn-secondary-bg: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(54, 83, 20, 0.8) 100%);
+            --btn-secondary-border: rgba(251, 191, 36, 0.2);
+            --btn-secondary-color: #cbd5e1;
+            --btn-secondary-hover-bg: rgba(51, 65, 85, 1);
+            --btn-secondary-hover-color: #f1f5f9;
+            --message-success-bg: #0f5132;
+            --message-success-color: #a7f3d0;
+            --message-error-bg: #7f1d1d;
+            --message-error-color: #fca5a5;
+            --message-info-bg: #1e3a8a;
+            --message-info-color: #bae6fd;
+            --message-info-border: rgba(14, 165, 233, 0.3);
+            --test-case-list-bg: rgba(30, 58, 138, 0.5);
+            --test-case-list-border: rgba(14, 165, 233, 0.3);
+        }
+
         /* Base Theme Styles */
         body {
-            background: linear-gradient(135deg, #fef7ed 0%, #fdf4ff 25%, #f0f9ff 50%, #f0fdfa 75%, #fefce8 100%);
+            background: var(--bg-primary);
+            background-size: 200% 200%;
+            animation: gradient-shift 15s ease infinite;
             font-family: 'Inter', sans-serif;
-            color: #1e293b;
+            color: var(--text-primary);
             font-size: 0.95rem;
             /* COMPACT: Base body font size reduction */
+        }
+
+        @keyframes gradient-shift {
+            0%, 100% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
         }
 
         /* Colorful eagle-inspired background pattern */
@@ -38,31 +139,36 @@
             z-index: -1;
         }
 
+        [data-theme="dark"] body::before {
+            background-image:
+                radial-gradient(circle at 20% 80%, rgba(251, 191, 36, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(167, 139, 250, 0.07) 0%, transparent 50%),
+                radial-gradient(circle at 60% 60%, rgba(236, 72, 153, 0.06) 0%, transparent 50%);
+        }
+
         /* Main Content Card Style */
         .main-card {
-            max-width: 1600px;
-            /* NORMAL SIZE: Max width for laptop view */
-            margin: 40px auto;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(254, 252, 232, 0.3) 25%, rgba(240, 249, 255, 0.3) 75%, rgba(255, 255, 255, 0.9) 100%);
+            background: var(--card-bg);
             backdrop-filter: blur(20px);
             border-radius: 1.5rem;
             box-shadow: 0 8px 32px rgba(251, 191, 36, 0.08);
-            border: 1px solid rgba(251, 191, 36, 0.1);
+            border: 1px solid var(--card-border);
             padding: 40px;
         }
 
         /* Sub-section Card Style */
         .sub-card {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(254, 252, 232, 0.2) 25%, rgba(240, 249, 255, 0.2) 75%, rgba(255, 255, 255, 0.95) 100%);
+            background: var(--sub-card-bg);
             backdrop-filter: blur(10px);
             border-radius: 1rem;
-            border: 1px solid rgba(251, 191, 36, 0.1);
+            border: 1px solid var(--sub-card-border);
             transition: all 0.3s ease;
         }
 
         /* Header Title Gradient */
         .header-title {
-            background: linear-gradient(135deg, #1e293b 0%, #475569 50%, #0369a1 100%);
+            background: var(--header-text);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -72,9 +178,9 @@
         }
 
         .section-heading {
-            color: #1e293b;
+            color: var(--section-heading-color);
             font-weight: 600;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid var(--section-heading-border);
             padding-bottom: 0.5rem;
             margin-bottom: 1rem;
             font-size: 1.15rem;
@@ -87,7 +193,7 @@
             margin-bottom: 4px;
             /* COMPACT: Reduced margin below label */
             font-weight: 600;
-            color: #475569;
+            color: var(--form-label-color);
             font-size: 0.9rem;
             /* NORMAL SIZE: Reduced label font size */
         }
@@ -101,10 +207,10 @@
             box-sizing: border-box;
             font-size: 0.9rem;
             /* NORMAL SIZE: Reduced input font size */
-            color: #334155;
+            color: var(--form-input-color);
             transition: border-color 0.2s, box-shadow 0.2s;
-            background: rgba(255, 255, 255, 0.85);
-            border: 1px solid #e2e8f0;
+            background: var(--form-input-bg);
+            border: 1px solid var(--form-input-border);
         }
 
         .form-textarea {
@@ -116,20 +222,20 @@
 
         .form-input:focus,
         .form-textarea:focus {
-            border-color: #f59e0b;
+            border-color: var(--form-input-focus-border);
             /* Amber focus ring */
             box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.3);
             outline: none;
-            background: #fff;
+            background: var(--form-input-focus-bg);
         }
 
         .test-case-list-container {
-            border: 1px solid rgba(14, 165, 233, 0.2);
+            border: 1px solid var(--test-case-list-border);
             border-radius: 12px;
             max-height: 400px;
             overflow-y: auto;
             padding: 16px;
-            background-color: rgba(240, 249, 255, 0.5);
+            background-color: var(--test-case-list-bg);
         }
 
         .test-case-item {
@@ -137,12 +243,12 @@
             align-items: center;
             gap: 16px;
             margin-bottom: 12px;
-            background-color: #ffffff;
+            background-color: var(--test-case-bg);
             padding: 12px 16px;
             /* COMPACT: Reduced item padding */
             border-radius: 10px;
-            border: 1px solid rgba(14, 165, 233, 0.05);
-            box-shadow: 0 2px 5px rgba(14, 165, 233, 0.1);
+            border: 1px solid var(--test-case-border);
+            box-shadow: var(--test-case-shadow);
             transition: all 0.2s ease;
         }
 
@@ -161,10 +267,27 @@
             font-size: 0.7rem;
             /* NORMAL SIZE: Reduced badge font size */
             font-weight: 600;
-            background-color: #e0f2fe;
-            color: #0369a1;
+            background-color: var(--test-type-badge-bg);
+            color: var(--test-type-badge-color);
             margin-left: 8px;
             flex-shrink: 0;
+        }
+
+        .category-badge {
+            padding: 3px 8px;
+            /* COMPACT: Reduced badge padding */
+            font-size: 0.7rem;
+            /* NORMAL SIZE: Reduced badge font size */
+            font-weight: 600;
+            background-color: #fef3c7;
+            color: #92400e;
+            margin-left: 8px;
+            flex-shrink: 0;
+        }
+
+        [data-theme="dark"] .category-badge {
+            background-color: #451a03;
+            color: #fbbf24;
         }
 
         /* --- Test Item Details Rework --- */
@@ -173,7 +296,7 @@
             gap: 4px 16px;
             font-size: 0.8rem;
             /* NORMAL SIZE: Reduced details font size */
-            color: #475569;
+            color: var(--item-details-color);
             display: block;
         }
 
@@ -181,7 +304,7 @@
             font-size: 0.95rem;
             /* NORMAL SIZE: Reduced title font size */
             font-weight: 700;
-            color: #1e293b;
+            color: var(--item-details-title-color);
             display: flex;
             align-items: center;
             margin-bottom: 6px;
@@ -204,7 +327,7 @@
             /* NORMAL SIZE: Reduced input font size */
             color: #334155;
             flex-shrink: 0;
-            background: #f8fafc;
+            background: var(--execution-order-bg);
         }
 
         /* Button Styling - Primary (Create/Update) */
@@ -217,14 +340,14 @@
             border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
-            background: linear-gradient(45deg, #0ea5e9 0%, #1e40af 100%);
+            background: var(--btn-primary-bg);
             color: white;
             transition: all 0.3s ease;
             box-shadow: 0 4px 10px rgba(14, 165, 233, 0.3);
         }
 
         .btn-primary:hover {
-            background: linear-gradient(45deg, #38bdf8 0%, #1e3a8a 100%);
+            background: var(--btn-primary-hover-bg);
             transform: translateY(-2px);
             box-shadow: 0 6px 15px rgba(14, 165, 233, 0.4);
         }
@@ -238,10 +361,10 @@
             border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(254, 252, 232, 0.8) 100%);
+            background: var(--btn-secondary-bg);
             backdrop-filter: blur(5px);
-            border: 1px solid rgba(251, 191, 36, 0.2);
-            color: #475569;
+            border: 1px solid var(--btn-secondary-border);
+            color: var(--btn-secondary-color);
             transition: all 0.3s ease;
             box-shadow: 0 2px 5px rgba(251, 191, 36, 0.1);
             text-decoration: none;
@@ -251,10 +374,27 @@
         }
 
         .btn-secondary:hover {
-            background: rgba(255, 255, 255, 1);
-            color: #1e293b;
+            background: var(--btn-secondary-hover-bg);
+            color: var(--btn-secondary-hover-color);
             box-shadow: 0 4px 8px rgba(251, 191, 36, 0.2);
             transform: translateY(-1px);
+        }
+
+        /* Message styles */
+        .message-success {
+            background: var(--message-success-bg);
+            color: var(--message-success-color);
+        }
+
+        .message-error {
+            background: var(--message-error-bg);
+            color: var(--message-error-color);
+        }
+
+        .message-info {
+            background: var(--message-info-bg);
+            color: var(--message-info-color);
+            border: 1px solid var(--message-info-border);
         }
 
         /* Responsive adjustments for button group */
@@ -289,17 +429,22 @@
             </a>
         </p>
 
-        <div class="flex items-center justify-center mb-8">
-            <i
-                class="fas fa-feather-alt text-3xl bg-gradient-to-r from-amber-500 to-blue-500 bg-clip-text text-transparent mr-3"></i>
-            <h1 class="header-title text-center">
-                {% if group_id %}
-                Edit Test Group
-                {% else %}
-                Create Test Group
-                {% endif %}
-                for {{ project.project_name|default:"N/A" }}
-            </h1>
+        <div class="flex items-center justify-between mb-8">
+            <div class="flex items-center">
+                <i
+                    class="fas fa-feather-alt text-3xl bg-gradient-to-r from-amber-500 to-blue-500 bg-clip-text text-transparent mr-3"></i>
+                <h1 class="header-title">
+                    {% if group_id %}
+                    Edit Test Group
+                    {% else %}
+                    Create Test Group
+                    {% endif %}
+                    for {{ project.project_name|default:"N/A" }}
+                </h1>
+            </div>
+            <button id="theme-toggle" class="btn-secondary p-2" aria-label="Toggle Dark Mode">
+                <i class="fas fa-moon"></i>
+            </button>
         </div>
 
         {% if messages %}
@@ -385,6 +530,21 @@
                     <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
                 </div>
 
+                <div class="mb-4 flex gap-4">
+                    <select id="category_filter" onchange="filterTestCases()" class="form-input">
+                        <option value="">All Categories</option>
+                    </select>
+                    <select id="test_type_filter" onchange="filterTestCases()" class="form-input">
+                        <option value="">All Test Types</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label flex items-center">
+                        <input type="checkbox" id="select_all" onchange="toggleSelectAll()" class="mr-2">
+                        Select All Visible Test Cases
+                    </label>
+                </div>
 
                 <div class="test-case-list-container">
                     {% for tc in available_test_cases %}
@@ -397,6 +557,9 @@
                                 <span>{{ tc.test_name }}</span>
                                 <span class="test-type-badge ml-3">
                                     {{ tc.test_type|default:"N/A" }}
+                                </span>
+                                <span class="category-badge ml-2">
+                                    {{ tc.category|default:"N/A" }}
                                 </span>
                             </div>
 
@@ -458,9 +621,54 @@
         // Map: {test_case_id: execution_order}
         const initialSelectedTestCasesMap = new Map(initialSelectedTestCasesData.map(item => [item.detail.test_case_id, item.execution_order]));
 
+        // Collect unique categories and test types
+        const categories = new Set();
+        const testTypes = new Set();
+        const items = document.querySelectorAll('.test-case-item');
+        items.forEach(item => {
+            const categoryBadge = item.querySelector('.category-badge');
+            const testTypeBadge = item.querySelector('.test-type-badge');
+            if (categoryBadge && categoryBadge.textContent.trim() !== 'N/A') {
+                categories.add(categoryBadge.textContent.trim());
+            }
+            if (testTypeBadge && testTypeBadge.textContent.trim() !== 'N/A') {
+                testTypes.add(testTypeBadge.textContent.trim());
+            }
+        });
+
+        // Populate filter options
+        const categoryFilter = document.getElementById('category_filter');
+        categories.forEach(category => {
+            const option = document.createElement('option');
+            option.value = category;
+            option.textContent = category;
+            categoryFilter.appendChild(option);
+        });
+
+        const testTypeFilter = document.getElementById('test_type_filter');
+        testTypes.forEach(testType => {
+            const option = document.createElement('option');
+            option.value = testType;
+            option.textContent = testType;
+            testTypeFilter.appendChild(option);
+        });
+
         function updateSelectedTests() {
             const selectedData = [];
             const checkboxes = document.querySelectorAll('.test-case-item input[type="checkbox"]');
+
+            // First, collect current selected orders to find the next available
+            let maxOrder = 0;
+            checkboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    const itemContainer = checkbox.closest('.test-case-item');
+                    const orderInput = itemContainer.querySelector('.execution-order-input');
+                    const orderValue = parseInt(orderInput.value);
+                    if (!isNaN(orderValue) && orderValue > 0) {
+                        maxOrder = Math.max(maxOrder, orderValue);
+                    }
+                }
+            });
 
             checkboxes.forEach(checkbox => {
                 const itemContainer = checkbox.closest('.test-case-item');
@@ -470,9 +678,10 @@
                 if (checkbox.checked) {
                     let orderValue = parseInt(orderInput.value);
 
-                    // If the checkbox is checked but order is empty/invalid, default to 1
+                    // If the checkbox is checked but order is empty/invalid, auto-assign next order
                     if (isNaN(orderValue) || orderValue < 1) {
-                        orderValue = 1;
+                        orderValue = maxOrder + 1;
+                        maxOrder = orderValue; // Update max for next
                         orderInput.value = orderValue; // Set the visible input
                     }
 
@@ -511,23 +720,73 @@
             updateSelectedTests(); // Call once to set the hidden field initially
         }
 
-        // Function to filter test cases based on search input
+        // Function to filter test cases based on search input, category, and test type
         function filterTestCases() {
-            const input = document.getElementById('test_case_search');
-            const filter = input.value.toUpperCase();
+            const searchInput = document.getElementById('test_case_search');
+            const searchFilter = searchInput.value.toUpperCase();
+            const categoryFilterValue = document.getElementById('category_filter').value;
+            const testTypeFilterValue = document.getElementById('test_type_filter').value;
             const items = document.querySelectorAll('.test-case-item');
 
             items.forEach(item => {
                 const titleElement = item.querySelector('.item-details-grid .title span:first-child');
-                if (titleElement) {
-                    const textValue = titleElement.textContent || titleElement.innerText;
-                    if (textValue.toUpperCase().indexOf(filter) > -1) {
-                        item.style.display = "flex";
-                    } else {
-                        item.style.display = "none";
-                    }
+                const categoryBadge = item.querySelector('.category-badge');
+                const testTypeBadge = item.querySelector('.test-type-badge');
+
+                const titleText = titleElement ? (titleElement.textContent || titleElement.innerText).toUpperCase() : '';
+                const categoryText = categoryBadge ? categoryBadge.textContent.trim() : '';
+                const testTypeText = testTypeBadge ? testTypeBadge.textContent.trim() : '';
+
+                const matchesSearch = titleText.indexOf(searchFilter) > -1;
+                const matchesCategory = !categoryFilterValue || categoryText === categoryFilterValue;
+                const matchesTestType = !testTypeFilterValue || testTypeText === testTypeFilterValue;
+
+                if (matchesSearch && matchesCategory && matchesTestType) {
+                    item.style.display = "flex";
+                } else {
+                    item.style.display = "none";
                 }
             });
+
+            // Update select all checkbox state after filtering
+            updateSelectAllState();
+        }
+
+        // Function to toggle select all visible test cases
+        function toggleSelectAll() {
+            const selectAllCheckbox = document.getElementById('select_all');
+            const isChecked = selectAllCheckbox.checked;
+            const visibleItems = document.querySelectorAll('.test-case-item[style*="display: flex"], .test-case-item:not([style*="display"])');
+
+            visibleItems.forEach(item => {
+                const checkbox = item.querySelector('input[type="checkbox"]');
+                if (checkbox) {
+                    checkbox.checked = isChecked;
+                }
+            });
+
+            updateSelectedTests();
+        }
+
+        // Function to update the select all checkbox state based on visible items
+        function updateSelectAllState() {
+            const selectAllCheckbox = document.getElementById('select_all');
+            const visibleItems = document.querySelectorAll('.test-case-item[style*="display: flex"], .test-case-item:not([style*="display"])');
+            const checkedVisibleItems = document.querySelectorAll('.test-case-item[style*="display: flex"] input[type="checkbox"]:checked, .test-case-item:not([style*="display"]) input[type="checkbox"]:checked');
+
+            if (visibleItems.length === 0) {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = false;
+            } else if (checkedVisibleItems.length === visibleItems.length) {
+                selectAllCheckbox.checked = true;
+                selectAllCheckbox.indeterminate = false;
+            } else if (checkedVisibleItems.length > 0) {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = true;
+            } else {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = false;
+            }
         }
 
         document.addEventListener('DOMContentLoaded', initializeForm);
@@ -536,6 +795,28 @@
         document.querySelectorAll('.execution-order-input').forEach(input => {
             input.addEventListener('change', updateSelectedTests);
             input.addEventListener('keyup', updateSelectedTests);
+        });
+
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('theme-toggle');
+        const body = document.body;
+
+        // Load saved theme from localStorage (use same key as dashboard)
+        const savedTheme = localStorage.getItem('eagle-dq-theme') || 'light';
+        body.setAttribute('data-theme', savedTheme);
+        themeToggle.innerHTML = savedTheme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+
+        // Toggle theme on button click
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+            body.setAttribute('data-theme', newTheme);
+            localStorage.setItem('eagle-dq-theme', newTheme);
+            themeToggle.innerHTML = newTheme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+
+            // Dispatch event for consistency with sidebar
+            window.dispatchEvent(new CustomEvent('themeChanged', { detail: { theme: newTheme } }));
         });
     </script>
 </body>

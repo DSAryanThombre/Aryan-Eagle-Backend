@@ -49,6 +49,12 @@ from dq_management.test_case_manager import TestCaseProcessor # Still needed for
 
 logger = logging.getLogger(__name__)
 
+def opening_page(request):
+    """
+    Renders the opening page with an animated eagle that redirects to the dashboard.
+    """
+    return render(request, 'dq_management/opening.html')
+
 def create_project(request):
     """Handles project creation (GET request to show form, POST request to save)."""
     

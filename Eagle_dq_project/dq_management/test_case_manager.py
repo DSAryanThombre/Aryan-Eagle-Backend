@@ -24,11 +24,16 @@ class TestCaseProcessor:
         overall_message = "Comparison logic error."
         test_outcome = "ERROR"
         difference = None
+        # Set defaults if not configured
+        if threshold is None:
+            threshold = 0
+        if threshold_type is None:
+            threshold_type = 'ABSOLUTE'
         if source_val is None or destination_val is None:
             overall_status = "FAIL"
             overall_message = "One or both queries returned no comparable result (value is None)."
             test_outcome = "FAIL"
-            return overall_status, overall_message, test_outcome, difference
+            return overall_status, overall_message, test_outcome, difference, threshold, threshold_type
         try:
             s_val_num = float(source_val)
             d_val_num = float(destination_val)
@@ -54,7 +59,7 @@ class TestCaseProcessor:
                 overall_status = "ERROR"
                 test_outcome = "ERROR"
                 overall_message = "Invalid threshold type configured."
-                return overall_status, overall_message, test_outcome, difference
+                return overall_status, overall_message, test_outcome, difference, threshold, threshold_type
             if is_pass:
                 overall_status = "PASS"
                 test_outcome = "PASS"
@@ -79,7 +84,7 @@ class TestCaseProcessor:
             test_outcome = "ERROR"
             overall_message = f"An unexpected error occurred during comparison: {e}"
             difference = "N/A"
-        return overall_status, overall_message, test_outcome, difference
+        return overall_status, overall_message, test_outcome, difference, threshold, threshold_type
     
     def _map_user_connection(self, user_conn_name):
         mapping = {
@@ -210,19 +215,22 @@ class TestCaseProcessor:
                 result['destination_connection_used'] = destination_conn_name
 
         # --- Comparison ---
-        if result.get('source_value') is not None and result.get('destination_value') is not None:
-            status, message, outcome, diff = self._perform_comparison(
-                result['source_value'], result['destination_value'], config.get('threshold'), config.get('threshold_type')
-            )
-            result.update({"status": status, "message": message, "difference": diff, "test_outcome": outcome})
-        else:
+        status, message, outcome, diff, threshold, threshold_type = self._perform_comparison(
+            result['source_value'], result['destination_value'], config.get('threshold'), config.get('threshold_type')
+        )
+        # Append any errors to the message
+        error_parts = []
+        if result.get('source_error'):
+            error_parts.append(f"Source error: {result['source_error']}")
+        if result.get('destination_error'):
+            error_parts.append(f"Destination error: {result['destination_error']}")
+        if error_parts:
+            message += " " + " ".join(error_parts)
+        result.update({"status": status, "message": message, "difference": diff, "test_outcome": outcome, "threshold": threshold, "threshold_type": threshold_type})
+        # If there were query errors, override status to ERROR
+        if result.get('source_error') or result.get('destination_error'):
             result['status'] = "ERROR"
-            result['message'] = (
-                f"Source error: {result.get('source_error', '')} "
-                f"Destination error: {result.get('destination_error', '')}"
-            ).strip()
             result['test_outcome'] = "ERROR"
-            result['difference'] = None
         return result
 
     # --- Drift Test (Single-system) ---
@@ -262,21 +270,26 @@ class TestCaseProcessor:
             db_config['schema'] = config.get('source_schema') or db_config.get('schema') or 'PUBLIC'
             sql_query_today = build_dynamic_aggregation_query(db_config, config.get('source_table'), config.get('source_date_column'), today_date_value, config.get('source_aggregation_type'), config.get('source_aggregation_column'))
             df_today, exec_error_today = execute_query_to_dataframe(conn_name, sql_query_today)
-            if exec_error_today: raise Exception(f"Today's query failed: {exec_error_today}")
+            if exec_error_today:
+                result['source_value'] = None
+                result['source_error'] = f"Today's query failed: {exec_error_today}"
+            else:
+                result['source_value'] = df_today.iloc[0, 0] if not df_today.empty and not df_today.columns.empty else 0
             sql_query_yesterday = build_dynamic_aggregation_query(db_config, config.get('source_table'), config.get('source_date_column'), yesterday_date_value, config.get('source_aggregation_type'), config.get('source_aggregation_column'))
             df_yesterday, exec_error_yesterday = execute_query_to_dataframe(conn_name, sql_query_yesterday)
-            if exec_error_yesterday: raise Exception(f"Yesterday's query failed: {exec_error_yesterday}")
-            result['source_value'] = df_today.iloc[0, 0] if not df_today.empty and not df_today.columns.empty else 0
-            result['destination_value'] = df_yesterday.iloc[0, 0] if not df_yesterday.empty and not df_yesterday.columns.empty else 0
+            if exec_error_yesterday:
+                result['destination_value'] = None
+                result['destination_error'] = f"Yesterday's query failed: {exec_error_yesterday}"
+            else:
+                result['destination_value'] = df_yesterday.iloc[0, 0] if not df_yesterday.empty and not df_yesterday.columns.empty else 0
             result['source_query'] = sql_query_today
             result['destination_query'] = sql_query_yesterday
             result['source_connection_used'] = conn_name
             result['destination_connection_used'] = conn_name
-        status, message, outcome, diff = self._perform_comparison(
-            result['source_value'], result['destination_value'], config.get('threshold', 0), config.get('threshold_type')
+        status, message, outcome, diff, threshold, threshold_type = self._perform_comparison(
+            result['source_value'], result['destination_value'], config.get('threshold'), config.get('threshold_type')
         )
-        result.update({"status": status, "message": message, "difference": diff, "test_outcome": outcome})
-        result.update({'threshold': config.get('threshold'), 'threshold_type': config.get('threshold_type')})
+        result.update({"status": status, "message": message, "difference": diff, "test_outcome": outcome, "threshold": threshold, "threshold_type": threshold_type})
         return result
 
     # --- Availability Test (Single-system) ---
@@ -303,8 +316,11 @@ class TestCaseProcessor:
             db_config['schema'] = config.get('source_schema') or db_config.get('schema') or 'PUBLIC'
             sql_query = build_dynamic_aggregation_query(db_config, config.get('source_table'), config.get('source_date_column'), 'CURRENT_DATE()', 'COUNT', config.get('source_aggregation_column'))
             df_source, exec_error = execute_query_to_dataframe(conn_name, sql_query)
-            if exec_error: raise Exception(f"Availability query failed: {exec_error}")
-            result['source_value'] = df_source.iloc[0, 0] if not df_source.empty and not df_source.columns.empty else 0
+            if exec_error:
+                result['source_value'] = None
+                result['source_error'] = f"Availability query failed: {exec_error}"
+            else:
+                result['source_value'] = df_source.iloc[0, 0] if not df_source.empty and not df_source.columns.empty else 0
             result['source_query'] = sql_query
             result['source_connection_used'] = conn_name
 
@@ -333,8 +349,11 @@ class TestCaseProcessor:
                 db_config_dest['schema'] = config.get('destination_schema') or db_config_dest.get('schema') or 'PUBLIC'
                 sql_query_dest = build_dynamic_aggregation_query(db_config_dest, config.get('destination_table'), config.get('destination_date_column'), 'CURRENT_DATE()', 'COUNT', config.get('destination_aggregation_column'))
                 df_dest, exec_error_dest = execute_query_to_dataframe(conn_name_dest, sql_query_dest)
-                if exec_error_dest: raise Exception(f"Availability query failed: {exec_error_dest}")
-                result['destination_value'] = df_dest.iloc[0, 0] if not df_dest.empty and not df_dest.columns.empty else 0
+                if exec_error_dest:
+                    result['destination_value'] = None
+                    result['destination_error'] = f"Availability query failed: {exec_error_dest}"
+                else:
+                    result['destination_value'] = df_dest.iloc[0, 0] if not df_dest.empty and not df_dest.columns.empty else 0
                 result['destination_query'] = sql_query_dest
                 result['destination_connection_used'] = conn_name_dest
         else:
@@ -361,6 +380,10 @@ class TestCaseProcessor:
                 status, message, outcome, diff = ('FAIL', 'Data is not available in the source.', 'FAIL', 'N/A')
 
         result.update({"status": status, "message": message, "difference": diff, "test_outcome": outcome})
+        # If there were query errors, override status to ERROR
+        if result.get('source_error') or result.get('destination_error'):
+            result['status'] = "ERROR"
+            result['test_outcome'] = "ERROR"
         return result
 
     # The following methods are only used by the new main logic functions.

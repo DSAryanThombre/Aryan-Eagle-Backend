@@ -4,8 +4,11 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    # Opening page with animated eagle
+    path('', views.opening_page, name='opening_page'),
+
     # Displays a dashboard with cards for each project
-    path('', views.projects_dashboard, name='projects_dashboard'),
+    path('projects/', views.projects_dashboard, name='projects_dashboard'),
 
     # URL pattern to handle creating a new project
     path('projects/new/', views.create_project, name='create_project'),

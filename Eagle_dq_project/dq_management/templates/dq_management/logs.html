@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 {% load static %}
 
-
 <html lang="en">
 
 <head>
@@ -12,18 +11,116 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        /* --- Projects Dashboard theme (copied) --- */
+        /* CSS Variables for Theme Colors */
+        :root {
+            /* Light Theme Colors */
+            --bg-primary: linear-gradient(135deg, #fef7ed 0%, #fdf4ff 25%, #f0f9ff 50%, #f0fdfa 75%, #fefce8 100%);
+            --bg-overlay: radial-gradient(circle at 20% 80%, rgba(251, 191, 36, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.06) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(139, 92, 246, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 60% 60%, rgba(236, 72, 153, 0.04) 0%, transparent 50%);
+
+            --sidebar-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(254, 252, 232, 0.9) 50%, rgba(240, 249, 255, 0.9) 100%);
+            --sidebar-border: rgba(251, 191, 36, 0.1);
+            --sidebar-shadow: 2px 0 20px rgba(251, 191, 36, 0.1);
+
+            --card-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(254, 252, 232, 0.3) 25%, rgba(240, 249, 255, 0.3) 75%, rgba(255, 255, 255, 0.9) 100%);
+            --card-border: rgba(251, 191, 36, 0.1);
+            --card-shadow: 0 8px 32px rgba(251, 191, 36, 0.08);
+
+            --table-bg: #ffffff;
+            --table-border: rgba(148, 163, 184, 0.18);
+            --table-header-bg: #8b5cf6;
+            --table-header-text: #ffffff;
+            --table-header-shadow: 0 4px 8px rgba(139, 92, 246, 0.3);
+
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-tertiary: #64748b;
+            --text-muted: #94a3b8;
+            --text-table: #374151;
+
+            --border-color: #e2e8f0;
+            --scrollbar-thumb: rgba(139, 92, 246, 0.3);
+            --scrollbar-thumb-hover: rgba(139, 92, 246, 0.6);
+
+            --modal-bg: #ffffff;
+            --modal-border: #e2e8f0;
+            --modal-body-bg: #f7f7f7;
+
+            --filter-drawer-bg: #ffffff;
+            --filter-input-bg: #ffffff;
+            --filter-input-border: #e2e8f0;
+
+            --button-bg: #e0f2fe;
+            --button-color: #2563eb;
+            --button-hover-bg: #2563eb;
+            --button-hover-color: #ffffff;
+
+            --no-data-bg: rgba(248, 250, 252, 0.6);
+            --no-data-border: rgba(148, 163, 184, 0.25);
+        }
+
+        /* Dark Theme Colors */
+        [data-theme="dark"] {
+            --bg-primary: linear-gradient(135deg, #0f172a 0%, #1e1b4b 25%, #164e63 50%, #134e4a 75%, #365314 100%);
+            --bg-overlay: radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(168, 85, 247, 0.06) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(34, 197, 94, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 60% 60%, rgba(251, 191, 36, 0.04) 0%, transparent 50%);
+
+            --sidebar-bg: linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 27, 75, 0.9) 50%, rgba(22, 78, 99, 0.9) 100%);
+            --sidebar-border: rgba(59, 130, 246, 0.2);
+            --sidebar-shadow: 2px 0 20px rgba(59, 130, 246, 0.15);
+
+            --card-bg: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 27, 75, 0.3) 25%, rgba(22, 78, 99, 0.3) 75%, rgba(15, 23, 42, 0.9) 100%);
+            --card-border: rgba(59, 130, 246, 0.2);
+            --card-shadow: 0 8px 32px rgba(59, 130, 246, 0.15);
+
+            --table-bg: rgba(15, 23, 42, 0.95);
+            --table-border: rgba(59, 130, 246, 0.25);
+            --table-header-bg: linear-gradient(135deg, #4c1d95 0%, #5b21b6 50%, #6d28d9 100%);
+            --table-header-text: #f8fafc;
+            --table-header-shadow: 0 4px 8px rgba(139, 92, 246, 0.4);
+
+            --text-primary: #f8fafc;
+            --text-secondary: #e2e8f0;
+            --text-tertiary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --text-table: #e2e8f0;
+
+            --border-color: rgba(59, 130, 246, 0.2);
+            --scrollbar-thumb: rgba(59, 130, 246, 0.4);
+            --scrollbar-thumb-hover: rgba(59, 130, 246, 0.7);
+
+            --modal-bg: rgba(15, 23, 42, 0.95);
+            --modal-border: rgba(59, 130, 246, 0.3);
+            --modal-body-bg: rgba(30, 27, 75, 0.8);
+
+            --filter-drawer-bg: rgba(15, 23, 42, 0.95);
+            --filter-input-bg: rgba(30, 27, 75, 0.6);
+            --filter-input-border: rgba(59, 130, 246, 0.3);
+
+            --button-bg: rgba(59, 130, 246, 0.2);
+            --button-color: #93c5fd;
+            --button-hover-bg: rgba(59, 130, 246, 0.4);
+            --button-hover-color: #f8fafc;
+
+            --no-data-bg: rgba(15, 23, 42, 0.6);
+            --no-data-border: rgba(59, 130, 246, 0.25);
+        }
+
         body {
             display: flex;
-            /* Changed to 100vh to ensure body fills the viewport vertically */
             min-height: 100vh;
-            background: linear-gradient(135deg, #fef7ed 0%, #fdf4ff 25%, #f0f9ff 50%, #f0fdfa 75%, #fefce8 100%);
+            background: var(--bg-primary);
             font-family: 'Inter', sans-serif;
             margin: 0;
             position: relative;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
         }
 
-        /* Subtle background effects */
         body::before {
             content: '';
             position: fixed;
@@ -31,38 +128,30 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-image:
-                radial-gradient(circle at 20% 80%, rgba(251, 191, 36, 0.08) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.06) 0%, transparent 50%),
-                radial-gradient(circle at 40% 40%, rgba(139, 92, 246, 0.05) 0%, transparent 50%),
-                radial-gradient(circle at 60% 60%, rgba(236, 72, 153, 0.04) 0%, transparent 50%);
+            background-image: var(--bg-overlay);
             pointer-events: none;
             z-index: -1;
+            transition: all 0.3s ease;
         }
 
-        /* compact table spacing and consistent font for denser rows */
+        /* Table and cell styling with dark mode support */
         th,
         td {
-            /* Denser vertical padding */
             padding: 0.2rem 0.6rem;
             text-align: left;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid var(--border-color);
             font-size: 0.8125rem;
-            /* ~13px for higher data density */
             position: relative;
-            /* required for resize handle & correct positioning of query button */
+            color: var(--text-table);
+            transition: all 0.3s ease;
         }
 
-        /* Ensure table header text is white for contrast */
         th {
-            color: white;
+            color: var(--table-header-text);
+            font-weight: 600;
         }
 
-        /* ------------------------------------------- */
-        /* START: Custom Scrollbar and Cell Styling */
-        /* ------------------------------------------- */
-
-        /* NEW: Custom scrollbar to be less visible */
+        /* Enhanced scrollbar styling */
         .scrollable-table-container::-webkit-scrollbar,
         .modal-body::-webkit-scrollbar {
             width: 6px;
@@ -71,87 +160,73 @@
 
         .scrollable-table-container::-webkit-scrollbar-thumb,
         .modal-body::-webkit-scrollbar-thumb {
-            background-color: rgba(139, 92, 246, 0.3);
-            /* Lighter, subtle thumb */
+            background-color: var(--scrollbar-thumb);
             border-radius: 10px;
+            transition: background-color 0.3s ease;
         }
 
         .scrollable-table-container::-webkit-scrollbar-thumb:hover,
         .modal-body::-webkit-scrollbar-thumb:hover {
-            background-color: rgba(139, 92, 246, 0.6);
+            background-color: var(--scrollbar-thumb-hover);
         }
 
         .scrollable-table-container::-webkit-scrollbar-track,
         .modal-body::-webkit-scrollbar-track {
             background: transparent;
-            /* Makes the track invisible */
         }
 
-        /* *** MODIFIED: query-wrapper now wraps and has a visible max-height *** */
         .query-wrapper {
             white-space: normal;
-            /* Allow wrapping */
             word-break: break-all;
-            /* Allow long tokens to break */
             font-size: 0.75rem;
             position: relative;
-            /* Limit to max ~5 lines of text for a compact view */
             max-height: 6.25em;
-            /* 5 lines * 1.25 line-height */
             overflow: hidden;
-            /* Hide excess lines */
             margin: 0;
             line-height: 1.25;
-            color: #475569;
+            color: var(--text-table);
+            transition: color 0.3s ease;
         }
 
-        /* *** NEW: message-wrapper for truncating messages *** */
         .message-wrapper {
             white-space: normal;
             word-break: break-word;
             font-size: 0.75rem;
-            /* Matches text-xs */
             position: relative;
-            /* Limit to max ~3 lines of text for compactness */
             max-height: 3.75em;
-            /* 3 lines * 1.25 line-height */
             overflow: hidden;
             margin: 0;
             line-height: 1.25;
-            color: #475569;
+            color: var(--text-table);
+            transition: color 0.3s ease;
         }
 
-
-        /* NEW: Styles for the improved results details cell */
         .results-details-display {
             display: flex;
             flex-direction: column;
             gap: 1px;
-            /* Reduced gap */
             padding: 2px 0;
-            /* Reduced vertical padding */
         }
 
         .results-detail-item {
             font-size: 0.75rem;
-            color: #475569;
+            color: var(--text-table);
             display: flex;
             align-items: center;
             gap: 4px;
+            transition: color 0.3s ease;
         }
 
         .results-detail-item strong {
-            color: #1e293b;
+            color: var(--text-primary);
             font-weight: 500;
         }
 
-        /* NEW: Styles for the 'View Query/Details' button and icon */
         .view-details-btn {
             display: flex;
             align-items: center;
             gap: 4px;
-            color: #2563eb;
-            /* Blue-600 */
+            color: #3b82f6;
             cursor: pointer;
             font-size: 0.75rem;
             margin-top: 4px;
@@ -161,26 +236,33 @@
 
         .view-details-btn:hover {
             color: #1d4ed8;
-            /* Blue-700 */
         }
 
-        /* NEW: Modal styles for query/details viewing */
+        [data-theme="dark"] .view-details-btn {
+            color: #60a5fa;
+        }
+
+        [data-theme="dark"] .view-details-btn:hover {
+            color: #93c5fd;
+        }
+
+        /* Enhanced modal styling */
         .modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
+            background-color: rgba(0, 0, 0, 0.7);
             display: none;
-            /* Hidden by default, shown by JS */
             justify-content: center;
             align-items: center;
             z-index: 1000;
+            backdrop-filter: blur(4px);
         }
 
         .modal-content {
-            background: white;
+            background: var(--modal-bg);
             border-radius: 0.75rem;
             width: 90%;
             max-width: 800px;
@@ -188,14 +270,23 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
+            border: 1px solid var(--modal-border);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+            transition: all 0.3s ease;
         }
 
         .modal-header {
             padding: 1rem 1.5rem;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid var(--modal-border);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            background: var(--modal-bg);
+        }
+
+        .modal-header h3 {
+            color: var(--text-primary);
+            margin: 0;
         }
 
         .modal-body {
@@ -204,10 +295,10 @@
             flex-grow: 1;
             font-family: 'Consolas', 'Courier New', monospace;
             font-size: 0.875rem;
-            background-color: #f7f7f7;
+            background: var(--modal-body-bg);
             white-space: pre-wrap;
-            /* Allow wrapping of long strings/queries */
             word-break: break-all;
+            color: var(--text-table);
         }
 
         .modal-body pre {
@@ -215,55 +306,45 @@
             word-break: break-all;
             margin: 0;
             padding: 0;
+            color: var(--text-table);
         }
 
-        /* ------------------------------------------- */
-        /* END: Custom Scrollbar and Cell Styling */
-        /* ------------------------------------------- */
-
-
-        /* scrollable container: adjusted to use full available vertical space */
+        /* Enhanced table container */
         .scrollable-table-container {
-            /* Finalized height calculation: 100vh - (mainContent padding 1.5rem*2) - (mainContentCard padding 2.5rem*2) - (small buffer) */
             height: calc(100vh - 8.5rem);
             overflow-y: auto;
             overflow-x: auto;
-            border: 1px solid rgba(148, 163, 184, 0.18);
+            border: 1px solid var(--table-border);
             border-radius: 0.5rem;
-            background: white;
+            background: var(--table-bg);
             padding: 0.25rem;
-            /* Ensure it fills flex space */
             flex-grow: 1;
-            /* Removed bottom padding for stretch, handled by border-radius on thead */
             padding-bottom: 0;
             border-bottom-left-radius: 0;
             border-bottom-right-radius: 0;
+            transition: all 0.3s ease;
         }
 
-        /* sticky header with solid color and shadow */
+        /* Enhanced table header */
         thead {
             position: sticky;
             top: 0;
             z-index: 20;
-            /* SOLID HEADER COLOR (Purple/Violet - Tailwind's violet-600) */
-            background: #8b5cf6;
-            box-shadow: 0 4px 8px rgba(139, 92, 246, 0.3);
-            /* Add rounded top corners to the header row itself */
+            background: var(--table-header-bg);
+            box-shadow: var(--table-header-shadow);
             border-radius: 0.5rem 0.5rem 0 0;
             overflow: hidden;
-            /* Important for rounding sticky headers */
         }
 
-        /* Apply rounded corners to the top of the table itself, matching the thead */
         #caseTable,
-        #groupTable {
+        #groupTable,
+        #projectTable {
             border-collapse: separate;
-            /* Required for table border-radius */
             border-spacing: 0;
-            /* Required for table border-radius */
+            background: var(--table-bg);
+            transition: background 0.3s ease;
         }
 
-        /* Fix border on header cells for rounded corners */
         thead th:first-child {
             border-top-left-radius: 0.5rem;
         }
@@ -272,7 +353,6 @@
             border-top-right-radius: 0.5rem;
         }
 
-        /* Change the resize handle to be fully opaque for visibility on dark background */
         .resize-handle {
             position: absolute;
             right: 0;
@@ -291,7 +371,15 @@
             background-color: rgba(255, 255, 255, 0.7);
         }
 
-        /* unified status badge base */
+        [data-theme="dark"] .resize-handle {
+            background-color: rgba(59, 130, 246, 0.3);
+        }
+
+        [data-theme="dark"] .resize-handle:hover {
+            background-color: rgba(59, 130, 246, 0.6);
+        }
+
+        /* Enhanced status badges */
         .status-badge {
             display: inline-block;
             padding: 0.25rem 0.5rem;
@@ -299,29 +387,58 @@
             font-size: 0.6875rem;
             font-weight: 600;
             letter-spacing: 0.01em;
+            transition: all 0.3s ease;
         }
 
         .status-pass {
-            background: linear-gradient(90deg, #e6ffef, #bbf7d0);
-            color: #065f46;
+            background: linear-gradient(90deg, #065f46, #047857);
+            color: #6ee7b7;
+            border: 1px solid #059669;
         }
 
         .status-fail {
-            background: linear-gradient(90deg, #fff1f2, #fecaca);
-            color: #7f1d1d;
+            background: linear-gradient(90deg, #7f1d1d, #991b1b);
+            color: #fca5a5;
+            border: 1px solid #b91c1c;
         }
 
         .status-error {
-            background: linear-gradient(90deg, #fff7ed, #fde68a);
-            color: #92400e;
+            background: linear-gradient(90deg, #78350f, #92400e);
+            color: #fcd34d;
+            border: 1px solid #b45309;
         }
 
         .status-default {
-            background: linear-gradient(90deg, #f1f5f9, #e2e8f0);
-            color: #475569;
+            background: var(--table-bg);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
         }
 
-        /* Sidebar toggle button */
+        [data-theme="light"] .status-pass {
+            background: linear-gradient(90deg, #ecfdf5, #d1fae5);
+            color: #047857;
+            border: 1px solid #a7f3d0;
+        }
+
+        [data-theme="light"] .status-fail {
+            background: linear-gradient(90deg, #fef2f2, #fecaca);
+            color: #b91c1c;
+            border: 1px solid #f87171;
+        }
+
+        [data-theme="light"] .status-error {
+            background: linear-gradient(90deg, #fffbeb, #fde68a);
+            color: #b45309;
+            border: 1px solid #f59e0b;
+        }
+
+        [data-theme="light"] .status-default {
+            background: linear-gradient(90deg, #f1f5f9, #e2e8f0);
+            color: #475569;
+            border: 1px solid #cbd5e1;
+        }
+
+        /* Enhanced button styling */
         #sidebarToggleBtn {
             position: fixed;
             bottom: 1rem;
@@ -329,8 +446,8 @@
             z-index: 50;
             width: 40px;
             height: 40px;
-            background: #e0f2fe;
-            color: #2563eb;
+            background: var(--button-bg);
+            color: var(--button-color);
             border: none;
             border-radius: 50%;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -338,81 +455,142 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: background-color 0.3s, transform 0.3s;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(20px);
         }
 
         #sidebarToggleBtn:hover {
-            background-color: #2563eb;
-            color: white;
+            background: var(--button-hover-bg);
+            color: var(--button-hover-color);
+            transform: scale(1.05);
         }
 
-        #sidebarToggleIcon {
-            font-size: 1.5rem;
-        }
-
-        /* Filters drawer */
         #filtersToggleBtn {
             position: fixed;
             top: 1rem;
-            right: 1rem;
+            right: 4rem;
             z-index: 50;
             width: 44px;
             height: 44px;
-            background: #ffffff;
-            color: #2563eb;
-            border: 1px solid #e2e8f0;
+            background: var(--button-bg);
+            color: var(--button-color);
+            border: 1px solid var(--border-color);
             border-radius: 50%;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: background-color 0.3s, transform 0.3s;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(20px);
         }
 
         #filtersToggleBtn:hover {
-            background-color: #e0f2fe;
+            background: var(--button-hover-bg);
+            color: var(--button-hover-color);
+            transform: scale(1.05);
         }
 
+        /* Dark Mode Toggle Button */
+        .dark-mode-toggle {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 50;
+            background: var(--button-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            color: var(--button-color);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .dark-mode-toggle:hover {
+            transform: scale(1.1);
+            background: var(--button-hover-bg);
+            color: var(--button-hover-color);
+        }
+
+        .dark-mode-toggle i {
+            font-size: 1.2rem;
+            transition: transform 0.3s ease;
+        }
+
+        .dark-mode-toggle:hover i {
+            transform: rotate(180deg);
+        }
+
+        /* Enhanced filter drawer */
         #filtersDrawer {
             position: fixed;
             top: 0;
             right: 0;
             height: 100vh;
             width: 320px;
-            background-color: #ffffff;
-            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+            background: var(--filter-drawer-bg);
+            backdrop-filter: blur(20px);
+            box-shadow: -2px 0 25px rgba(0, 0, 0, 0.15);
             padding: 1.5rem;
             display: flex;
             flex-direction: column;
             transform: translateX(100%);
             transition: transform 0.3s ease;
             z-index: 60;
+            border-left: 1px solid var(--border-color);
         }
 
         #filtersDrawer.open {
             transform: translateX(0);
         }
 
+        #filtersDrawer label {
+            color: var(--text-secondary);
+        }
+
+        #filtersDrawer input,
+        #filtersDrawer select {
+            background: var(--filter-input-bg);
+            border: 1px solid var(--filter-input-border);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        #filtersDrawer input:focus,
+        #filtersDrawer select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            outline: none;
+        }
+
+        #filtersDrawer button {
+            transition: all 0.3s ease;
+        }
+
+        #filtersDrawer .font-semibold {
+            color: var(--text-primary);
+        }
+
         #filtersCloseBtn {
             cursor: pointer;
+            color: var(--text-muted);
+            transition: color 0.3s ease;
         }
 
-        select {
-            appearance: auto;
-            -webkit-appearance: auto;
-            -moz-appearance: auto;
-            background-color: #fff;
-            border: 1px solid #e2e8f0;
-            padding-right: 2rem;
-            cursor: pointer;
+        #filtersCloseBtn:hover {
+            color: var(--text-primary);
         }
 
-        /* restore main-content layout to take full available height */
+        /* Enhanced main content */
         .main-content-wrapper {
             flex-grow: 1;
             padding: 1.5rem;
-            /* Crucial for stretching content */
             height: 100vh;
             overflow-y: auto;
             transition: margin-left 0.3s ease;
@@ -420,92 +598,104 @@
         }
 
         .main-content-card {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(254, 252, 232, 0.3) 25%, rgba(240, 249, 255, 0.3) 75%, rgba(255, 255, 255, 0.9) 100%);
+            background: var(--card-bg);
             backdrop-filter: blur(20px);
             padding: 2.5rem;
             border-radius: 1.5rem;
-            box-shadow: 0 8px 32px rgba(251, 191, 36, 0.08);
-            border: 1px solid rgba(251, 191, 36, 0.1);
-            /* Set height to inherit from wrapper and stretch */
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--card-border);
             height: calc(100% - 3rem);
-            /* 100% minus the mainContent-wrapper vertical padding (2*1.5rem = 3rem) */
             display: flex;
             flex-direction: column;
             flex-grow: 1;
+            transition: all 0.3s ease;
         }
 
-        /* content div also needs to be flexible */
         .log-content {
             display: flex;
             flex-direction: column;
             flex-grow: 1;
         }
 
-        /* responsive keep in sync with sidebar include */
-        @media (max-width: 768px) {
-            .main-content-wrapper {
-                margin-left: 260px;
-            }
-        }
-
-        /* message cell: allow wrapping with a sensible max width */
-        .message-cell {
-            /* DEPRECATED: Replaced by message-wrapper and query-wrapper logic */
-            white-space: normal;
-            max-width: 28rem;
-            word-break: break-word;
-        }
-
-        /* no-data card */
+        /* Enhanced no-data styling */
         .no-data {
             margin: 1.25rem auto;
             max-width: 48rem;
-            border: 1px dashed rgba(148, 163, 184, 0.25);
+            border: 1px dashed var(--no-data-border);
             border-radius: 0.75rem;
             padding: 1rem;
             text-align: center;
-            color: #475569;
-            background: rgba(248, 250, 252, 0.6);
+            color: var(--text-secondary);
+            background: var(--no-data-bg);
             display: flex;
             align-items: center;
             gap: 0.75rem;
             justify-content: center;
+            transition: all 0.3s ease;
         }
 
-        /* ensure th doesn't visually overflow when resized */
-        th {
-            overflow: visible;
-            user-select: none;
-            position: relative;
+        /* Table row hover effects */
+        tbody tr {
+            transition: background-color 0.2s ease;
         }
 
-        /* headers draggable cursor */
+        tbody tr:hover {
+            background-color: rgba(59, 130, 246, 0.05);
+        }
+
+        [data-theme="dark"] tbody tr:hover {
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+
+        /* Enhanced draggable headers */
         th[draggable="true"] {
             cursor: grab;
+            user-select: none;
         }
 
         th[draggable="true"]:active {
             cursor: grabbing;
         }
 
-        /* small responsive safety */
+        th[draggable="true"]:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .main-content-wrapper {
+                margin-left: 260px;
+            }
+
+            .dark-mode-toggle {
+                top: 0.5rem;
+                right: 0.5rem;
+                width: 40px;
+                height: 40px;
+            }
+
+            #filtersToggleBtn {
+                top: 0.5rem;
+                right: 3rem;
+                width: 40px;
+                height: 40px;
+            }
+        }
+
         @media (max-width: 640px) {
             .message-cell {
                 max-width: 14rem;
             }
-
-            /* .query-pre { ... } */
         }
     </style>
-
 </head>
 
-<body class="text-slate-800">
+<body>
     {% include 'dq_management/includes/sidebar.html' %}
+
     <button id="sidebarToggleBtn"
         class="fixed bottom-4 left-4 z-50 rounded-full p-2 shadow-lg focus:outline-none transition-all duration-300 flex items-center justify-center"
-        style="width: 40px; height: 40px; background: #e0f2fe; color: #2563eb; border: none;">
-
+        style="width: 40px; height: 40px;">
         <span id="sidebarToggleIcon" style="font-size: 1.5rem;">
             <i class="fas fa-angle-left"></i>
         </span>
@@ -516,7 +706,7 @@
 
             <div id="tab-case-content" class="log-content">
                 <div class="scrollable-table-container">
-                    <table id="caseTable" class="min-w-full bg-white shadow-sm" style="table-layout: fixed;">
+                    <table id="caseTable" class="min-w-full shadow-sm" style="table-layout: fixed;">
                         <colgroup>
                             <col style="width: 80px;">
                             <col style="width: 120px;">
@@ -564,7 +754,9 @@
                                 </th>
                                 <th draggable="true">Destination Value<div class="resize-handle"></div>
                                 </th>
-                                <th draggable="true">Difference<div class="resize-handle"></div>
+                                <th draggable="true">Difference<div
+                                        class```html:Eagle_dq_project\dq_management\templates\dq_management\logs.html="resize-handle">
+                                    </div>
                                 </th>
                                 <th draggable="true">Threshold Type<div class="resize-handle"></div>
                                 </th>
@@ -615,7 +807,6 @@
                                     {% endwith %}
                                 </td>
 
-                                {# START: MODIFIED Run Message for Test Case Logs #}
                                 <td class="text-xs message-cell">
                                     <div class="message-wrapper">{{ log.run_message }}</div>
                                     <button class="view-details-btn"
@@ -623,7 +814,6 @@
                                         View Details <i class="fas fa-search-plus"></i>
                                     </button>
                                 </td>
-                                {# END MODIFIED Run Message #}
 
                                 <td class="text-xs">{{ log.source_value }}</td>
                                 <td class="text-xs">{{ log.destination_value }}</td>
@@ -675,7 +865,7 @@
 
             <div id="tab-group-content" class="log-content" style="display:none;">
                 <div class="scrollable-table-container">
-                    <table id="groupTable" class="min-w-full bg-white shadow-sm" style="table-layout: fixed;">
+                    <table id="groupTable" class="min-w-full shadow-sm" style="table-layout: fixed;">
                         <colgroup>
                             <col style="width: 100px;">
                             <col style="width: 120px;">
@@ -690,7 +880,7 @@
                         </colgroup>
                         <thead>
                             <tr>
-                                <th draggable="true">Run ID<div class="resize-rhandle"></div>
+                                <th draggable="true">Run ID<div class="resize-handle"></div>
                                 </th>
                                 <th draggable="true">Test Group ID<div class="resize-handle"></div>
                                 </th>
@@ -737,7 +927,6 @@
                                     {% endwith %}
                                 </td>
 
-                                {# START: MODIFIED Message for Test Group Logs #}
                                 <td class="text-sm message-cell">
                                     <div class="message-wrapper">{{ log.message }}</div>
                                     <button class="view-details-btn"
@@ -745,7 +934,6 @@
                                         View Details <i class="fas fa-search-plus"></i>
                                     </button>
                                 </td>
-                                {# END MODIFIED Message #}
 
                                 <td>
                                     <div id="details-{{ log.run_id }}" class="results-details-display">
@@ -775,7 +963,7 @@
 
             <div id="tab-project-content" class="log-content" style="display:none;">
                 <div class="scrollable-table-container">
-                    <table id="projectTable" class="min-w-full bg-white shadow-sm" style="table-layout: fixed;">
+                    <table id="projectTable" class="min-w-full shadow-sm" style="table-layout: fixed;">
                         <colgroup>
                             <col style="width: 100px;">
                             <col style="width: 120px;">
@@ -868,46 +1056,43 @@
                 {% endif %}
             </div>
 
-
         </div>
-
     </div>
-    <button id="filtersToggleBtn"
-        class="fixed top-6 right-6 z-50 rounded-full p-2 shadow-lg focus:outline-none transition-all duration-300 flex items-center justify-center bg-white border border-gray-200"
-        style="width: 44px; height: 44px;">
 
+    <button id="filtersToggleBtn"
+        class="fixed top-6 z-50 rounded-full p-2 shadow-lg focus:outline-none transition-all duration-300 flex items-center justify-center border"
+        style="width: 44px; height: 44px;">
         <span style="font-size: 1.5rem;">
             <i class="fas fa-filter"></i>
         </span>
     </button>
 
-    <div id="filtersDrawer"
-        class="fixed top-0 right-0 h-full w-80 bg-white shadow-xl z-50 transition-transform duration-300"
+    <div id="filtersDrawer" class="fixed top-0 right-0 h-full w-80 shadow-xl z-50 transition-transform duration-300"
         style="transform: translateX(100%); max-width: 100vw; overflow-y: auto;">
         <div class="flex justify-between items-center px-6 py-4 border-b">
             <span class="font-semibold text-lg">Filters</span>
-            <button id="filtersCloseBtn" class="text-gray-500 hover:text-gray-800 text-2xl focus:outline-none">
+            <button id="filtersCloseBtn" class="text-2xl focus:outline-none">
                 ×
             </button>
         </div>
         <div class="px-6 py-4 space-y-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Project ID</label>
+                <label class="block text-sm font-medium mb-1">Project ID</label>
                 <input type="text" id="filterProjectId" class="w-full border rounded px-3 py-2 text-sm"
                     placeholder="Project ID">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Test Group ID</label>
+                <label class="block text-sm font-medium mb-1">Test Group ID</label>
                 <input type="text" id="filterTestGroupId" class="w-full border rounded px-3 py-2 text-sm"
                     placeholder="Test Group ID">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Test Case ID</label>
+                <label class="block text-sm font-medium mb-1">Test Case ID</label>
                 <input type="text" id="filterTestCaseId" class="w-full border rounded px-3 py-2 text-sm"
                     placeholder="Test Case ID">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <label class="block text-sm font-medium mb-1">Status</label>
                 <select id="filterStatus" class="w-full border rounded px-3 py-2 text-sm">
                     <option value="">Any</option>
                     <option value="pass">PASS</option>
@@ -916,7 +1101,7 @@
                 </select>
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Test Type</label>
+                <label class="block text-sm font-medium mb-1">Test Type</label>
                 <select id="filterTestType" class="w-full border rounded px-3 py-2 text-sm">
                     <option value="">Any</option>
                     <option value="availability test">Availability Test</option>
@@ -925,18 +1110,20 @@
                 </select>
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Parent Run ID</label>
+                <label class="block text-sm font-medium mb-1">Parent Run ID</label>
                 <input type="text" id="filterParentRunId" class="w-full border rounded px-3 py-2 text-sm"
                     placeholder="Parent Run ID">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Run ID</label>
+                <label class="block text-sm font-medium mb-1">Run ID</label>
                 <input type="text" id="filterRunId" class="w-full border rounded px-3 py-2 text-sm"
                     placeholder="Run ID">
             </div>
-            <button id="applyFiltersBtn" class="w-full bg-blue-600 text-white py-2 rounded font-semibold mt-2">Apply
+            <button id="applyFiltersBtn"
+                class="w-full bg-blue-600 text-white py-2 rounded font-semibold mt-2 hover:bg-blue-700 transition-colors">Apply
                 Filters</button>
-            <button id="clearFiltersBtn" class="w-full bg-gray-200 text-gray-700 py-2 rounded font-semibold mt-2">Clear
+            <button id="clearFiltersBtn"
+                class="w-full bg-gray-200 text-gray-700 py-2 rounded font-semibold mt-2 hover:bg-gray-300 transition-colors">Clear
                 All</button>
         </div>
     </div>
@@ -945,7 +1132,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="modalTitle" class="font-bold text-xl"></h3>
-                <button id="modalCloseBtn" class="text-gray-500 hover:text-gray-800 text-2xl focus:outline-none">
+                <button id="modalCloseBtn" class="text-2xl focus:outline-none hover:opacity-70 transition-opacity">
                     &times;
                 </button>
             </div>
@@ -955,6 +1142,26 @@
     </div>
 
     <script>
+        // Theme Management System - Listen for sidebar theme changes
+        document.addEventListener('DOMContentLoaded', function () {
+            // Get saved theme or default to light
+            const savedTheme = localStorage.getItem('eagle-dq-theme') || 'light';
+
+            // Apply theme on page load
+            function applyTheme(theme) {
+                document.documentElement.setAttribute('data-theme', theme);
+            }
+
+            // Initialize theme
+            applyTheme(savedTheme);
+
+            // Listen for theme changes from sidebar
+            window.addEventListener('themeChanged', function(e) {
+                const theme = e.detail.theme;
+                applyTheme(theme);
+            });
+        });
+
         // Sidebar toggle logic
         const sidebar = document.getElementById('sidebar');
         const mainContent = document.getElementById('mainContent');
@@ -963,7 +1170,6 @@
         let sidebarVisible = true;
 
         function getSidebarWidth() {
-            // Get width of sidebar if it exists, otherwise default to 280px
             return (sidebar && sidebar.offsetWidth) ? sidebar.offsetWidth : 280;
         }
 
@@ -1014,7 +1220,6 @@
             const headers = Array.from(table.querySelector('thead tr').children);
             const map = {};
             headers.forEach((th, index) => {
-                // Use a standard name for lookup, clean up header text
                 const headerText = th.textContent.trim().toLowerCase().replace(/ /g, '');
                 map[headerText] = index;
             });
@@ -1025,39 +1230,76 @@
         function getCellContent(row, map, columnName) {
             const index = map[columnName.toLowerCase().replace(/ /g, '')];
             if (index !== undefined && row.children[index]) {
-                // For Status, we need the text of the badge
                 if (columnName === 'Status') {
                     const badge = row.children[index].querySelector('.status-badge');
                     return badge ? badge.textContent.trim().toLowerCase() : '';
                 }
-                // For other cells, return the text content
                 return row.children[index].textContent.trim().toLowerCase();
             }
             return '';
         }
 
         applyFiltersBtn.addEventListener('click', function () {
+            const projectId = document.getElementById('filterProjectId').value.toLowerCase();
+            const testGroupId = document.getElementById('filterTestGroupId').value.toLowerCase();
+            const testCaseId = document.getElementById('filterTestCaseId').value.toLowerCase();
+            const status = document.getElementById('filterStatus').value.toLowerCase();
+            const testType = document.getElementById('filterTestType').value.toLowerCase();
+            const parentRunId = document.getElementById('filterParentRunId').value.toLowerCase();
+            const runId = document.getElementById('filterRunId').value.toLowerCase();
 
-            // ... (inside the listener)
             const caseContent = document.getElementById('tab-case-content');
             const groupContent = document.getElementById('tab-group-content');
-            const projectContent = document.getElementById('tab-project-content'); // <-- ADD THIS
+            const projectContent = document.getElementById('tab-project-content');
             let currentTab = 'case';
 
             if (groupContent.style.display !== 'none') {
                 currentTab = 'group';
-            } else if (projectContent.style.display !== 'none') { // <-- ADD THIS ELSE IF
+            } else if (projectContent.style.display !== 'none') {
                 currentTab = 'project';
             }
 
-            // ... (filter value declarations remain the same)
-
             if (currentTab === 'case') {
-                // ... (existing case logic)
-            } else if (currentTab === 'group') {
-                // ... (existing group logic)
+                const map = getColumnIndexMap('caseTable');
+                if (!map) return;
 
-            } else if (currentTab === 'project') { // <-- ADD THIS ENTIRE BLOCK
+                document.querySelectorAll('#tab-case-content tbody tr').forEach(row => {
+                    const rowRunId = getCellContent(row, map, 'Run ID');
+                    const rowTestCaseId = getCellContent(row, map, 'Test Case ID');
+                    const rowProjectId = getCellContent(row, map, 'Project ID');
+                    const rowStatus = getCellContent(row, map, 'Status');
+                    const rowTestType = getCellContent(row, map, 'Test Type');
+                    const rowParentRunId = getCellContent(row, map, 'Parent Run ID');
+
+                    const matches =
+                        (projectId === '' || rowProjectId.includes(projectId)) &&
+                        (testCaseId === '' || rowTestCaseId.includes(testCaseId)) &&
+                        (status === '' || rowStatus === status) &&
+                        (testType === '' || rowTestType.includes(testType)) &&
+                        (parentRunId === '' || rowParentRunId.includes(parentRunId)) &&
+                        (runId === '' || rowRunId.includes(runId));
+
+                    row.style.display = matches ? '' : 'none';
+                });
+
+            } else if (currentTab === 'group') {
+                const map = getColumnIndexMap('groupTable');
+                if (!map) return;
+
+                document.querySelectorAll('#tab-group-content tbody tr').forEach(row => {
+                    const rowRunId = getCellContent(row, map, 'Run ID');
+                    const rowTestGroupId = getCellContent(row, map, 'Test Group ID');
+                    const rowStatus = getCellContent(row, map, 'Status');
+
+                    const matches =
+                        (testGroupId === '' || rowTestGroupId.includes(testGroupId)) &&
+                        (status === '' || rowStatus === status) &&
+                        (runId === '' || rowRunId.includes(runId));
+
+                    row.style.display = matches ? '' : 'none';
+                });
+
+            } else if (currentTab === 'project') {
                 const map = getColumnIndexMap('projectTable');
                 if (!map) return;
 
@@ -1066,12 +1308,10 @@
                     const rowProjectId = getCellContent(row, map, 'Project ID');
                     const rowStatus = getCellContent(row, map, 'Status');
 
-                    // Filters applicable to project logs
                     const matches =
                         (projectId === '' || rowProjectId.includes(projectId)) &&
                         (status === '' || rowStatus === status) &&
                         (runId === '' || rowRunId.includes(runId));
-                    // Other filters don't apply to this table
 
                     row.style.display = matches ? '' : 'none';
                 });
@@ -1082,79 +1322,68 @@
         });
 
         clearFiltersBtn.addEventListener('click', function () {
-
             ['filterProjectId', 'filterTestGroupId', 'filterTestCaseId', 'filterStatus', 'filterTestType', 'filterParentRunId', 'filterRunId']
-
                 .forEach(id => document.getElementById(id).value = '');
 
             document.querySelectorAll('.log-content tbody tr').forEach(row => row.style.display = '');
 
             filtersDrawer.style.transform = 'translateX(100%)';
-
             document.body.style.overflow = '';
-
         });
 
         function getUrlParam(name) {
-
             const params = new URLSearchParams(window.location.search);
-
             return params.get(name);
-
         }
 
-        // **NEW:** Function to open the modal with content
+        // Function to open the modal with content
         function openModal(title, subtitle, content) {
             const modal = document.getElementById('dataModal');
             const modalTitle = document.getElementById('modalTitle');
             const modalBody = document.getElementById('modalBody');
 
-            // Attempt to pretty-print JSON if it looks like one (Only for "Details" or JSON-like content)
             let formattedContent = content;
             let finalTitle = subtitle;
             try {
-                // Remove the extra double quotes that Django sometimes adds for string escaping
                 let cleanedContent = content.startsWith('"') && content.endsWith('"') ? content.slice(1, -1) : content;
                 const json = JSON.parse(cleanedContent);
-                // Display pretty-printed JSON
                 formattedContent = JSON.stringify(json, null, 2);
                 finalTitle = `${title} (${subtitle})`;
             } catch (e) {
-                // Not valid JSON (e.g., a message or raw query), use original content and title
                 finalTitle = title;
                 formattedContent = content;
             }
 
             modalTitle.textContent = finalTitle;
-
-            // Use a <pre> tag inside the body to respect formatting/line breaks
             modalBody.innerHTML = `<pre>${formattedContent}</pre>`;
             modal.style.display = 'flex';
-            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+            document.body.style.overflow = 'hidden';
         }
 
-        // **NEW:** Function to close the modal
+        // Function to close the modal
         document.getElementById('modalCloseBtn').addEventListener('click', function (e) {
             const modal = document.getElementById('dataModal');
             modal.style.display = 'none';
-            document.body.style.overflow = ''; // Restore background scrolling
+            document.body.style.overflow = '';
         });
 
+        // Close modal when clicking outside
+        document.getElementById('dataModal').addEventListener('click', function (e) {
+            if (e.target === this) {
+                this.style.display = 'none';
+                document.body.style.overflow = '';
+            }
+        });
 
-        // **NEW:** Function to parse JSON and render structured details for the group table
+        // Function to parse JSON and render structured details for the group table
         function renderGroupDetails() {
-            // The template tag {{ test_group_logs|safe|escapejs }} must be populated on the server side 
-            // to contain the actual group logs data as a safe-to-use JSON string.
-            // If the variable is not defined or empty, this will gracefully fail.
             const rawLogData = '{{ test_group_logs|safe|escapejs }}';
             let groupLogs = [];
             try {
-                // Clean up the string to ensure proper JSON parsing
                 const cleanedRawData = rawLogData.replace(/&quot;/g, '"');
                 groupLogs = JSON.parse(cleanedRawData);
             } catch (e) {
                 console.warn("Could not parse test_group_logs JSON string.", e);
-                // If parsing fails, groupLogs remains an empty array, which is fine.
             }
 
             groupLogs.forEach(log => {
@@ -1162,8 +1391,6 @@
                 if (!container || !log.results_details) return;
 
                 try {
-                    // Attempt to parse the results_details JSON string
-                    // We must clean up the string again as it comes from a Django template variable that was escaped (escapejs).
                     let cleanedDetails = log.results_details;
                     if (cleanedDetails.startsWith('"') && cleanedDetails.endsWith('"')) {
                         cleanedDetails = cleanedDetails.slice(1, -1);
@@ -1171,44 +1398,37 @@
 
                     const details = JSON.parse(cleanedDetails);
 
-                    // Render structured output
                     const status = details['Overall Status'] || details['overall_status'] || 'N/A';
                     const total = details['Total Tests'] || details['total_tests'] || 'N/A';
                     const failed = details['Failed Tests'] || details['failed_tests'] || 'N/A';
                     const passed = (total !== 'N/A' && failed !== 'N/A') ? (parseInt(total) - parseInt(failed)) : 'N/A';
 
-
                     let html = `<div class="results-detail-item">Status: <strong>${status}</strong></div>`;
                     html += `<div class="results-detail-item">Total: <strong>${total}</strong></div>`;
 
-                    // Highlight failed count if > 0
                     if (parseInt(failed) > 0) {
                         html += `<div class="results-detail-item text-red-700">Failed: <strong>${failed}</strong></div>`;
                     } else {
                         html += `<div class="results-detail-item">Failed: <strong>${failed}</strong></div>`;
                     }
 
-                    // Added Passed count for more info
                     if (passed !== 'N/A' && parseInt(passed) > 0) {
                         html += `<div class="results-detail-item text-green-700">Passed: <strong>${passed}</strong></div>`;
                     } else if (passed !== 'N/A' && parseInt(passed) === 0) {
                         html += `<div class="results-detail-item">Passed: <strong>${passed}</strong></div>`;
                     }
 
-
                     container.innerHTML = html;
 
                 } catch (e) {
-                    // Fallback for non-JSON or error logs
                     container.innerHTML = `<div class="results-detail-item text-red-500 italic">Details parse error.</div>`;
                     console.error("Error parsing/rendering details for run_id:", log.run_id, e);
                 }
             });
         }
 
-        // **NEW:** Function to parse JSON and render structured details for the PROJECT table
+        // Function to parse JSON and render structured details for the PROJECT table
         function renderProjectDetails() {
-            // This variable must be populated by the Django view
             const rawLogData = '{{ project_logs|safe|escapejs }}';
             let projectLogs = [];
             try {
@@ -1219,21 +1439,17 @@
             }
 
             projectLogs.forEach(log => {
-                // Target the new project table's detail cell
                 const container = document.getElementById(`project-details-${log.run_id}`);
                 if (!container || !log.results_details) return;
 
                 try {
                     let cleanedDetails = log.results_details;
-                    // Clean up string if it's double-escaped
                     if (cleanedDetails.startsWith('"') && cleanedDetails.endsWith('"')) {
                         cleanedDetails = cleanedDetails.slice(1, -1);
                     }
 
-                    // Parse the inner JSON string
                     const details = JSON.parse(cleanedDetails);
 
-                    // Render structured output (for project logs)
                     const status = details['Overall Status'] || details['overall_status'] || 'N/A';
                     const total = details['Total Groups'] || details['total_groups'] || 'N/A';
                     const failed = details['Failed Groups'] || details['failed_groups'] || 'N/A';
@@ -1257,7 +1473,6 @@
                     container.innerHTML = html;
 
                 } catch (e) {
-                    // Fallback for non-JSON or error logs
                     container.innerHTML = `<div class="results-detail-item text-red-500 italic">Details parse error.</div>`;
                     console.error("Error parsing/rendering project details for run_id:", log.run_id, e);
                 }
@@ -1268,7 +1483,7 @@
         document.addEventListener('DOMContentLoaded', function () {
             const caseContent = document.getElementById('tab-case-content');
             const groupContent = document.getElementById('tab-group-content');
-            const projectContent = document.getElementById('tab-project-content'); // <-- ADD THIS
+            const projectContent = document.getElementById('tab-project-content');
 
             try {
                 const requested = (getUrlParam('tab') || '').toLowerCase();
@@ -1276,32 +1491,28 @@
                 if (requested === 'group') {
                     caseContent.style.display = 'none';
                     groupContent.style.display = '';
-                    projectContent.style.display = 'none'; // <-- ADD THIS
-                } else if (requested === 'project') { // <-- ADD THIS ELSE IF
+                    projectContent.style.display = 'none';
+                } else if (requested === 'project') {
                     caseContent.style.display = 'none';
                     groupContent.style.display = 'none';
                     projectContent.style.display = '';
                 } else {
-                    // Default to case logs
                     caseContent.style.display = '';
                     groupContent.style.display = 'none';
-                    projectContent.style.display = 'none'; // <-- ADD THIS
+                    projectContent.style.display = 'none';
                 }
             } catch (e) {
-                // Default to case logs if error
                 caseContent.style.display = '';
                 groupContent.style.display = 'none';
-                projectContent.style.display = 'none'; // <-- ADD THIS
+                projectContent.style.display = 'none';
             }
 
-            // ... (existing call to renderGroupDetails)
             try {
                 renderGroupDetails();
             } catch (e) {
                 console.error("Error rendering group details:", e);
             }
 
-            // ADD THIS NEW TRY/CATCH BLOCK
             try {
                 renderProjectDetails();
             } catch (e) {
@@ -1309,9 +1520,11 @@
             }
         });
 
-
         // Column resizing, drag-drop reorder, and AUTOFIT on double-click
         (function () {
+            let draggedTh = null;
+            let dragStartIndex = null;
+
             // Function to calculate the required width for a column
             function calculateAutofitWidth(table, columnIndex) {
                 const tempDiv = document.createElement('div');
@@ -1319,30 +1532,25 @@
                 tempDiv.style.visibility = 'hidden';
                 tempDiv.style.whiteSpace = 'nowrap';
                 tempDiv.style.fontFamily = 'Inter, sans-serif';
-                // Start with the default text size
                 tempDiv.style.fontSize = '0.8125rem';
                 document.body.appendChild(tempDiv);
 
-                let maxWidth = 40; // Minimum width for a column
+                let maxWidth = 40;
 
-                // Include header width
                 const headerCell = table.querySelector('thead tr').children[columnIndex];
                 if (headerCell) {
                     tempDiv.textContent = headerCell.textContent.trim();
                     tempDiv.style.fontWeight = '700';
-                    maxWidth = Math.max(maxWidth, tempDiv.offsetWidth + 20); // Add padding for th
+                    maxWidth = Math.max(maxWidth, tempDiv.offsetWidth + 20);
                 }
 
-                // Iterate through all body cells in the column
                 const rows = table.querySelectorAll('tbody tr');
                 rows.forEach(row => {
                     const cell = row.children[columnIndex];
-                    if (cell && row.style.display !== 'none') { // Only consider visible rows
-
-                        // Determine base font size for accurate measurement
+                    if (cell && row.style.display !== 'none') {
                         const isTextXs = cell.classList.contains('text-xs') || cell.querySelector('.query-wrapper') || cell.querySelector('.results-detail-item');
                         tempDiv.style.fontSize = isTextXs ? '0.75rem' : '0.8125rem';
-                        tempDiv.style.fontWeight = '400'; // Reset weight for cell content
+                        tempDiv.style.fontWeight = '400';
 
                         let contentToMeasure = '';
 
@@ -1352,17 +1560,13 @@
                         const messageWrapper = cell.querySelector('.message-wrapper');
 
                         if (queryWrapper) {
-                            // For long queries (Source Query, Destination Query)
                             contentToMeasure = queryWrapper.textContent.trim();
                         } else if (messageWrapper) {
-                            // For Messages (Run Message/Message)
                             contentToMeasure = messageWrapper.textContent.trim();
                         } else if (statusBadge) {
-                            // For badges (Status)
                             contentToMeasure = statusBadge.textContent.trim();
                             tempDiv.style.fontWeight = '600';
                         } else if (detailsDisplay) {
-                            // Handle complex structured data (Group Table only)
                             tempDiv.style.whiteSpace = 'normal';
                             tempDiv.style.fontSize = '0.75rem';
                             const maxLineLength = Array.from(detailsDisplay.querySelectorAll('.results-detail-item')).reduce((max, item) => {
@@ -1371,31 +1575,23 @@
                             }, 0);
                             tempDiv.style.whiteSpace = 'nowrap';
                             maxWidth = Math.max(maxWidth, maxLineLength + 20);
-                            contentToMeasure = null; // Measured separately
-                        }
-                        else {
-                            // For simple text columns
+                            contentToMeasure = null;
+                        } else {
                             contentToMeasure = cell.textContent.trim();
                         }
 
                         if (contentToMeasure !== null) {
                             tempDiv.textContent = contentToMeasure;
-                            const currentContentWidth = tempDiv.offsetWidth + 20; // + padding
+                            const currentContentWidth = tempDiv.offsetWidth + 20;
 
-                            // Calculate the ideal width, but apply a smart cap
                             let calculatedWidth;
-
-                            // Define a soft cap for screen width consideration
                             const softCap = 800;
 
                             if (currentContentWidth > softCap) {
-                                // If full text exceeds the cap (e.g., a massive query), use the soft cap (800px)
                                 calculatedWidth = softCap;
                             } else if (currentContentWidth > 200) {
-                                // For moderately long content (>200px), use the full width
                                 calculatedWidth = currentContentWidth;
                             } else {
-                                // For short content, use the full width
                                 calculatedWidth = currentContentWidth;
                             }
 
@@ -1405,8 +1601,6 @@
                 });
 
                 document.body.removeChild(tempDiv);
-
-                // Final safety measure: ensure the minimum width is respected.
                 return Math.max(40, maxWidth);
             }
 
@@ -1417,7 +1611,6 @@
                 const headerRow = table.querySelector('thead tr');
                 const colGroup = table.querySelector('colgroup');
 
-                // Apply saved widths
                 function loadColumnWidths(tableId, ths, colGroup) {
                     try {
                         const savedWidths = JSON.parse(localStorage.getItem('colWidths_' + tableId) || 'null');
@@ -1427,10 +1620,8 @@
                                 if (width > 40) {
                                     const colElement = colGroup && colGroup.children[i];
                                     if (colElement) {
-                                        // Apply width to the <col> element
                                         colElement.style.width = width + 'px';
                                     } else {
-                                        // Fallback to applying width to <th> if no <col>
                                         th.style.width = width + 'px';
                                     }
                                 }
@@ -1439,7 +1630,6 @@
                     } catch { }
                 }
 
-                // Apply saved column order
                 function loadColumnOrder(tableId, table) {
                     const savedOrder = JSON.parse(localStorage.getItem('colOrder_' + tableId) || 'null');
 
@@ -1514,7 +1704,6 @@
                 const currentThs = table.querySelector('thead tr').children;
                 const currentColGroup = table.querySelector('colgroup');
 
-                // Function to save current widths
                 function saveCurrentWidths() {
                     const widths = Array.from(headerRow.children).map((th, i) => {
                         const col = currentColGroup ? currentColGroup.children[i] : th;
@@ -1523,12 +1712,7 @@
                     try { localStorage.setItem('colWidths_' + tableId, JSON.stringify(widths)); } catch { }
                 }
 
-                // Setup Resizing and Double-Click Autofit
                 Array.from(currentThs).forEach((th, thIndex) => {
-
-                    // ------------------------------------
-                    // Double-Click (Autofit) Logic
-                    // ------------------------------------
                     th.addEventListener('dblclick', e => {
                         e.preventDefault();
                         e.stopPropagation();
@@ -1537,23 +1721,16 @@
                         const currentCol = currentColGroup ? currentColGroup.children[currentIndex] : th;
 
                         const autofitWidth = calculateAutofitWidth(table, currentIndex);
-
-                        // Apply new width to the <col> element
                         currentCol.style.width = autofitWidth + 'px';
-
-                        // Save the new column widths to localStorage
                         saveCurrentWidths();
                     });
-                    // ------------------------------------
 
-                    // Setup Resizing 
                     if (th.querySelector('.resize-handle')) {
                         const handle = th.querySelector('.resize-handle');
                         let startX, startWidth;
 
                         handle.addEventListener('mousedown', e => {
                             e.preventDefault();
-                            // Find the correct element to measure and apply width to based on current index
                             const currentIndex = Array.from(th.parentNode.children).indexOf(th);
                             const currentCol = currentColGroup ? currentColGroup.children[currentIndex] : th;
 
@@ -1565,17 +1742,13 @@
 
                             function onMouseMove(e) {
                                 const newWidth = startWidth + (e.pageX - startX);
-
                                 if (newWidth > 40) {
-                                    // Apply width to the <col> element
                                     currentCol.style.width = newWidth + 'px';
                                 }
                             }
 
                             function onMouseUp() {
-                                // Use the new function to save the widths
                                 saveCurrentWidths();
-
                                 document.removeEventListener('mousemove', onMouseMove);
                                 document.removeEventListener('mouseup', onMouseUp);
                                 document.body.style.userSelect = '';
@@ -1587,14 +1760,11 @@
                         });
                     }
 
-                    // Setup Drag & drop reorder
                     th.setAttribute('draggable', true);
 
-                    // Add/remove drag class for visual feedback (optional)
                     th.addEventListener('dragenter', () => th.classList.add('border-l-4', 'border-blue-500'));
                     th.addEventListener('dragleave', () => th.classList.remove('border-l-4', 'border-blue-500'));
                     th.addEventListener('drop', () => th.classList.remove('border-l-4', 'border-blue-500'));
-
 
                     th.addEventListener('dragstart', e => {
                         draggedTh = th;
@@ -1627,7 +1797,6 @@
 
                         const originalHeaders = Array.from(tr.children).map(th => th.textContent.trim());
 
-                        // 1. Perform the header reorder
                         if (dragEndIndex > dragStartIndex) {
                             tr.insertBefore(draggedTh, tr.children[dragEndIndex + 1] || null);
                             if (colGroup && colToMove) {
@@ -1640,10 +1809,7 @@
                             }
                         }
 
-                        // 2. Get the new header order
                         const newHeaders = Array.from(tr.children).map(th => th.textContent.trim());
-
-                        // 3. Reorder tbody cells for each row
                         const rows = table.querySelectorAll('tbody tr');
 
                         rows.forEach(row => {
@@ -1656,7 +1822,6 @@
                             });
 
                             newHeaders.forEach(headerText => {
-
                                 const cellToMove = cellMap[headerText];
                                 if (cellToMove) {
                                     rowFragment.appendChild(cellToMove);
@@ -1667,21 +1832,12 @@
                             row.appendChild(rowFragment);
                         });
 
-
-                        // 4. Save new order
                         try { localStorage.setItem('colOrder_' + tableId, JSON.stringify(newHeaders)); } catch { }
-
-                        // 5. Save new widths 
                         saveCurrentWidths();
-
-                        // Cleanup
                         th.classList.remove('border-l-4', 'border-blue-500');
                     });
-
                 });
-
             });
-
         })();
     </script>
 
