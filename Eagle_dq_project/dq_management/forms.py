@@ -20,26 +20,22 @@ class ProjectForm(forms.ModelForm):
 
     class Meta:
         model = Project
-        # Fields to be included in the form (matching your model)
         fields = ['project_name', 'project_description', 'priority', 'criticality_level']
 
         # Define widgets to apply custom HTML attributes and CSS classes
         widgets = {
             'project_name': forms.TextInput(attrs={
-                # 🎯 CRITICAL FIX: Applying the .form-input CSS class
                 'class': 'form-input',
                 'placeholder': 'Enter a unique project name (e.g., Core Customer Data Validation)',
             }),
 
             'project_description': forms.Textarea(attrs={
-                # 🎯 CRITICAL FIX: Applying the .form-textarea CSS class
                 'class': 'form-textarea',
                 'placeholder': 'Detail the purpose, scope, and key data domains involved.',
                 'rows': '4'  # Sets the height of the textarea
             }),
 
             'priority': forms.TextInput(attrs={
-                # 🎯 CRITICAL FIX: Applying the .form-input CSS class
                 'class': 'form-input',
                 'placeholder': 'e.g., P1, P2, High',
             }),
