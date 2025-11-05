@@ -175,7 +175,7 @@ def build_dynamic_dax_query_powerbi(table, date_column=None, date_value=None,
         if filter_str:
             dax_query = f"""
                 EVALUATE
-                VAR __value = CALCULATE({agg_clause}, {filter_str})
+                VAR __value = CALCULATE({agg_clause}, FILTER({table_quoted}, {filter_str}))
                 RETURN
                 ROW("Value", __value)
             """

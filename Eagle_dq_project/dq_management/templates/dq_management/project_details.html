@@ -517,12 +517,7 @@
                             {{ project.project_id|default:"N/A" }}
                         </code>
                     </div>
-                    <div class="flex items-center">
-                        <strong>Priority:</strong>
-                        <span class="priority-badge px-2 py-0.5 rounded-full text-xs font-semibold ml-1">
-                            {{ project.priority|default:"N/A" }}
-                        </span>
-                    </div>
+
                     {% if project.criticality_level %}
                     <div class="flex items-center">
                         <strong>Criticality:</strong>
