@@ -16,7 +16,7 @@ class Project(models.Model):
     created_by = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    priority = models.CharField(max_length=50, blank=True, null=True)
+    # priority = models.CharField(max_length=50, blank=True, null=True)
     criticality_level = models.CharField(max_length=20, choices=CRITICALITY_LEVEL_CHOICES, blank=True, null=True)
     
 

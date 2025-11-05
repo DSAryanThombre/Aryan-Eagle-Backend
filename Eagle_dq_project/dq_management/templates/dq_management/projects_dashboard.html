@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+    <!DOCTYPE html>
 {% load static %}
 <html lang="en">
 
@@ -568,7 +568,7 @@
                 <p class="mb-8 text-lg" style="color: var(--text-tertiary);">Monitor and manage your data quality
                     projects</p>
 
-                <div class="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 justify-center">
                     <div class="relative">
                         <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2"
                             style="color: var(--text-muted);"></i>
@@ -583,13 +583,7 @@
                             placeholder="Filter by ID..."
                             class="search-input w-full pl-12 pr-4 py-3 text-sm focus:outline-none">
                     </div>
-                    <div class="relative">
-                        <i class="fas fa-flag absolute left-4 top-1/2 transform -translate-y-1/2"
-                            style="color: var(--text-muted);"></i>
-                        <input id="priorityFilterInput" oninput="filterProjects()" type="text"
-                            placeholder="Filter by Priority..."
-                            class="search-input w-full pl-12 pr-4 py-3 text-sm focus:outline-none">
-                    </div>
+
                     <div class="relative">
                         <i class="fas fa-exclamation-triangle absolute left-4 top-1/2 transform -translate-y-1/2"
                             style="color: var(--text-muted);"></i>
@@ -798,7 +792,6 @@
         function filterProjects() {
             const nameInput = document.getElementById('projectFilterInput').value.toLowerCase();
             const idInput = document.getElementById('projectIdFilterInput').value.toLowerCase();
-            const priorityInput = document.getElementById('priorityFilterInput').value.toLowerCase();
             const criticalityInput = document.getElementById('criticalityFilterInput').value.toLowerCase();
 
             const cards = document.querySelectorAll('.project-card');
@@ -807,15 +800,13 @@
             cards.forEach((card, index) => {
                 const name = card.dataset.projectName ? card.dataset.projectName.toLowerCase() : '';
                 const id = card.dataset.projectId ? card.dataset.projectId.toLowerCase() : '';
-                const priority = card.dataset.projectPriority ? card.dataset.projectPriority.toLowerCase() : '';
                 const criticality = card.dataset.projectCriticality ? card.dataset.projectCriticality.toLowerCase() : '';
 
                 const matchesName = name.includes(nameInput);
                 const matchesId = id.includes(idInput);
-                const matchesPriority = priorityInput === '' || priority.includes(priorityInput);
                 const matchesCriticality = criticalityInput === '' || criticality.includes(criticalityInput);
 
-                if (matchesName && matchesId && matchesPriority && matchesCriticality) {
+                if (matchesName && matchesId && matchesCriticality) {
                     card.style.display = 'block';
                     card.style.opacity = '0';
                     setTimeout(() => {
@@ -831,7 +822,7 @@
             });
 
             const emptyState = document.getElementById('emptyState');
-            const isFiltering = nameInput !== '' || idInput !== '' || priorityInput !== '' || criticalityInput !== '';
+            const isFiltering = nameInput !== '' || idInput !== '' || criticalityInput !== '';
 
             if (emptyState) {
                 emptyState.style.display = (!found && isFiltering) ? 'block' : 'none';

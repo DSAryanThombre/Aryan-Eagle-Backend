@@ -113,47 +113,53 @@ def edit_project(request, project_id):
     Handles displaying the 'Edit Project' form (GET) and updating an existing project (POST).
     """
     print(f"--- DEBUG: edit_project called with project_id: {project_id} ---")
-    project_data = get_project_from_db(project_id) # Assumes this returns a dict/object
+    project_data = get_project_from_db(project_id)
+
     if not project_data:
         print(f"--- DEBUG: Project {project_id} not found ---")
         messages.error(request, "Project not found.")
         return redirect('projects_dashboard')
 
     # Map project_data dictionary keys to object attributes if necessary
+    try:
+        existing_project = Project.objects.using('snowflake_dev').get(project_id=project_id)
+    except Project.DoesNotExist:
+        messages.error(request, "Project not found.")
+        return redirect('projects_dashboard')
+
+    # Map project_data to dict for initial/form handling
     project = {
-        'project_name': project_data.get('project_name') or project_data.project_name,
-        'project_description': project_data.get('project_description') or project_data.project_description,
-        'priority': project_data.get('priority') or project_data.priority,
-        'created_by': project_data.get('created_by') or project_data.created_by,
+        'project_name': project_data.get('project_name') or getattr(project_data, 'project_name', ''),
+        'project_description': project_data.get('project_description') or getattr(project_data, 'project_description', ''),
+        'created_by': project_data.get('created_by') or getattr(project_data, 'created_by', ''),
     }
+
     print(f"--- DEBUG: Retrieved project data: {project} ---")
 
 
     if request.method == 'POST':
         print("--- DEBUG: POST received for edit_project ---")
-        form = ProjectForm(request.POST)
-        form.instance._state.db = 'snowflake_dev'  # Ensure form validation uses the correct database
-
+        # Bind the form to the existing instance for editing
+        form = ProjectForm(request.POST, instance=existing_project)
+        form.instance._state.db = 'snowflake_dev'
+        
         if form.is_valid():
             try:
                 print("--- DEBUG: Form is valid, saving ---")
-                # Get the unsaved instance
+                # Save the form with commit=False, then save the instance with the database
                 updated_project = form.save(commit=False)
-                updated_project.project_id = project_id  # Ensure the project_id is set
-                updated_project.created_by = project['created_by']  # Retain original creator
                 updated_project.save(using='snowflake_dev')
-
                 print("--- DEBUG: Update SUCCESS. Redirecting to project_details. ---")
                 messages.success(request, f"Project '{updated_project.project_name}' updated successfully! ✏️")
                 logger.info(f"Project '{updated_project.project_name}' ({project_id}) updated.")
                 return redirect(reverse('project_details', args=[project_id]))
-
             except Exception as e:
                 print(f"--- DEBUG: UNCAUGHT EXCEPTION: {e} ---")
                 messages.error(request, f"An unexpected error occurred during update: {e}")
         else:
             print("--- DEBUG: Form is invalid ---")
             messages.error(request, "Please correct the errors below.")
+
 
         # If form is invalid or exception occurred, re-render with errors
         context = {
@@ -240,7 +246,7 @@ def project_details(request, project_id):
         'test_cases': test_cases,
         'test_groups': test_groups,
         'project_description': project.get('project_description'),
-        'priority': project.get('priority'),
+        'priority': project.get('criticality_level'),
         'created_by': project.get('created_by'),
         'created_at': project.get('created_at'),
         'updated_at': project.get('updated_at'),
@@ -757,7 +763,7 @@ def dashboard(request):
             'project_id': project_id,
             'project_name': project.get('project_name') or project.get('name'),
             'project_description': project.get('project_description',''),
-            'priority': criticality,  # Use criticality_level instead of priority
+            'criticality_level': criticality,  # Use criticality_level instead of priority
             'failed_test_groups': failed_test_groups,
             'passed_test_groups': passed_test_groups,
             'total_run_groups': total_run_groups,

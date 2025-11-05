@@ -20,7 +20,7 @@ class ProjectForm(forms.ModelForm):
 
     class Meta:
         model = Project
-        fields = ['project_name', 'project_description', 'priority', 'criticality_level']
+        fields = ['project_name', 'project_description', 'criticality_level']
 
         # Define widgets to apply custom HTML attributes and CSS classes
         widgets = {
@@ -35,10 +35,5 @@ class ProjectForm(forms.ModelForm):
                 'rows': '4'  # Sets the height of the textarea
             }),
 
-            'priority': forms.TextInput(attrs={
-                'class': 'form-input',
-                'placeholder': 'e.g., P1, P2, High',
-            }),
-            # If you want 'priority' to be a dropdown, define it as a ChoiceField:
-            # 'priority': forms.Select(choices=PRIORITY_CHOICES, attrs={'class': 'form-select'}),
+
         }
