@@ -657,19 +657,8 @@
             const selectedData = [];
             const checkboxes = document.querySelectorAll('.test-case-item input[type="checkbox"]');
 
-            // First, collect current selected orders to find the next available
-            let maxOrder = 0;
-            checkboxes.forEach(checkbox => {
-                if (checkbox.checked) {
-                    const itemContainer = checkbox.closest('.test-case-item');
-                    const orderInput = itemContainer.querySelector('.execution-order-input');
-                    const orderValue = parseInt(orderInput.value);
-                    if (!isNaN(orderValue) && orderValue > 0) {
-                        maxOrder = Math.max(maxOrder, orderValue);
-                    }
-                }
-            });
-
+            // Collect all selected test cases with their current orders
+            const selectedItems = [];
             checkboxes.forEach(checkbox => {
                 const itemContainer = checkbox.closest('.test-case-item');
                 const orderInput = itemContainer.querySelector('.execution-order-input');
@@ -677,17 +666,10 @@
 
                 if (checkbox.checked) {
                     let orderValue = parseInt(orderInput.value);
-
-                    // If the checkbox is checked but order is empty/invalid, auto-assign next order
-                    if (isNaN(orderValue) || orderValue < 1) {
-                        orderValue = maxOrder + 1;
-                        maxOrder = orderValue; // Update max for next
-                        orderInput.value = orderValue; // Set the visible input
-                    }
-
-                    selectedData.push({
-                        test_case_id: testCaseId,
-                        execution_order: orderValue
+                    selectedItems.push({
+                        testCaseId: testCaseId,
+                        orderInput: orderInput,
+                        currentOrder: orderValue || 0
                     });
                 } else {
                     // If unchecked, ensure the order input is cleared
@@ -695,8 +677,17 @@
                 }
             });
 
-            // Sort selectedData by execution_order before stringifying
-            selectedData.sort((a, b) => a.execution_order - b.execution_order);
+            // Sort selected items by current order (ascending), then assign consecutive orders starting from 1
+            selectedItems.sort((a, b) => a.currentOrder - b.currentOrder);
+            selectedItems.forEach((item, index) => {
+                const newOrder = index + 1;
+                item.orderInput.value = newOrder;
+                selectedData.push({
+                    test_case_id: item.testCaseId,
+                    execution_order: newOrder
+                });
+            });
+
             document.getElementById('selected_test_cases_data').value = JSON.stringify(selectedData);
         }
 
